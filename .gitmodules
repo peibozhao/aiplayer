@@ -11,3 +11,6 @@
 [submodule "third/spdlog"]
 	path = third/spdlog
 	url = https://github.com/gabime/spdlog
+[submodule "third/MNN"]
+	path = third/MNN
+	url = https://github.com/alibaba/MNN/

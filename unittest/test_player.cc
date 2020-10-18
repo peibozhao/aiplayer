@@ -12,7 +12,8 @@ TEST_CASE("Player") {
     box1.xmax = 500; box2.xmax = 80;
     box1.ymax = 800; box2.ymax = 70;
     box1.conf = 0.93; box2.conf = 0.89;
-    box1.class_idx = 1; box2.class_idx = 1;
+    box1.class_name = "enemy-normal";
+    box2.class_name = "enemy-normal";
     std::vector<DetectBox> boxes;
     boxes.emplace_back(box1);
     boxes.emplace_back(box2);

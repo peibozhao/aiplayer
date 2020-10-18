@@ -3,9 +3,9 @@ cmake_minimum_required(VERSION 3.10)
 project(aiplayer)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-# set(CMAKE_DEBUG_POSTFIX "")
 set(SPDLOG_FMT_EXTERNAL ON)
 set(BUILD_TESTING OFF)
+set(MNN_BUILD_TOOLS OFF)
 
 include_directories(src)
 include_directories(third/yaml-cpp/include)
@@ -32,6 +32,14 @@ target_link_libraries(aiplayer
 add_subdirectory(third/yaml-cpp)
 add_subdirectory(third/fmt)
 add_subdirectory(third/spdlog)
+add_subdirectory(third/MNN)
+
+add_custom_target(MNN_PRE
+  COMMAND ./schema/generate.sh
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/third/MNN
+  )
+
+add_dependencies(MNN MNN_PRE)
 
 add_subdirectory(unittest)
 add_subdirectory(demo)
