@@ -39,7 +39,9 @@ add_custom_target(MNN_PRE
   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/third/MNN
   )
 
-add_dependencies(MNN MNN_PRE)
+foreach(MNN_TARGET ${MNN_TARGETS})
+  add_dependencies(${MNN_TARGET} MNN_PRE)
+endforeach()
 
 add_subdirectory(unittest)
 add_subdirectory(demo)
