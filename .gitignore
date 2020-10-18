@@ -1,0 +1,10 @@
+/*
+
+!src/
+!demo/
+!tool/
+!third/
+!unittest/
+!CMakeLists.txt
+!.gitignore
+!.gitmodules
