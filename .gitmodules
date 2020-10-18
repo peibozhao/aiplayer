@@ -1,0 +1,13 @@
+[submodule "third/yaml-cpp"]
+	path = third/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp
+[submodule "third/Catch2"]
+	path = third/Catch2
+	url = https://github.com/catchorg/Catch2
+	branch = master
+[submodule "third/fmt"]
+	path = third/fmt
+	url = https://github.com/fmtlib/fmt
+[submodule "third/spdlog"]
+	path = third/spdlog
+	url = https://github.com/gabime/spdlog
