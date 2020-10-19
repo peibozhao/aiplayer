@@ -8,10 +8,10 @@
 class IOperator {
 public:
   virtual bool Init(const std::string &cfg) = 0;
-  void Operator(PlayOperation operation);
+  bool Operator(PlayOperation operation);
 
 protected:
-  virtual void Click(int x, int y) = 0;
+  virtual bool Click(int x, int y) = 0;
 };
 
 #endif // ifndef OPERATOR_OPERATOR_H

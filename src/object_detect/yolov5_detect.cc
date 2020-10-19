@@ -58,7 +58,7 @@ bool Yolov5Detect::SetParam(const std::string &key, const std::string &value) {
 }
 
 std::vector<DetectBox> Yolov5Detect::Detect(const std::vector<uint8_t> &data) {
-  TimeLog time_log;
+  TimeLog time_log("Detect");
   PreProcess(data);
   if (net_->runSession(session_) != MNN::NO_ERROR) {
     spdlog::error("MNN runSession failed");

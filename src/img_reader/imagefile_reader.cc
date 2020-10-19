@@ -3,6 +3,7 @@
 #include <fstream>
 #include "yaml-cpp/yaml.h"
 #include "spdlog/spdlog.h"
+#include "utils/util_types.h"
 
 #include "opencv2/imgcodecs.hpp"
 
@@ -16,6 +17,7 @@ bool ImageFileReader::Init(const std::string &cfg) {
 }
 
 bool ImageFileReader::Read(Image &img) {
+  TimeLog time_log;
   img.width = -1;
   img.height = -1;
   img.data.clear();

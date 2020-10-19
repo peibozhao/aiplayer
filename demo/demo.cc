@@ -1,5 +1,7 @@
 
 #include <thread>
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
 #include "img_reader/video_reader.h"
 #include "img_reader/imagefile_reader.h"
@@ -27,7 +29,11 @@ cv::Mat CombineImage(const Image &img, const std::vector<DetectBox> &boxes, cons
 }
 
 int main() {
-  spdlog::set_level(spdlog::level::debug);
+  // auto logger = spdlog::basic_logger_mt("filelogger", "output");
+  auto logger = spdlog::stdout_color_mt("stdout");
+  logger->set_level(spdlog::level::debug);
+  // logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %^%l%$: %v");
+  spdlog::set_default_logger(logger);
 
   AndroidRemoteScreenshotReader reader;
   reader.Init(R"(
@@ -71,7 +77,11 @@ int main() {
                      box.xmax, box.ymax, box.conf);
       }
       auto opt = player.Play(boxes);
-      operate.Operator(opt);
+      bool opt_ret = operate.Operator(opt);
+      if (!opt_ret) {
+        spdlog::error("Operate failed.");
+        break;
+      }
       cv::Mat cv_img = CombineImage(img, boxes, opt);
       cv::imwrite("output.jpg", cv_img);
     } else {

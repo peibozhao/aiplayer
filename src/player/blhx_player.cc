@@ -1,12 +1,14 @@
 
 #include "blhx_player.h"
 #include <regex>
+#include "utils/util_types.h"
 
 bool BLHXPlayer::Init(const std::string &cfg) {
   return true;
 }
 
 PlayOperation BLHXPlayer::Play(const std::vector<DetectBox> &boxes) {
+  TimeLog time_log("Player");
   PlayOperation ret;
   ret.type = PlayOperationType::SCREEN_CLICK;
   ret.click.x = 1000;

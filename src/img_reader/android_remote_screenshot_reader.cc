@@ -4,6 +4,7 @@
 #include "spdlog/spdlog.h"
 #include "fmt/format.h"
 #include "utils/util_functions.h"
+#include "utils/util_types.h"
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 
@@ -17,15 +18,16 @@ bool AndroidRemoteScreenshotReader::Init(const std::string &cfg) {
 }
 
 bool AndroidRemoteScreenshotReader::Read(Image &img) {
+  TimeLog time_log("Reader");
   std::string screenshot_cmd = fmt::format(screenshot_cmd_, remote_storage_fn_);
-  spdlog::info(screenshot_cmd);
+  spdlog::debug(screenshot_cmd);
   int screenshot_ret = system(screenshot_cmd.c_str());
   if (!HandleSystemResult(screenshot_ret)) {
     spdlog::error("Screenshot failed.");
     return false;
   }
   std::string pull_image_cmd = fmt::format(pull_img_cmd_, remote_storage_fn_, local_storage_fn_);
-  spdlog::info(pull_image_cmd);
+  spdlog::debug(pull_image_cmd);
   int pull_ret = system(pull_image_cmd.c_str());
   if (!HandleSystemResult(pull_ret)) {
     spdlog::error("Pull failed.");

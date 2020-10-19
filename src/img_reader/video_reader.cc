@@ -2,6 +2,7 @@
 #include "video_reader.h"
 #include "yaml-cpp/yaml.h"
 #include "spdlog/spdlog.h"
+#include "utils/util_types.h"
 
 bool VideoReader::Init(const std::string &cfg) {
   YAML::Node config = YAML::Load(cfg.c_str());
@@ -16,6 +17,7 @@ bool VideoReader::Init(const std::string &cfg) {
 }
 
 bool VideoReader::Read(Image &img) {
+  TimeLog time_log("Reader");
   img.height = -1;
   img.width = -1;
   img.data.clear();

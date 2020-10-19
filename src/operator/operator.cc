@@ -1,12 +1,14 @@
 
 #include "operator.h"
 
-void IOperator::Operator(PlayOperation operation) {
+bool IOperator::Operator(PlayOperation operation) {
+  int ret = true;
   switch (operation.type) {
     case PlayOperationType::SCREEN_CLICK:
-      Click(operation.click.x, operation.click.y);
+      ret = Click(operation.click.x, operation.click.y);
       break;
     default:
       break;
   }
+  return ret;
 }

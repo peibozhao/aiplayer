@@ -9,7 +9,7 @@ public:
   bool Init(const std::string &cfg) override;
 
 private:
-  void Click(int x, int y) override;
+  bool Click(int x, int y) override;
 
 private:
   std::string click_cmd_;
