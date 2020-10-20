@@ -2,6 +2,7 @@
 #include <thread>
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include "yaml-cpp/yaml.h"
 #include "spdlog/spdlog.h"
 #include "img_reader/video_reader.h"
 #include "img_reader/imagefile_reader.h"
@@ -36,34 +37,29 @@ int main() {
   spdlog::set_default_logger(logger);
 
   AndroidRemoteScreenshotReader reader;
-  reader.Init(R"(
+  if (!reader.Init(R"(
   remote_filename: /sdcard/temp/img.png
   local_filename: /tmp/img.png
-  )");
+  )")) {
+    return -1;
+  }
+
+  YAML::Node net_config = YAML::LoadFile("blhx-v2.0.0.yaml");
+  net_config["image_width"] = 2340;
+  net_config["image_height"] = 1080;
+
   Yolov5Detect detect;
-  detect.Init(R"(
-  image_width: 2340
-  image_height: 1080
-  network:
-    input_width: 640
-    input_height: 320
-    class_names: [enemy-normal, enemy-boss, label-meirirenwu, label-likeqianwang, label-yingji, label-chuji, label-zhandoupingjia, label-dianjijixu, label-queding]
-    score_thresh: 0.8
-    nms_thresh: 0.8
-    stride:
-      output: 8
-      1036: 16
-      1056: 32
-    anchor_grid:
-      output: [[10, 13], [16, 30], [33, 23]]
-      1036: [[30, 61], [62, 45], [59, 119]]
-      1056: [[116, 90], [156, 198], [373, 326]]
-    net_file: last.mnn
-  )");
+  if (!detect.Init(YAML::Dump(std::move(net_config)))) {
+    return -1;
+  }
   BLHXPlayer player;
-  player.Init("");
+  if (!player.Init("")) {
+    return -1;
+  }
   AndroidRemoteOperator operate;
-  operate.Init("");
+  if (!operate.Init("")) {
+    return -1;
+  }
 
   while (true) {
     // Wait animation

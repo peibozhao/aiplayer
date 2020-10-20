@@ -9,9 +9,15 @@
 #include "opencv2/imgproc.hpp"
 
 bool AndroidRemoteScreenshotReader::Init(const std::string &cfg) {
-  YAML::Node config = YAML::Load(cfg);
-  remote_storage_fn_ = config["remote_filename"].as<std::string>();
-  local_storage_fn_ = config["local_filename"].as<std::string>();
+  spdlog::info("Reader config: \n{}", cfg);
+  try {
+    YAML::Node config = YAML::Load(cfg);
+    remote_storage_fn_ = config["remote_filename"].as<std::string>();
+    local_storage_fn_ = config["local_filename"].as<std::string>();
+  } catch (std::exception &e) {
+    spdlog::error("Catch exception. {}", e.what());
+    return false;
+  }
   screenshot_cmd_ = "adb shell screencap -p {}";
   pull_img_cmd_ = "adb pull {} {}";
   return true;

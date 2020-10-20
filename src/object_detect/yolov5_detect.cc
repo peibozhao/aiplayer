@@ -12,27 +12,34 @@ Yolov5Detect::~Yolov5Detect() {
 }
 
 bool Yolov5Detect::Init(const std::string &cfg) {
-  YAML::Node config = YAML::Load(cfg);
-  img_height_ = config["image_height"].as<int>();
-  img_width_ = config["image_width"].as<int>();
-  YAML::Node net_config = config["network"];
-  input_height_ = net_config["input_height"].as<int>();
-  input_width_ = net_config["input_width"].as<int>();
-  class_names_ = net_config["class_names"].as<std::vector<std::string>>();
-  nms_thresh_ = net_config["nms_thresh"].as<float>();
-  score_thresh_ = net_config["score_thresh"].as<float>();
-  YAML::Node stride_config = net_config["stride"];
-  // for (const YAML::Node &stride_sub_config : stride_config) {
-  for (const auto &stride_pair : net_config["stride"]) {
-    YAML::Node stride_sub_config = stride_pair.second;
-    stride_[stride_pair.first.as<std::string>()] = stride_sub_config.as<int>();
+  spdlog::info("Detect config: \n{}", cfg);
+  std::string net_fn;
+  try {
+    YAML::Node config = YAML::Load(cfg);
+    img_height_ = config["image_height"].as<int>();
+    img_width_ = config["image_width"].as<int>();
+    YAML::Node net_config = config["network"];
+    input_height_ = net_config["input_height"].as<int>();
+    input_width_ = net_config["input_width"].as<int>();
+    class_names_ = net_config["class_names"].as<std::vector<std::string>>();
+    nms_thresh_ = net_config["nms_thresh"].as<float>();
+    score_thresh_ = net_config["score_thresh"].as<float>();
+    YAML::Node stride_config = net_config["stride"];
+    // for (const YAML::Node &stride_sub_config : stride_config) {
+    for (const auto &stride_pair : net_config["stride"]) {
+      YAML::Node stride_sub_config = stride_pair.second;
+      stride_[stride_pair.first.as<std::string>()] = stride_sub_config.as<int>();
+    }
+    for (const auto &anchor_pair : net_config["anchor_grid"]) {
+      std::string output_name = anchor_pair.first.as<std::string>();
+      YAML::Node anchor_sub_config = anchor_pair.second;
+      anchor_grid_[output_name] = anchor_sub_config.as<std::array<std::array<int, 2>, 3>>();
+    }
+    net_fn = net_config["net_file"].as<std::string>();
+  } catch (std::exception &e) {
+    spdlog::error("Catch error: {}", e.what());
+    return false;
   }
-  for (const auto &anchor_pair : net_config["anchor_grid"]) {
-    std::string output_name = anchor_pair.first.as<std::string>();
-    YAML::Node anchor_sub_config = anchor_pair.second;
-    anchor_grid_[output_name] = anchor_sub_config.as<std::array<std::array<int, 2>, 3>>();
-  }
-  std::string net_fn = net_config["net_file"].as<std::string>();
   net_ = MNN::Interpreter::createFromFile(net_fn.c_str());
 
   MNN::ScheduleConfig sche_config;
