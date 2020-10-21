@@ -1,0 +1,7 @@
+# 记录特殊的操作
+special-operation:
+  label-meirirenwu:
+    type: click
+    location:
+      x: 1300
+      y: 600

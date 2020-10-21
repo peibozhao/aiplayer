@@ -3,6 +3,7 @@
 !src/
 !demo/
 !tool/
+!config/
 !third/
 !unittest/
 !CMakeLists.txt

@@ -1,5 +1,6 @@
 
 #include <thread>
+#include <fstream>
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "yaml-cpp/yaml.h"
@@ -30,10 +31,8 @@ cv::Mat CombineImage(const Image &img, const std::vector<DetectBox> &boxes, cons
 }
 
 int main() {
-  // auto logger = spdlog::basic_logger_mt("filelogger", "output");
   auto logger = spdlog::stdout_color_mt("stdout");
   logger->set_level(spdlog::level::debug);
-  // logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] %^%l%$: %v");
   spdlog::set_default_logger(logger);
 
   AndroidRemoteScreenshotReader reader;
@@ -47,13 +46,16 @@ int main() {
   YAML::Node net_config = YAML::LoadFile("blhx-v2.0.0.yaml");
   net_config["image_width"] = 2340;
   net_config["image_height"] = 1080;
-
   Yolov5Detect detect;
   if (!detect.Init(YAML::Dump(std::move(net_config)))) {
     return -1;
   }
+
+  std::ifstream player_cfg_file("../../config/blhx-player.yaml");
+  std::string player_cfg((std::istreambuf_iterator<char>(player_cfg_file)),
+                         std::istreambuf_iterator<char>());
   BLHXPlayer player;
-  if (!player.Init("")) {
+  if (!player.Init(player_cfg)) {
     return -1;
   }
   AndroidRemoteOperator operate;

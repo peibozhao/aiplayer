@@ -10,6 +10,7 @@ bool AndroidRemoteOperator::Init(const std::string &cfg) {
 }
 
 bool AndroidRemoteOperator::Click(int x, int y) {
+  spdlog::info("Click {} {}", x, y);
   TimeLog time_log("Click");
   std::string click_cmd = fmt::format(click_cmd_, x, y);
   int click_ret = system(click_cmd.c_str());
