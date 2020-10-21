@@ -15,7 +15,7 @@ private:
 private:
   int same_operater_times_;  /// 连续相同操作的次数
   std::string last_name_;  /// 上次点击的名称
-  int normal_enemy_times_;  /// 连续点击普通敌人的次数
+  // int normal_enemy_times_;  /// 连续点击普通敌人的次数
   std::map<std::string, PlayOperation> special_opeations_;
 };
 

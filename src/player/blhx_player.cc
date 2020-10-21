@@ -6,7 +6,6 @@
 
 bool BLHXPlayer::Init(const std::string &cfg) {
   spdlog::info("Player config \n{}", cfg);
-  normal_enemy_times_ = 0;
   same_operater_times_ = 0;
   try {
     YAML::Node config = YAML::Load(cfg);
@@ -29,23 +28,22 @@ bool BLHXPlayer::Init(const std::string &cfg) {
 
 PlayOperation BLHXPlayer::Play(const std::vector<DetectBox> &boxes) {
   TimeLog time_log("Player");
-  bool is_normal_enemy_ = true;
+  std::string cur_name;
   PlayOperation ret;
   ret.type = PlayOperationType::SCREEN_CLICK;
   ret.click.x = 1000;
   ret.click.y = 10;
-  std::string cur_name;
   for (const auto &box : boxes) {
     cur_name = box.class_name;
+    // 是否有特殊操作
     auto iter = special_opeations_.find(box.class_name);
     if (iter != special_opeations_.end()) {
-      is_normal_enemy_ = false;
       ret = iter->second;
       break;
     }
+
     std::smatch matchs;
     if (std::regex_search(box.class_name, matchs, std::regex("label"))) {
-      is_normal_enemy_ = false;
       // label
       ret.type = PlayOperationType::SCREEN_CLICK;
       ret.click.x = (box.xmin + box.xmax) / 2;
@@ -60,26 +58,19 @@ PlayOperation BLHXPlayer::Play(const std::vector<DetectBox> &boxes) {
           spdlog::debug("Same operation. {} {}", last_name_, same_operater_times_);
           continue;
         }
-        normal_enemy_times_ = 0;
-        is_normal_enemy_ = false;
         ret.type = PlayOperationType::SCREEN_CLICK;
         ret.click.x = (box.xmin + box.xmax) / 2;
         ret.click.y = (box.ymin + box.ymax) / 2;
         break;
       } else {
         // normal
-        ret.type = PlayOperationType::SCREEN_CLICK;
-        ret.click.x = (box.xmin + box.xmax) / 2;
-        ret.click.y = (box.ymin + box.ymax) / 2;
+        PlayOperation play_opt;
+        play_opt.type = PlayOperationType::SCREEN_CLICK;
+        play_opt.click.x = (box.xmin + box.xmax) / 2;
+        play_opt.click.y = (box.ymin + box.ymax) / 2;
       }
     }
   }
-  // 防止boss时没有弹药导致失败
-  if (normal_enemy_times_ >= 5) {
-    normal_enemy_times_ = 4;
-    ret.type = PlayOperationType::NONE;
-  }
-  normal_enemy_times_ = is_normal_enemy_ ? normal_enemy_times_ + 1 : normal_enemy_times_;
   if (!cur_name.empty()) {
     same_operater_times_ = cur_name == last_name_ ? same_operater_times_ + 1 : 1;
     last_name_ = cur_name;
