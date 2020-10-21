@@ -7,6 +7,7 @@
 bool BLHXPlayer::Init(const std::string &cfg) {
   spdlog::info("Player config \n{}", cfg);
   normal_enemy_times_ = 0;
+  same_operater_times_ = 0;
   try {
     YAML::Node config = YAML::Load(cfg);
     const YAML::Node &sp_opt_cfg = config["special-operation"];
@@ -33,7 +34,9 @@ PlayOperation BLHXPlayer::Play(const std::vector<DetectBox> &boxes) {
   ret.type = PlayOperationType::SCREEN_CLICK;
   ret.click.x = 1000;
   ret.click.y = 10;
+  std::string cur_name;
   for (const auto &box : boxes) {
+    cur_name = box.class_name;
     auto iter = special_opeations_.find(box.class_name);
     if (iter != special_opeations_.end()) {
       is_normal_enemy_ = false;
@@ -52,6 +55,12 @@ PlayOperation BLHXPlayer::Play(const std::vector<DetectBox> &boxes) {
       // enemy
       if (std::regex_search(box.class_name, matchs, std::regex("boss"))) {
         // boss
+        if (same_operater_times_ >= 3 && last_name_ == box.class_name) {
+          // 可能不能到达boss的位置
+          spdlog::debug("Same operation. {} {}", last_name_, same_operater_times_);
+          continue;
+        }
+        normal_enemy_times_ = 0;
         is_normal_enemy_ = false;
         ret.type = PlayOperationType::SCREEN_CLICK;
         ret.click.x = (box.xmin + box.xmax) / 2;
@@ -66,10 +75,14 @@ PlayOperation BLHXPlayer::Play(const std::vector<DetectBox> &boxes) {
     }
   }
   // 防止boss时没有弹药导致失败
-  normal_enemy_times_ = is_normal_enemy_ ? normal_enemy_times_ + 1 : 0;
   if (normal_enemy_times_ >= 5) {
     normal_enemy_times_ = 4;
     ret.type = PlayOperationType::NONE;
+  }
+  normal_enemy_times_ = is_normal_enemy_ ? normal_enemy_times_ + 1 : normal_enemy_times_;
+  if (!cur_name.empty()) {
+    same_operater_times_ = cur_name == last_name_ ? same_operater_times_ + 1 : 1;
+    last_name_ = cur_name;
   }
   spdlog::info("Play {} {} {}", ret.type, ret.click.x, ret.click.y);
   return ret;
