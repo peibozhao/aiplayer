@@ -35,7 +35,7 @@ PlayOperation BLHXPlayer::Play(const std::vector<DetectBox> &boxes) {
       }
     } else if (std::regex_search(box.class_name, matchs, std::regex("enemy"))) {
       // enemy
-      if (std::regex_search(box.class_name, matchs, std::regex("meirirenwu"))) {
+      if (std::regex_search(box.class_name, matchs, std::regex("boss"))) {
         // boss
         is_normal_enemy_ = false;
         ret.type = PlayOperationType::SCREEN_CLICK;
