@@ -64,10 +64,9 @@ PlayOperation BLHXPlayer::Play(const std::vector<DetectBox> &boxes) {
         break;
       } else {
         // normal
-        PlayOperation play_opt;
-        play_opt.type = PlayOperationType::SCREEN_CLICK;
-        play_opt.click.x = (box.xmin + box.xmax) / 2;
-        play_opt.click.y = (box.ymin + box.ymax) / 2;
+        ret.type = PlayOperationType::SCREEN_CLICK;
+        ret.click.x = (box.xmin + box.xmax) / 2;
+        ret.click.y = (box.ymin + box.ymax) / 2;
       }
     }
   }
