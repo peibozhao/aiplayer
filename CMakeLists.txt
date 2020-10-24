@@ -11,10 +11,12 @@ include_directories(src)
 include_directories(third/yaml-cpp/include)
 include_directories(third/spdlog/include)
 include_directories(third/fmt/include)
+include_directories(third/cpp-httplib)
+include_directories(third/json/include)
 include_directories(/usr/local/include/opencv4)
 
 file(GLOB_RECURSE SOURCE_LIST
-  src/*.cc
+  src/*.cpp
   )
 
 add_library(aiplayer SHARED ${SOURCE_LIST})
@@ -23,6 +25,7 @@ target_link_libraries(aiplayer
   yaml-cpp
   fmt
   spdlog
+  nlohmann_json
   opencv_imgcodecs
   opencv_imgproc
   opencv_core
@@ -32,7 +35,8 @@ target_link_libraries(aiplayer
 add_subdirectory(third/yaml-cpp)
 add_subdirectory(third/fmt)
 add_subdirectory(third/spdlog)
-add_subdirectory(third/MNN)
+# add_subdirectory(third/MNN)
+add_subdirectory(third/json)
 
 add_custom_target(MNN_PRE
   COMMAND ./schema/generate.sh

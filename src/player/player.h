@@ -10,7 +10,18 @@
 #define PLAYER_PLAYER_H
 
 #include <string>
-#include "object_detect/detect.h"
+#include <vector>
+#include <iostream>
+
+struct DetectObject {
+  int xmin, xmax, ymin, ymax;
+  float conf;
+  std::string name;
+
+  DetectObject() :
+    xmin(0), xmax(0), ymin(0), ymax(0), conf(0.0) {
+  }
+};
 
 enum class PlayOperationType {
   NONE,  // 没有操作
@@ -20,6 +31,11 @@ enum class PlayOperationType {
 /// @brief 触屏点击操作
 struct ClickOperation {
   int x, y;
+
+  ClickOperation() {
+    x = -1;
+    y = -1;
+  }
 };
 
 /// @brief 操作
@@ -31,6 +47,8 @@ struct PlayOperation {
 
   PlayOperation() {
     type = PlayOperationType::NONE;
+    click.x = -1;
+    click.y = -1;
   }
 };
 
@@ -40,7 +58,8 @@ struct PlayOperation {
 class IPlayer {
 public:
   virtual bool Init(const std::string &cfg) = 0;
-  virtual PlayOperation Play(const std::vector<DetectBox> &boxes) = 0;
+
+  virtual PlayOperation Play(const std::vector<DetectObject> &boxes) = 0;
 };
 
 #endif // ifndef PLAYER_PLAYER_H

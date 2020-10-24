@@ -15,4 +15,6 @@ float RectArea(const std::vector<float> &rect);
 
 bool HandleSystemResult(int sys_ret);
 
+std::string Base64Encode(const std::vector<uint8_t> &data);
+
 #endif // ifndef UTILS_UTILS_FUNCTIONS

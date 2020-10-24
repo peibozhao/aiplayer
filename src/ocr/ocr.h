@@ -1,29 +1,22 @@
-/**
- * @file detect.h
- * @brief 目标检测接口基类
- * @author peibozhao
- * @version 1.0.0
- * @date 2020-10-11
- */
 
-#ifndef OBJECT_DETECT_DETECT_H
-#define OBJECT_DETECT_DETECT_H
+#ifndef OCR_OCR_H
+#define OCR_OCR_H
 
 #include <string>
 #include <vector>
 
-struct DetectBox {
+struct DetectWord {
   int xmin, xmax, ymin, ymax;
   float conf;
-  std::string class_name;
+  std::string word;
 
-  DetectBox() : xmin(0), xmax(0), ymin(0), ymax(0), conf(0.0) {
+  DetectWord() : xmin(0), xmax(0), ymin(0), ymax(0), conf(0.0) {
   }
 };
 
-class IDetect {
+class IOCR {
 public:
-  virtual ~IDetect() {}
+  virtual ~IOCR() {}
 
   /**
    * @brief 初始化
@@ -47,13 +40,14 @@ public:
   }
 
   /**
-   * @brief 目标框检测
+   * @brief 检测文字
    *
    * @param data 输入的图像数据
    *
-   * @return 检测框
+   * @return 检测文字
    */
-  virtual std::vector<DetectBox> Detect(const std::vector<uint8_t> &data) = 0;
+  virtual std::vector<DetectWord> Detect(const std::vector<uint8_t> &data) = 0;
 };
 
-#endif  // ifndef OBJECT_DETECT_DETECT_H
+#endif // ifndef OCR_OCR_H
+

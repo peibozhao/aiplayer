@@ -1,7 +1,18 @@
-# 记录特殊的操作
-special-operation:
-  label-meirirenwu:
+operations:
+  # 每日任务:
+  #   type: click
+  #   location:
+  #     x: 1300
+  #     y: 600
+  点击继续:
     type: click
-    location:
-      x: 1300
-      y: 600
+  确定:
+    type: click
+  立刻前往:
+    type: click
+  enemy-boss:
+    type: click
+  enemy-normal:
+    type: click
+  9-2拦截作战:
+    type: click

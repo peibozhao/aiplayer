@@ -52,3 +52,43 @@ bool HandleSystemResult(int sys_ret) {
   return WIFEXITED(sys_ret) && (WEXITSTATUS(sys_ret) == 0);
 }
 
+const static std::string base64_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                        "abcdefghijklmnopqrstuvwxyz"
+                                        "0123456789+/";
+
+std::string Base64Encode(const std::vector<uint8_t> &data) {
+  std::string ret;
+  std::vector<uint8_t> input_chars_3;
+  std::array<uint8_t, 4> output_chars_4;
+
+  for (uint8_t cur_char : data) {
+    input_chars_3.push_back(cur_char);
+    if (input_chars_3.size() == 3) {
+      output_chars_4[0] = (input_chars_3[0] & 0xfc) >> 2;
+      output_chars_4[1] = ((input_chars_3[0] & 0x03) << 4) + ((input_chars_3[1] & 0xf0) >> 4);
+      output_chars_4[2] = ((input_chars_3[1] & 0x0f) << 2) + ((input_chars_3[2] & 0xc0) >> 6);
+      output_chars_4[3] = input_chars_3[2] & 0x3f;
+      for (uint8_t output_char : output_chars_4) {
+        ret += base64_chars[output_char];
+      }
+      input_chars_3.clear();
+    }
+  }
+
+  if (!input_chars_3.empty()) {
+    int input_size = input_chars_3.size();
+    input_chars_3.resize(3, 0);
+    output_chars_4[0] = (input_chars_3[0] & 0xfc) >> 2;
+    output_chars_4[1] = ((input_chars_3[0] & 0x03) << 4) + ((input_chars_3[1] & 0xf0) >> 4);
+    output_chars_4[2] = ((input_chars_3[1] & 0x0f) << 2) + ((input_chars_3[2] & 0xc0) >> 6);
+    output_chars_4[3] = input_chars_3[2] & 0x3f;
+
+    for (int i = 0; i < input_size + 1; ++i) {
+      ret += base64_chars[output_chars_4[i]];
+    }
+    while (input_size++ < 3) {
+      ret += '=';
+    }
+  }
+  return ret;
+}

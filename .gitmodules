@@ -14,3 +14,9 @@
 [submodule "third/MNN"]
 	path = third/MNN
 	url = https://github.com/alibaba/MNN/
+[submodule "third/cpp-httplib"]
+	path = third/cpp-httplib
+	url = https://github.com/yhirose/cpp-httplib
+[submodule "third/json"]
+	path = third/json
+	url = https://github.com/nlohmann/json
