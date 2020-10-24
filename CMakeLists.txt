@@ -35,7 +35,7 @@ target_link_libraries(aiplayer
 add_subdirectory(third/yaml-cpp)
 add_subdirectory(third/fmt)
 add_subdirectory(third/spdlog)
-# add_subdirectory(third/MNN)
+add_subdirectory(third/MNN)
 add_subdirectory(third/json)
 
 add_custom_target(MNN_PRE

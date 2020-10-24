@@ -11,7 +11,6 @@
 
 #include <string>
 #include <vector>
-#include <iostream>
 
 struct DetectObject {
   int xmin, xmax, ymin, ymax;
