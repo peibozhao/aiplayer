@@ -15,7 +15,7 @@ TEST_CASE("Detect") {
     std::vector<uint8_t> data((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
     std::vector<DetectBox> boxes = detect->Detect(data);
     for (const auto &box : boxes) {
-      spdlog::info("{},{},{},{},{},{}\n", box.class_name, box.xmin, box.ymin, box.xmax, box.ymax, box.conf);
+      SPDLOG_INFO("{},{},{},{},{},{}\n", box.class_name, box.xmin, box.ymin, box.xmax, box.ymax, box.conf);
     }
   }
 }

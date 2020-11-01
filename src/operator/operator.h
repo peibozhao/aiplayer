@@ -12,6 +12,7 @@ public:
 
 protected:
   virtual bool Click(int x, int y) = 0;
+  virtual bool Swipe(int delta_x, int delta_y) = 0;
 };
 
 #endif // ifndef OPERATOR_OPERATOR_H

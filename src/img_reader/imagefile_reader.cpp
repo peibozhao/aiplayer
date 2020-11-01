@@ -23,10 +23,10 @@ bool ImageFileReader::Read(Image &img) {
   img.data.clear();
   cv::Mat cv_img = cv::imread(filelist_[cur_file_idx_++]);
   if (cv_img.empty()) {
-    spdlog::error("Read img failed. {}", filelist_[cur_file_idx_ - 1]);
+    SPDLOG_ERROR("Read img failed. {}", filelist_[cur_file_idx_ - 1]);
     return false;
   }
-  spdlog::debug("Read. {}", filelist_[cur_file_idx_-1]);
+  SPDLOG_DEBUG("Read. {}", filelist_[cur_file_idx_-1]);
   img.data.resize(cv_img.rows * cv_img.cols * cv_img.channels());
   memcpy(img.data.data(), cv_img.data, img.data.size());
   img.height = img_height_;

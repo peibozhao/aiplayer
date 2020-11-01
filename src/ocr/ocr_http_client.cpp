@@ -7,12 +7,13 @@
 #include "opencv2/imgcodecs.hpp"
 #include "opencv2/imgproc.hpp"
 #include "utils/util_functions.h"
+#include "utils/util_types.h"
 
 OCRHTTPClient::~OCRHTTPClient() {
 }
 
 bool OCRHTTPClient::Init(const std::string &cfg) {
-  spdlog::info("OCR config: \n{}", cfg);
+  SPDLOG_INFO("OCR config: \n{}", cfg);
   try {
     YAML::Node config = YAML::Load(cfg);
     img_height_ = config["image_height"].as<int>();
@@ -20,7 +21,7 @@ bool OCRHTTPClient::Init(const std::string &cfg) {
     ip_port_ = config["host"].as<std::string>();
     api_ = config["path"].as<std::string>();
   } catch (std::exception &e) {
-    spdlog::error("Catch error: {}", e.what());
+    SPDLOG_ERROR("Catch error: {}", e.what());
     return false;
   }
   return true;
@@ -30,7 +31,9 @@ bool OCRHTTPClient::SetParam(const std::string &key, const std::string &value) {
   return true;
 }
 
-std::vector<DetectWord> OCRHTTPClient::Detect(const std::vector<uint8_t> &data) {
+bool OCRHTTPClient::Detect(const std::vector<uint8_t> &data, std::vector<DetectWord> &words) {
+  TimeLog time_log("OCR Detect");
+  words.clear();
   cv::Mat img;
   img.create(cv::Size(img_width_, img_height_), CV_8UC3);
   memcpy(img.data, data.data(), data.size());
@@ -51,12 +54,12 @@ std::vector<DetectWord> OCRHTTPClient::Detect(const std::vector<uint8_t> &data) 
   }
 
   httplib::Client cli(ip_port_.c_str());
+  // cli.set_read_timeout(10);
   auto resp = cli.Post(api_.c_str(), "img=" + request_body, "application/x-www-form-urlencoded");
   if (!resp || resp->status != 200) {
-    spdlog::error("Http request error. {}", resp.error());
-    return {};
+    SPDLOG_ERROR("Http request error. {}", resp.error());
+    return false;
   }
-  std::vector<DetectWord> ret;
   try {
     nlohmann::json resp_json = nlohmann::json::parse(resp->body);
     auto &data_json = resp_json.at("data").at("raw_out");
@@ -74,10 +77,11 @@ std::vector<DetectWord> OCRHTTPClient::Detect(const std::vector<uint8_t> &data) 
       detect_word.word = ocr_item[1].get<std::string>();
       detect_word.word = detect_word.word.substr(detect_word.word.find(' ') + 1);
       detect_word.conf = ocr_item[2].get<float>();
-      ret.emplace_back(std::move(detect_word));
+      words.emplace_back(std::move(detect_word));
     }
   } catch (const std::exception &e) {
-    spdlog::error("Catch exception {}", e.what());
+    SPDLOG_ERROR("Catch exception {}", e.what());
+    return false;
   }
-  return ret;
+  return true;
 }

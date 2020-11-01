@@ -24,17 +24,22 @@ struct DetectObject {
 
 enum class PlayOperationType {
   NONE,  // 没有操作
-  SCREEN_CLICK  // 触屏点击操作
+  SCREEN_CLICK,  // 触屏点击操作
+  SCREEN_SWIPE,  // 触屏滑动操作
 };
 
 /// @brief 触屏点击操作
 struct ClickOperation {
   int x, y;
 
-  ClickOperation() {
-    x = -1;
-    y = -1;
-  }
+  ClickOperation() : x(-1), y(-1) {}
+};
+
+/// @brief 触屏滑动操作
+struct SwipeOperation {
+  int delta_x, delta_y;
+
+  SwipeOperation() : delta_x(-1), delta_y(-1) {}
 };
 
 /// @brief 操作
@@ -42,12 +47,11 @@ struct PlayOperation {
   PlayOperationType type;  // 操作类型
   union {
     ClickOperation click;
+    SwipeOperation swipe;
   };
 
   PlayOperation() {
     type = PlayOperationType::NONE;
-    click.x = -1;
-    click.y = -1;
   }
 };
 

@@ -12,7 +12,7 @@ public:
 
   bool SetParam(const std::string &key, const std::string &value) override;
 
-  std::vector<DetectWord> Detect(const std::vector<uint8_t> &data) override;
+  bool Detect(const std::vector<uint8_t> &data, std::vector<DetectWord> &words) override;
 
 private:
   int img_width_, img_height_;

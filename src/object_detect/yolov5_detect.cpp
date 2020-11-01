@@ -12,7 +12,7 @@ Yolov5Detect::~Yolov5Detect() {
 }
 
 bool Yolov5Detect::Init(const std::string &cfg) {
-  spdlog::info("Detect config: \n{}", cfg);
+  SPDLOG_INFO("Detect config: \n{}", cfg);
   std::string net_fn;
   try {
     YAML::Node config = YAML::Load(cfg);
@@ -25,7 +25,6 @@ bool Yolov5Detect::Init(const std::string &cfg) {
     nms_thresh_ = net_config["nms_thresh"].as<float>();
     score_thresh_ = net_config["score_thresh"].as<float>();
     YAML::Node stride_config = net_config["stride"];
-    // for (const YAML::Node &stride_sub_config : stride_config) {
     for (const auto &stride_pair : net_config["stride"]) {
       YAML::Node stride_sub_config = stride_pair.second;
       stride_[stride_pair.first.as<std::string>()] = stride_sub_config.as<int>();
@@ -37,7 +36,7 @@ bool Yolov5Detect::Init(const std::string &cfg) {
     }
     net_fn = net_config["net_file"].as<std::string>();
   } catch (std::exception &e) {
-    spdlog::error("Catch error: {}", e.what());
+    SPDLOG_ERROR("Catch error: {}", e.what());
     return false;
   }
   net_ = MNN::Interpreter::createFromFile(net_fn.c_str());
@@ -68,7 +67,7 @@ std::vector<DetectBox> Yolov5Detect::Detect(const std::vector<uint8_t> &data) {
   TimeLog time_log("Detect");
   PreProcess(data);
   if (net_->runSession(session_) != MNN::NO_ERROR) {
-    spdlog::error("MNN runSession failed");
+    SPDLOG_ERROR("MNN runSession failed");
     return {};
   }
   return PostProcess();

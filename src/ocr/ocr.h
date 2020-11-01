@@ -43,10 +43,11 @@ public:
    * @brief 检测文字
    *
    * @param data 输入的图像数据
+   * @param words [out] 检测结果
    *
-   * @return 检测文字
+   * @return 是否成功
    */
-  virtual std::vector<DetectWord> Detect(const std::vector<uint8_t> &data) = 0;
+  virtual bool Detect(const std::vector<uint8_t> &data, std::vector<DetectWord> &words) = 0;
 };
 
 #endif // ifndef OCR_OCR_H

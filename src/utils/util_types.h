@@ -14,7 +14,7 @@ public:
 
   ~TimeLog() {
     auto end_time = std::chrono::system_clock::now();
-    spdlog::debug("{} cost {}", label_,
+    SPDLOG_DEBUG("{} cost {}", label_,
                  std::chrono::duration_cast<std::chrono::milliseconds>(
                      end_time - start_time_)
                      .count());

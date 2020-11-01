@@ -9,13 +9,13 @@
 #include "opencv2/imgproc.hpp"
 
 bool AndroidRemoteScreenshotReader::Init(const std::string &cfg) {
-  spdlog::info("Reader config: \n{}", cfg);
+  SPDLOG_INFO("Reader config: \n{}", cfg);
   try {
     YAML::Node config = YAML::Load(cfg);
     remote_storage_fn_ = config["remote_filename"].as<std::string>();
     local_storage_fn_ = config["local_filename"].as<std::string>();
   } catch (std::exception &e) {
-    spdlog::error("Catch exception. {}", e.what());
+    SPDLOG_ERROR("Catch exception. {}", e.what());
     return false;
   }
   screenshot_cmd_ = "adb shell screencap -p {}";
@@ -26,23 +26,23 @@ bool AndroidRemoteScreenshotReader::Init(const std::string &cfg) {
 bool AndroidRemoteScreenshotReader::Read(Image &img) {
   TimeLog time_log("Reader");
   std::string screenshot_cmd = fmt::format(screenshot_cmd_, remote_storage_fn_);
-  spdlog::debug(screenshot_cmd);
+  SPDLOG_DEBUG(screenshot_cmd);
   int screenshot_ret = system(screenshot_cmd.c_str());
   if (!HandleSystemResult(screenshot_ret)) {
-    spdlog::error("Screenshot failed.");
+    SPDLOG_ERROR("Screenshot failed.");
     return false;
   }
   std::string pull_image_cmd = fmt::format(pull_img_cmd_, remote_storage_fn_, local_storage_fn_);
-  spdlog::debug(pull_image_cmd);
+  SPDLOG_DEBUG(pull_image_cmd);
   int pull_ret = system(pull_image_cmd.c_str());
   if (!HandleSystemResult(pull_ret)) {
-    spdlog::error("Pull failed.");
+    SPDLOG_ERROR("Pull failed.");
     return false;
   }
 
   cv::Mat cv_img = cv::imread(local_storage_fn_);
   if (cv_img.empty()) {
-    spdlog::error("Image read failed. {}", local_storage_fn_);
+    SPDLOG_ERROR("Image read failed. {}", local_storage_fn_);
     return false;
   }
   cv::cvtColor(cv_img, cv_img, cv::COLOR_BGR2RGB);

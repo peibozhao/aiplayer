@@ -10,7 +10,7 @@ bool VideoReader::Init(const std::string &cfg) {
   video_height_ = config["height"].as<int>();
   video_fn_ = config["file"].as<std::string>();
   if (!video_capture_.open(video_fn_)) {
-    spdlog::error("Open video failed. {}", video_fn_);
+    SPDLOG_ERROR("Open video failed. {}", video_fn_);
     return false;
   }
   return true;
@@ -23,7 +23,7 @@ bool VideoReader::Read(Image &img) {
   img.data.clear();
   cv::Mat cv_img;
   if (!video_capture_.read(cv_img)) {
-    spdlog::error("Read image failed");
+    SPDLOG_ERROR("Read image failed");
     return false;
   }
 
