@@ -12,7 +12,8 @@ def main():
             # Writting
             time.sleep(1)
             continue
-        img = cv2.resize(img, (int(img.shape[1]/2), int(img.shape[0]/2)))
+        scale = 0.8
+        img = cv2.resize(img, (int(img.shape[1]*scale), int(img.shape[0]*scale)))
         cv2.imshow('show', img)
         cv2.waitKey(1)
         #  time.sleep(1)

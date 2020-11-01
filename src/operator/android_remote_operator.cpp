@@ -24,6 +24,7 @@ bool AndroidRemoteOperator::Click(int x, int y) {
   SPDLOG_INFO("Click {} {}", x, y);
   TimeLog time_log("Click");
   std::string click_cmd = fmt::format(click_cmd_, x, y);
+  SPDLOG_DEBUG(click_cmd);
   int click_ret = system(click_cmd.c_str());
   if (!HandleSystemResult(click_ret)) {
     SPDLOG_ERROR("Click failed");

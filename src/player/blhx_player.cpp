@@ -145,8 +145,9 @@ PlayOperation BLHXBattleScence::ScencePlay(const std::vector<DetectObject> &objs
         ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
         priority = 9;
       }
-    } else if (obj.name == "立刻关闭") {
-      // 失败
+    } else if (std::regex_match(obj.name, std::regex("立刻关."))) {
+      // 失败界面
+      SPDLOG_WARN("Defeat");
       if (priority < 10) {
         ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
         priority = 10;
@@ -207,6 +208,12 @@ void BLHXBattleScence::Reset() {
 PlayOperation BLHXBattleScence::AttackOneEnemy(const std::vector<DetectObject> &objs, const std::string &name) {
   for (auto &obj : objs) {
     if (obj.name == name) {
+      int click_x = (obj.xmin + obj.xmax) / 2;
+      int click_y = (obj.ymin + obj.ymax) / 2;
+      if (click_x < 100 || click_y < 100) {
+        // 在这两个边界可能被多余的东西遮挡
+        continue;
+      }
       return CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
     }
   }

@@ -7,6 +7,10 @@ set(SPDLOG_FMT_EXTERNAL ON)
 set(BUILD_TESTING OFF)
 set(MNN_BUILD_TOOLS OFF)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
+endif()
+
 include_directories(src)
 include_directories(third/yaml-cpp/include)
 include_directories(third/spdlog/include)

@@ -1,6 +1,4 @@
 
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/wait.h>
