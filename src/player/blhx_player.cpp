@@ -61,6 +61,7 @@ private:
 bool BLHXPlayer::Init(const std::string &cfg) {
   SPDLOG_INFO("Player config \n{}", cfg);
   scence_ = new BLHXBattleScence();
+  // scence_ = new BLHXYanxiScence();
   try {
     YAML::Node config = YAML::Load(cfg);
     const YAML::Node &screen = config["screen"];
@@ -96,18 +97,27 @@ PlayOperation BLHXYanxiScence::ScencePlay(const std::vector<DetectObject> &objs)
   continuous_chuji_nums_ = last_continuous_chuji_nums == continuous_chuji_nums_ ? 0 : continuous_chuji_nums_;
 
   PlayOperation ret;
-  std::vector<std::string> click_labels({"军需补给", /*"演习",*/ "出击", "开始演习", "点击继续", "确定"});
   std::string click_label;
-  for (const std::string &label : click_labels) {
-    for (auto &obj : objs) {
-      if (obj.name == label) {
-        click_label = label;
-        ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
-        goto post;
-      }
+  for (auto &obj : objs) {
+    if (obj.name == "军需补给") {
+      click_label = "军需补给";
+      ret.type = PlayOperationType::SCREEN_CLICK;
+    } else if (obj.name == "出击") {
+      click_label = "出击";
+      ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
+    } else if (std::regex_match(obj.name, std::regex("开始.*"))) {
+      click_label = "开始演习";
+      ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
+    } else if (std::regex_match(obj.name, std::regex("点击.*"))) {
+      // 点击继续 点击关闭
+      click_label = "点击";
+      ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
+    } else if (obj.name == "确定") {
+      click_label = "确定";
+      ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
     }
   }
-post:
+
   if (click_label == "军需补给") {
     ret.click.x = 400;
     ret.click.y = 400;
@@ -145,7 +155,7 @@ PlayOperation BLHXBattleScence::ScencePlay(const std::vector<DetectObject> &objs
         ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
         priority = 9;
       }
-    } else if (std::regex_match(obj.name, std::regex("立刻关."))) {
+    } else if (std::regex_match(obj.name, std::regex("点击.*"))) {
       // 失败界面
       SPDLOG_WARN("Defeat");
       if (priority < 10) {
@@ -202,6 +212,7 @@ PlayOperation BLHXBattleScence::Battle(const std::vector<DetectObject> &objs) {
 }
 
 void BLHXBattleScence::Reset() {
+  SPDLOG_DEBUG("Battle scence reset");
   boss_appeared_ = false;
 }
 

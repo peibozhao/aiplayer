@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <fstream>
 #include <thread>
+#include <chrono>
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "yaml-cpp/yaml.h"
