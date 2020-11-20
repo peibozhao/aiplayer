@@ -5,6 +5,7 @@
 #include <fstream>
 #include <thread>
 #include <chrono>
+#include <filesystem>
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "yaml-cpp/yaml.h"
@@ -50,7 +51,12 @@ void RestartOcrServer() {
     SPDLOG_ERROR("fork failed");
     exit(1);
   } else if (fork_ret == 0) {
-    system("kill -9 `ps aux | grep backend | grep -v grep | awk '{print $2}'`");
+    system(R"(
+        OCR_PID=`ps aux | grep backend | grep -v grep | awk '{print $2}'`;
+        if [ -n \"${OCR_PID}\" ]; then
+          kill -9 ${OCR_PID};
+        fi
+        )");
     int outfd = open("ocr.log", O_CREAT|O_WRONLY|O_TRUNC, 0644);
     dup2(outfd, STDOUT_FILENO);
     dup2(outfd, STDERR_FILENO);
@@ -69,7 +75,28 @@ void RestartOcrServer() {
   }
 }
 
+std::string SelectConfigFile(const std::string &path) {
+  std::filesystem::path blhx_config_path("../../config");
+  std::vector<std::string> config_fns;
+  for (auto fn : std::filesystem::directory_iterator(path)) {
+    config_fns.push_back(fn.path().string());
+    std::cout << config_fns.size() << " : " << fn << std::endl;
+  }
+  std::cout << "Select : ";
+  int idx = -1;
+  std::cin >> idx;
+  if (idx <= 0 || idx > config_fns.size()) {
+    return "";
+  }
+  return config_fns[idx - 1];
+}
+
 int main() {
+  std::string cfg_fn = SelectConfigFile("../../config");
+  if (cfg_fn.empty()) {
+    SPDLOG_ERROR("Config file failed!");
+    return -1;
+  }
   auto logger = spdlog::stdout_color_mt("stdout");
   logger->set_level(spdlog::level::debug);
   spdlog::set_default_logger(logger);
@@ -102,7 +129,7 @@ int main() {
     return -1;
   }
 
-  std::ifstream player_cfg_file("../../config/blhx-player.yaml");
+  std::ifstream player_cfg_file(cfg_fn);
   std::string player_cfg((std::istreambuf_iterator<char>(player_cfg_file)),
                          std::istreambuf_iterator<char>());
   BLHXPlayer player;
@@ -144,6 +171,10 @@ int main() {
         detect_objs.emplace_back(Converter(word));
       }
       auto opt = player.Play(detect_objs);
+      if (opt.type == PlayOperationType::LIMITS) {
+        SPDLOG_INFO("Get Limit");
+        return 0;
+      }
       if (!operate.Operator(opt)) {
         SPDLOG_ERROR("Operate failed.");
         break;

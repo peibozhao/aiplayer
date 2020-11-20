@@ -26,6 +26,7 @@ enum class PlayOperationType {
   NONE,  // 没有操作
   SCREEN_CLICK,  // 触屏点击操作
   SCREEN_SWIPE,  // 触屏滑动操作
+  LIMITS,  // 特殊符号. 到达限制
 };
 
 /// @brief 触屏点击操作
@@ -50,8 +51,8 @@ struct PlayOperation {
     SwipeOperation swipe;
   };
 
-  PlayOperation() {
-    type = PlayOperationType::NONE;
+  PlayOperation(PlayOperationType type = PlayOperationType::NONE) {
+    this->type = type;
   }
 };
 

@@ -1,6 +1,5 @@
 
 #include "blhx_player.h"
-#include <regex>
 #include <random>
 #include "utils/util_types.h"
 #include "yaml-cpp/yaml.h"
@@ -28,45 +27,27 @@ static std::vector<int> BoxCenter(const DetectObject &obj) {
   return {(obj.xmin + obj.xmax) / 2, (obj.ymin + obj.ymax) / 2};
 }
 
-///< 演习模式
-class BLHXYanxiScence : public IBLHXScence {
-public:
-  BLHXYanxiScence();
-  PlayOperation ScencePlay(const std::vector<DetectObject> &objs) override;
-  bool GetLimits() override;
-
-private:
-  int continuous_chuji_nums_;  // 连续识别出出击的次数
-};
-
-///< 刷图模式
-class BLHXBattleScence : public IBLHXScence {
-public:
-  BLHXBattleScence();
-  PlayOperation ScencePlay(const std::vector<DetectObject> &objs) override;
-  bool GetLimits() override;
-
-private:
-  ///< 每次进入章节前重置状态
-  void Reset();
-  PlayOperation Battle(const std::vector<DetectObject> &objs);
-  ///< 选择一个敌人进攻, 如果视野中没有该类型的敌人, 会返回随机的滑动操作
-  PlayOperation AttackOneEnemy(const std::vector<DetectObject> &objs, const std::string &name);
-
-private:
-  ///< boss是否出现了
-  bool boss_appeared_;
-};
-
 bool BLHXPlayer::Init(const std::string &cfg) {
   SPDLOG_INFO("Player config \n{}", cfg);
-  scence_ = new BLHXBattleScence();
-  // scence_ = new BLHXYanxiScence();
   try {
     YAML::Node config = YAML::Load(cfg);
     const YAML::Node &screen = config["screen"];
     screen_width_ = screen["width"].as<int>();
     screen_height_ = screen["height"].as<int>();
+    std::string type = config["type"].as<std::string>();
+
+    if (type == "battle") {
+      BLHXBattleScence::Config bat_cfg = {
+        .width =  screen_width_,
+        .height =  screen_height_,
+        .chapter_pattern =  config["chapter-pattern"].as<std::string>(),
+        .name_pattern =  config["name-pattern"].as<std::string>(),
+        .times = config["times"].as<int>()
+      };
+      scence_ = new BLHXBattleScence(bat_cfg);
+    } else if (type == "yanxi") {
+      scence_ = new BLHXYanxiScence();
+    }
   } catch (std::exception &e) {
     SPDLOG_ERROR("Catch exception. {}", e.what());
     return false;
@@ -77,7 +58,8 @@ bool BLHXPlayer::Init(const std::string &cfg) {
 PlayOperation BLHXPlayer::Play(const std::vector<DetectObject> &objs) {
   TimeLog time_log("Player");
   if (scence_->GetLimits()) {
-    SPDLOG_WARN("Player get limites");
+    SPDLOG_INFO("Player get limites");
+    return PlayOperation(PlayOperationType::LIMITS);
   }
   return scence_->ScencePlay(objs);
 }
@@ -148,41 +130,37 @@ PlayOperation BLHXBattleScence::ScencePlay(const std::vector<DetectObject> &objs
 
   PlayOperation ret;
   int priority = -1;
-  for (auto &obj : objs) {
-    if (std::regex_match(obj.name, std::regex(".*热情的.*"))) {
-      // 点击章节名
-      if (priority < 9) {
-        ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
-        priority = 9;
+  for (const auto &obj : objs) {
+#define PLAY_CENTER(prio) \
+      if (priority < prio) { \
+        ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj)); \
+        priority = prio; \
       }
-    } else if (std::regex_match(obj.name, std::regex("点击.*"))) {
+    if (std::regex_match(obj.name, chapter_reg_)) {
+      // 点击章节名
+      PLAY_CENTER(9)
+    } else if (std::regex_match(obj.name, std::regex("点击继续"))) {
+      // 失败界面 点击继续
+      PLAY_CENTER(10)
+    } else if (std::regex_match(obj.name, std::regex("点击关.*"))) {
       // 失败界面
       SPDLOG_WARN("Defeat");
+      PLAY_CENTER(10)
+    } else if (std::regex_match(obj.name, std::regex("锁定"))) {
+      // 获得角色
       if (priority < 10) {
-        ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
+        ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, {1000, 500});
         priority = 10;
       }
     } else if (obj.name == "立刻前往") {
       Reset();
-      if (priority < 10) {
-        ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
-        priority = 10;
-      }
+      PLAY_CENTER(10)
     } else if (obj.name == "点击继续") {
-      if (priority < 10) {
-        ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
-        priority = 10;
-      }
+      PLAY_CENTER(10)
     } else if (obj.name == "确定") {
-      if (priority < 10) {
-        ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
-        priority = 10;
-      }
-    } else if (std::regex_match(obj.name, std::regex(".*老婆.*"))) {
-      if (priority < 1) {
-        ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
-        priority = 1;
-      }
+      PLAY_CENTER(10)
+    } else if (std::regex_match(obj.name, name_reg_)) {
+      PLAY_CENTER(1)
     } else if (obj.name == "撤退" || obj.name == "切换") {
       if (priority < 10) {
         ret = Battle(objs);
@@ -194,21 +172,33 @@ PlayOperation BLHXBattleScence::ScencePlay(const std::vector<DetectObject> &objs
 }
 
 bool BLHXBattleScence::GetLimits() {
-  // TODO 判断石油
-  return false;
+  return left_times_ <= 0;
 }
 
-BLHXBattleScence::BLHXBattleScence() {
+BLHXBattleScence::BLHXBattleScence(const Config &cfg) {
   boss_appeared_ = false;
+  width_ = cfg.width;
+  height_ = cfg.height;
+  boundary_width_ = std::max(width_, height_) * 0.1;
+  chapter_reg_.assign(cfg.chapter_pattern);
+  name_reg_.assign(cfg.name_pattern);
+  left_times_ = cfg.times;
 }
 
 PlayOperation BLHXBattleScence::Battle(const std::vector<DetectObject> &objs) {
+  PlayOperation ret;
   if (boss_appeared_) {
-    return AttackOneEnemy(objs, "enemy-boss");
+    ret = AttackOneEnemy(objs, "enemy-boss");
   } else {
     // boss没有出现, 进攻普通敌人
-    return AttackOneEnemy(objs, "enemy-normal");
+    ret = AttackOneEnemy(objs, "enemy-normal");
   }
+  ret = CheckBoundray(ret);
+  if (boss_appeared_ && ret.type == PlayOperationType::SCREEN_CLICK) {
+    left_times_ -= 1;
+    SPDLOG_DEBUG("Battle left {}", left_times_);
+  }
+  return ret;
 }
 
 void BLHXBattleScence::Reset() {
@@ -219,12 +209,6 @@ void BLHXBattleScence::Reset() {
 PlayOperation BLHXBattleScence::AttackOneEnemy(const std::vector<DetectObject> &objs, const std::string &name) {
   for (auto &obj : objs) {
     if (obj.name == name) {
-      int click_x = (obj.xmin + obj.xmax) / 2;
-      int click_y = (obj.ymin + obj.ymax) / 2;
-      if (click_x < 100 || click_y < 100) {
-        // 在这两个边界可能被多余的东西遮挡
-        continue;
-      }
       return CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
     }
   }
@@ -236,4 +220,21 @@ PlayOperation BLHXBattleScence::AttackOneEnemy(const std::vector<DetectObject> &
   return CreatePlayOperation(
       PlayOperationType::SCREEN_SWIPE,
       {int(len * std::sin(radian)), int(len * std::cos(radian))});
+}
+
+PlayOperation BLHXBattleScence::CheckBoundray(const PlayOperation &opt) {
+  if (opt.type == PlayOperationType::SCREEN_CLICK &&
+      (opt.click.x < boundary_width_ ||
+       opt.click.x > width_ - boundary_width_ ||
+       opt.click.y < boundary_width_ ||
+       opt.click.y > height_ - boundary_width_)) {
+    SPDLOG_DEBUG("Click boundary: {} {}", opt.click.x, opt.click.y);
+    // 点击点在边界, 需要滑动窗口
+    PlayOperation ret;
+    ret.type = PlayOperationType::SCREEN_SWIPE;
+    ret.swipe.delta_x = width_ / 2 - opt.click.x;
+    ret.swipe.delta_y = height_ / 2 - opt.click.y;
+    return ret;
+  }
+  return opt;
 }

@@ -92,3 +92,14 @@ std::string Base64Encode(const std::vector<uint8_t> &data) {
   }
   return ret;
 }
+
+float CalcRadian(const std::vector<float> &p1, const std::vector<float> &o, const std::vector<float> &p2) {
+  float l1[2] = {p2[0] - o[0], p2[1] - o[1]};
+  float l2[2] = {p2[0] - o[0], p2[1] - o[1]};
+  float dot_ret = l1[0] * l2[0] + l1[1] * l2[1];
+  float l1_len = std::sqrt(std::pow(l1[0], 2) + std::pow(l1[1], 2));
+  float l2_len = std::sqrt(std::pow(l2[0], 2) + std::pow(l2[1], 2));
+  float cos_ret = dot_ret / (l1_len * l2_len);
+  return std::acos(cos_ret);
+}
+
