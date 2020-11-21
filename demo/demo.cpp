@@ -53,7 +53,7 @@ void RestartOcrServer() {
   } else if (fork_ret == 0) {
     system(R"(
         OCR_PID=`ps aux | grep backend | grep -v grep | awk '{print $2}'`;
-        if [ -n \"${OCR_PID}\" ]; then
+        if [ -n "${OCR_PID}" ]; then
           kill -9 ${OCR_PID};
         fi
         )");
@@ -82,7 +82,7 @@ std::string SelectConfigFile(const std::string &path) {
     config_fns.push_back(fn.path().string());
     std::cout << config_fns.size() << " : " << fn << std::endl;
   }
-  std::cout << "Select : ";
+  std::cout << "Select: ";
   int idx = -1;
   std::cin >> idx;
   if (idx <= 0 || idx > config_fns.size()) {
@@ -153,7 +153,7 @@ int main() {
       std::vector<DetectObject> detect_objs;
       auto boxes = detect.Detect(img.data);
       for (const auto &box : boxes) {
-        SPDLOG_INFO("Detect: {} {},{},{},{} {}",
+        SPDLOG_DEBUG("Detect: {} {},{},{},{} {}",
                      box.class_name, box.xmin, box.ymin,
                      box.xmax, box.ymax, box.conf);
         detect_objs.emplace_back(Converter(box));
@@ -165,7 +165,7 @@ int main() {
         continue;
       }
       for (const auto &word : words) {
-        SPDLOG_INFO("Detect: {} {},{},{},{} {}",
+        SPDLOG_DEBUG("Detect: {} {},{},{},{} {}",
                      word.word, word.xmin, word.ymin,
                      word.xmax, word.ymax, word.conf);
         detect_objs.emplace_back(Converter(word));

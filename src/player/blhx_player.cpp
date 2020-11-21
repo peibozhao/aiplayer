@@ -139,14 +139,14 @@ PlayOperation BLHXBattleScence::ScencePlay(const std::vector<DetectObject> &objs
     if (std::regex_match(obj.name, chapter_reg_)) {
       // 点击章节名
       PLAY_CENTER(9)
-    } else if (std::regex_match(obj.name, std::regex("点击继续"))) {
+    } else if (obj.name == "点击继续") {
       // 失败界面 点击继续
       PLAY_CENTER(10)
     } else if (std::regex_match(obj.name, std::regex("点击关.*"))) {
       // 失败界面
       SPDLOG_WARN("Defeat");
       PLAY_CENTER(10)
-    } else if (std::regex_match(obj.name, std::regex("锁定"))) {
+    } else if (obj.name == "锁定" || obj.name == "分享" || obj.name == "检视") {
       // 获得角色
       if (priority < 10) {
         ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, {1000, 500});
@@ -194,15 +194,13 @@ PlayOperation BLHXBattleScence::Battle(const std::vector<DetectObject> &objs) {
     ret = AttackOneEnemy(objs, "enemy-normal");
   }
   ret = CheckBoundray(ret);
-  if (boss_appeared_ && ret.type == PlayOperationType::SCREEN_CLICK) {
-    left_times_ -= 1;
-    SPDLOG_DEBUG("Battle left {}", left_times_);
-  }
   return ret;
 }
 
 void BLHXBattleScence::Reset() {
   SPDLOG_DEBUG("Battle scence reset");
+  left_times_ -= 1;
+  SPDLOG_DEBUG("Battle left {}", left_times_);
   boss_appeared_ = false;
 }
 
