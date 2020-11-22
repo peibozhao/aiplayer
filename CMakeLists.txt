@@ -35,6 +35,7 @@ target_link_libraries(aiplayer
   opencv_imgproc
   opencv_core
   opencv_videoio
+  stdc++fs
   )
 
 add_subdirectory(third/yaml-cpp)

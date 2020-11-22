@@ -1,6 +1,7 @@
 
 #include "blhx_player.h"
 #include <random>
+#include <chrono>
 #include "utils/util_types.h"
 #include "yaml-cpp/yaml.h"
 
@@ -51,6 +52,12 @@ bool BLHXPlayer::Init(const std::string &cfg) {
         .height =  screen_height_,
       };
       scence_ = new BLHXYanxiScence(yanxi_cfg);
+    } else if (type == "renwu") {
+      BLHXRenwuScence::Config renwu_cfg = {
+        .width =  screen_width_,
+        .height =  screen_height_,
+      };
+      scence_ = new BLHXRenwuScence(renwu_cfg);
     }
   } catch (std::exception &e) {
     SPDLOG_ERROR("Catch exception. {}", e.what());
@@ -59,14 +66,21 @@ bool BLHXPlayer::Init(const std::string &cfg) {
   return true;
 }
 
-PlayOperation BLHXPlayer::Play(const std::vector<DetectObject> &objs) {
+std::vector<PlayOperation> BLHXPlayer::Play(const std::vector<DetectObject> &objs) {
   TimeLog time_log("Player");
   if (scence_->GetLimits()) {
     SPDLOG_INFO("Player get limites");
-    return PlayOperation(PlayOperationType::LIMITS);
+    return {PlayOperation(PlayOperationType::LIMITS)};
   }
   return scence_->ScencePlay(objs);
 }
+
+
+#define PLAY_CENTER(prio) \
+      if (priority < prio) { \
+        ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj)); \
+        priority = prio; \
+      }
 
 BLHXYanxiScence::BLHXYanxiScence(const Config &cfg) {
   width_ = cfg.width;
@@ -74,7 +88,7 @@ BLHXYanxiScence::BLHXYanxiScence(const Config &cfg) {
   continuous_chuji_nums_ = 0;
 }
 
-PlayOperation BLHXYanxiScence::ScencePlay(const std::vector<DetectObject> &objs) {
+std::vector<PlayOperation> BLHXYanxiScence::ScencePlay(const std::vector<DetectObject> &objs) {
   int last_continuous_chuji_nums = continuous_chuji_nums_;
   for (auto &obj : objs) {
     if (obj.name == "出击") {
@@ -104,7 +118,7 @@ PlayOperation BLHXYanxiScence::ScencePlay(const std::vector<DetectObject> &objs)
       ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
     }
   }
-  return ret;
+  return {ret};
 }
 
 bool BLHXYanxiScence::GetLimits() {
@@ -112,7 +126,7 @@ bool BLHXYanxiScence::GetLimits() {
   return continuous_chuji_nums_ >= 3;
 }
 
-PlayOperation BLHXBattleScence::ScencePlay(const std::vector<DetectObject> &objs) {
+std::vector<PlayOperation> BLHXBattleScence::ScencePlay(const std::vector<DetectObject> &objs) {
   for (auto &obj : objs) {
     if (!boss_appeared_ && obj.name == "enemy-boss") {
       // boss刚出现, 前一个队伍一般弹药都没了, boss比较难打
@@ -120,23 +134,18 @@ PlayOperation BLHXBattleScence::ScencePlay(const std::vector<DetectObject> &objs
         if (obj.name == "切换") {
           SPDLOG_DEBUG("Change team");
           boss_appeared_ = true;
-          return CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
+          return {CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj))};
         }
       }
       // boss出现没有检测到 切换, 不进行任何操作, 重新检测
       SPDLOG_WARN("boss appeard, qiehuan not appeared");
-      return CreatePlayOperation(PlayOperationType::NONE, {});
+      return {CreatePlayOperation(PlayOperationType::NONE, {})};
     }
   }
 
   PlayOperation ret;
   int priority = -1;
   for (const auto &obj : objs) {
-#define PLAY_CENTER(prio) \
-      if (priority < prio) { \
-        ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj)); \
-        priority = prio; \
-      }
     if (std::regex_match(obj.name, chapter_reg_)) {
       // 点击章节名
       PLAY_CENTER(9)
@@ -169,7 +178,7 @@ PlayOperation BLHXBattleScence::ScencePlay(const std::vector<DetectObject> &objs
       }
     }
   }
-  return ret;
+  return {ret};
 }
 
 bool BLHXBattleScence::GetLimits() {
@@ -236,4 +245,92 @@ PlayOperation BLHXBattleScence::CheckBoundray(const PlayOperation &opt) {
     return ret;
   }
   return opt;
+}
+
+BLHXRenwuScence::BLHXRenwuScence(const Config &cfg) {
+  width_ = cfg.width;
+  height_ = cfg.height;
+  renwu_left_times_.resize(static_cast<int>(RenwuType::TOTAL_NUMS));
+  Init();
+}
+
+std::vector<PlayOperation> BLHXRenwuScence::ScencePlay(const std::vector<DetectObject> &objs) {
+  bool renwu_type_changed = false;
+  if (current_renwu_ == NONE || renwu_left_times_[current_renwu_] == 0) {
+    // Select other renwu
+    for (int i = 0; i < RenwuType::TOTAL_NUMS; ++i) {
+      if (renwu_left_times_[i] > 0) {
+        current_renwu_ = static_cast<RenwuType>(i);
+        renwu_type_changed = true;
+        break;
+      }
+    }
+    return {PlayOperation(), {}};
+  }
+
+  std::vector<PlayOperation> ret;
+  for (auto &obj : objs) {
+    if (obj.name == "点击继续") {
+      ret = {CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj))};
+    } else if (obj.name == "确定") {
+      ret = {CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj))};
+    } else if (obj.name == "出击") {
+      ret = {CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj))};
+    } else if (std::regex_match(obj.name, std::regex("点击.*"))) {
+      ret = {CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj))};
+    } else if (obj.name == "每日任务") {
+      ret = {CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj))};
+    } else if (obj.name == "每日") {
+      ret = {CreatePlayOperation(
+                 PlayOperationType::SCREEN_CLICK,
+                 {renwu_location_[current_renwu_].first, renwu_location_[current_renwu_].second}),
+             CreatePlayOperation(PlayOperationType::SCREEN_CLICK, {width_ / 2, height_ / 2})};
+    } else if (obj.name == "今日可挑战次数" || obj.name == "大量") {
+      if (renwu_type_changed) {
+        PlayOperation return_opt = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, {100, 100});
+        ret = {return_opt, return_opt};
+      } else {
+        ret = {CreatePlayOperation(PlayOperationType::SCREEN_CLICK, {1000, 300})};
+        renwu_left_times_[current_renwu_] -= 1;
+      }
+    }
+  }
+  return {ret};
+}
+
+bool BLHXRenwuScence::GetLimits() {
+  for (int i = 0; i < static_cast<int>(RenwuType::TOTAL_NUMS); ++i) {
+    if (renwu_left_times_[i] > 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+void BLHXRenwuScence::Init() {
+  for (int i = 0; i < RenwuType::TOTAL_NUMS; ++i) {
+    int x = width_ * (i + 1) / (RenwuType::TOTAL_NUMS + 1);
+    int y = height_ / 2;
+    renwu_location_[static_cast<RenwuType>(i)] = std::make_pair(x, y);
+  }
+
+  time_t cur_time = time(nullptr);
+  struct tm *cur_tm = gmtime(&cur_time);
+  if (cur_tm->tm_wday == 6) {
+    for (int i = 0; i < RenwuType::TOTAL_NUMS; ++i) {
+      renwu_left_times_[i] = 3;
+    }
+  } else if (cur_tm->tm_wday == 0) {
+    // renwu_left_times_[SCHW] = 3;
+    renwu_left_times_[ZSYX] = 3;
+  } else {
+    // TODO
+  }
+
+  for (int i = 0; i < RenwuType::TOTAL_NUMS; ++i) {
+    if (renwu_left_times_[i] > 0) {
+      current_renwu_ = static_cast<RenwuType>(i);
+      break;
+    }
+  }
 }

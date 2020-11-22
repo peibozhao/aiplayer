@@ -63,7 +63,7 @@ class IPlayer {
 public:
   virtual bool Init(const std::string &cfg) = 0;
 
-  virtual PlayOperation Play(const std::vector<DetectObject> &boxes) = 0;
+  virtual std::vector<PlayOperation> Play(const std::vector<DetectObject> &boxes) = 0;
 };
 
 #endif // ifndef PLAYER_PLAYER_H

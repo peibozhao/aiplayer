@@ -8,7 +8,7 @@
 ///< 碧蓝航线的情境
 class IBLHXScence {
 public:
-  virtual PlayOperation ScencePlay(const std::vector<DetectObject> &objs) = 0;
+  virtual std::vector<PlayOperation> ScencePlay(const std::vector<DetectObject> &objs) = 0;
 
   ///< @brief 是否到达限制了. 比如演习没有次数, 出击没有石油
   virtual bool GetLimits() { return false; }
@@ -18,7 +18,7 @@ public:
 class BLHXPlayer : public IPlayer {
 public:
   bool Init(const std::string &cfg) override;
-  PlayOperation Play(const std::vector<DetectObject> &objs) override;
+  std::vector<PlayOperation> Play(const std::vector<DetectObject> &objs) override;
 
 private:
   PlayOperationType GetOperaionTypeByString(const std::string &opt);
@@ -41,7 +41,7 @@ public:
 
 public:
   BLHXYanxiScence(const Config &cfg);
-  PlayOperation ScencePlay(const std::vector<DetectObject> &objs) override;
+  std::vector<PlayOperation> ScencePlay(const std::vector<DetectObject> &objs) override;
   bool GetLimits() override;
 
 private:
@@ -61,7 +61,7 @@ public:
 
 public:
   BLHXBattleScence(const Config &cfg);
-  PlayOperation ScencePlay(const std::vector<DetectObject> &objs) override;
+  std::vector<PlayOperation> ScencePlay(const std::vector<DetectObject> &objs) override;
   bool GetLimits() override;
 
 private:
@@ -80,6 +80,41 @@ private:
   int boundary_width_;
   std::regex chapter_reg_, name_reg_;
   int left_times_;
+};
+
+///< 碧蓝航线的情境
+class BLHXRenwuScence : public IBLHXScence {
+public:
+  struct Config {
+    int width, height;
+  };
+
+private:
+  enum RenwuType {
+    SCHW,
+    HYTJ,
+    ZSYX,
+    ZSXD,
+    PJZH,
+    TOTAL_NUMS,
+    NONE
+  };
+
+public:
+  BLHXRenwuScence(const Config &cfg);
+
+  std::vector<PlayOperation> ScencePlay(const std::vector<DetectObject> &objs) override;
+
+  bool GetLimits() override;
+
+private:
+  void Init();
+
+private:
+  int width_, height_;
+  std::vector<int> renwu_left_times_;
+  std::map<RenwuType, std::pair<int, int>> renwu_location_;
+  RenwuType current_renwu_;
 };
 
 #endif // ifndef PLAYER_BLHX_PLAYER_H

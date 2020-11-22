@@ -75,10 +75,9 @@ void RestartOcrServer() {
   }
 }
 
-std::string SelectConfigFile(const std::string &path) {
-  std::filesystem::path blhx_config_path("../../config");
+std::string SelectConfigFile(const std::string &dir_path) {
   std::vector<std::string> config_fns;
-  for (auto fn : std::filesystem::directory_iterator(path)) {
+  for (auto fn : std::filesystem::directory_iterator(dir_path)) {
     config_fns.push_back(fn.path().string());
     std::cout << config_fns.size() << " : " << fn << std::endl;
   }
@@ -92,7 +91,7 @@ std::string SelectConfigFile(const std::string &path) {
 }
 
 int main() {
-  std::string cfg_fn = SelectConfigFile("../../config");
+  std::string cfg_fn = SelectConfigFile("../../config/");
   if (cfg_fn.empty()) {
     SPDLOG_ERROR("Config file failed!");
     return -1;
@@ -170,20 +169,26 @@ int main() {
                      word.xmax, word.ymax, word.conf);
         detect_objs.emplace_back(Converter(word));
       }
-      auto opt = player.Play(detect_objs);
-      if (opt.type == PlayOperationType::LIMITS) {
+      auto opts = player.Play(detect_objs);
+      if (!opts.empty() && opts[0].type == PlayOperationType::LIMITS) {
         SPDLOG_INFO("Get Limit");
         return 0;
       }
-      if (!operate.Operator(opt)) {
-        SPDLOG_ERROR("Operate failed.");
-        break;
+      for (auto &opt : opts) {
+        if (!operate.Operator(opt)) {
+          SPDLOG_ERROR("Operate failed.");
+          goto end;
+        }
+        cv::Mat cv_img = CombineImage(img, detect_objs, opt);
+        cv::imwrite("output.jpg", cv_img);
       }
-      cv::Mat cv_img = CombineImage(img, detect_objs, opt);
-      cv::imwrite("output.jpg", cv_img);
     } else {
       SPDLOG_ERROR("Read image failed.");
       break;
     }
   }
+
+end:
+  SPDLOG_INFO("End");
+  return -1;
 }
