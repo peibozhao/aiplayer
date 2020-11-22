@@ -46,7 +46,11 @@ bool BLHXPlayer::Init(const std::string &cfg) {
       };
       scence_ = new BLHXBattleScence(bat_cfg);
     } else if (type == "yanxi") {
-      scence_ = new BLHXYanxiScence();
+      BLHXYanxiScence::Config yanxi_cfg = {
+        .width =  screen_width_,
+        .height =  screen_height_,
+      };
+      scence_ = new BLHXYanxiScence(yanxi_cfg);
     }
   } catch (std::exception &e) {
     SPDLOG_ERROR("Catch exception. {}", e.what());
@@ -64,7 +68,9 @@ PlayOperation BLHXPlayer::Play(const std::vector<DetectObject> &objs) {
   return scence_->ScencePlay(objs);
 }
 
-BLHXYanxiScence::BLHXYanxiScence() {
+BLHXYanxiScence::BLHXYanxiScence(const Config &cfg) {
+  width_ = cfg.width;
+  height_ = cfg.height;
   continuous_chuji_nums_ = 0;
 }
 
@@ -82,33 +88,28 @@ PlayOperation BLHXYanxiScence::ScencePlay(const std::vector<DetectObject> &objs)
   std::string click_label;
   for (auto &obj : objs) {
     if (obj.name == "军需补给") {
-      click_label = "军需补给";
       ret.type = PlayOperationType::SCREEN_CLICK;
+      ret.click.x = 400;
+      ret.click.y = 400;
     } else if (obj.name == "出击") {
-      click_label = "出击";
+      ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
+    } else if (obj.name == "演习" && obj.xmin > width_ / 2 && obj.ymin > height_ / 2) {
       ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
     } else if (std::regex_match(obj.name, std::regex("开始.*"))) {
-      click_label = "开始演习";
       ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
     } else if (std::regex_match(obj.name, std::regex("点击.*"))) {
       // 点击继续 点击关闭
-      click_label = "点击";
       ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
     } else if (obj.name == "确定") {
-      click_label = "确定";
       ret = CreatePlayOperation(PlayOperationType::SCREEN_CLICK, BoxCenter(obj));
     }
-  }
-
-  if (click_label == "军需补给") {
-    ret.click.x = 400;
-    ret.click.y = 400;
   }
   return ret;
 }
 
 bool BLHXYanxiScence::GetLimits() {
-  return continuous_chuji_nums_ > 5;
+  SPDLOG_INFO("Continuous chuji: {}", continuous_chuji_nums_);
+  return continuous_chuji_nums_ >= 3;
 }
 
 PlayOperation BLHXBattleScence::ScencePlay(const std::vector<DetectObject> &objs) {

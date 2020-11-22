@@ -8,7 +8,7 @@ TEST_CASE("OCR") {
   SECTION("HTTPClient") {
     OCRHTTPClient *ocr = new OCRHTTPClient();
     ocr->Init("");
-    std::ifstream ifs("./828706969.rgb", std::ios::binary);
+    std::ifstream ifs("./test.rgb", std::ios::binary);
     std::vector<uint8_t> data((std::istreambuf_iterator<char>(ifs)), std::istreambuf_iterator<char>());
     SPDLOG_INFO("{}", data.size());
     std::vector<DetectWord> words;

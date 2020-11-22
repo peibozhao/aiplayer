@@ -35,11 +35,17 @@ private:
 ///< 演习模式
 class BLHXYanxiScence : public IBLHXScence {
 public:
-  BLHXYanxiScence();
+  struct Config {
+    int width, height;
+  };
+
+public:
+  BLHXYanxiScence(const Config &cfg);
   PlayOperation ScencePlay(const std::vector<DetectObject> &objs) override;
   bool GetLimits() override;
 
 private:
+  int width_, height_;
   int continuous_chuji_nums_;  // 连续识别出出击的次数
 };
 
