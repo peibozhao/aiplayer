@@ -1,11 +1,16 @@
 
 #include "yanxi_player.h"
 
-bool YanxiPlayer::Init(const std::string &cfg) { return true; }
 
-bool YanxiPlayer::Play(const std::vector<ObjectBox> &objects, const std::vector<TextBox> &texts,
-                       std::vector<PlayOperation> &operations) {
+
+bool YanxiPlayer::Init(std::istream &is)
+{
     return true;
+}
+
+std::vector<PlayOperation> YanxiPlayer::Play(const std::vector<ObjectBox> &object_boxes, const std::vector<TextBox> &text_boxes)
+{
+    return {};
 }
 
 bool YanxiPlayer::GetLimit() { return true; }

@@ -4,20 +4,35 @@
 #include "blhx_player.h"
 #include <regex>
 
-///< 刷图模式
 class BattlePlayer : public IBLHXPlayer {
 public:
-    bool Init(const std::string &cfg) override;
+    BattlePlayer() {
+        boss_appeared_ = false;
+        width_ = 0;
+        height_ = 0;
+        boundary_width_ = 0;
+        left_times_ = 0;
+    }
 
-    bool Play(const std::vector<ObjectBox> &objects, const std::vector<TextBox> &texts,
-              std::vector<PlayOperation> &operations) override;
+    ~BattlePlayer() override {}
+
+    bool Init(std::istream &is) override;
+
+    std::vector<PlayOperation> Play(const std::vector<ObjectBox> &object_boxes,
+                                    const std::vector<TextBox> &text_boxes) override;
 
     bool GetLimit() override;
+
+private:
+    std::vector<PlayOperation> AttackEnemy(const std::vector<ObjectBox> &object_boxes);
+    std::vector<PlayOperation> Move(const ObjectBox &box);
+    PlayOperation CheckBoundray(const PlayOperation &opt);
+    void Reset();
 
 private:
     bool boss_appeared_;
     int width_, height_;
     int boundary_width_;
-    std::regex chapter_reg_, name_reg_;
+    std::regex chapter_pattern_, name_pattern_;
     int left_times_;
 };

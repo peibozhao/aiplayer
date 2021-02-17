@@ -2,24 +2,28 @@
 
 #include <string>
 #include <vector>
+#include <sstream>
+#include <fstream>
+#include <opencv2/opencv.hpp>
 #include "common/common_types.h"
+#include "spdlog/spdlog.h"
+#include "utils/util_defines.h"
 
 struct TextBox {
-    float xmin, xmax, ymin, ymax;
-    float conf;
+    int x, y, width, height;
     std::string text;
 
-    TextBox() : xmin(0), xmax(0), ymin(0), ymax(0), conf(0.0) {}
-    TextBox(float xi, float yi, float xa, float ya, float c, const std::string &t) : xmin(xi), xmax(xa), ymin(yi), ymax(ya), conf(c), text(t) {}
+    TextBox() : x(0), y(0), width(0), height(0) {}
+    TextBox(int xl, int yt, int w, int h, const std::string &t) : x(xl), y(yt), width(w), height(h), text(t) {}
 };
 
 class IOcrDetect {
 public:
     virtual ~IOcrDetect() {}
 
-    virtual bool Init(const std::string &cfg) = 0;
+    InitialBaseDefine
 
     virtual bool SetParam(const std::string &key, const std::string &value) { return true; }
 
-    virtual std::vector<TextBox> Detect(const Image &image) = 0;
+    virtual std::vector<TextBox> Detect(const cv::Mat &image) = 0;
 };

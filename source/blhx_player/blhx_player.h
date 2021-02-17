@@ -12,32 +12,35 @@
 #include <vector>
 #include "object_detect/object_detect.h"
 #include "ocr_detect/ocr_detect.h"
+#include "utils/util_defines.h"
 
 enum class PlayOperationType {
     NONE,         // 没有操作
+    SLEEP,        // 等待
     SCREEN_CLICK, // 触屏点击操作
     SCREEN_SWIPE, // 触屏滑动操作
     LIMITS,       // 特殊符号. 到达限制
 };
 
-/// @brief 触屏点击操作
+struct SleepOperation {
+    int time;  // ms
+    SleepOperation() : time(0) {}
+};
+
 struct ClickOperation {
     int x, y;
-
     ClickOperation() : x(-1), y(-1) {}
 };
 
-/// @brief 触屏滑动操作
 struct SwipeOperation {
     int delta_x, delta_y;
-
     SwipeOperation() : delta_x(-1), delta_y(-1) {}
 };
 
-/// @brief 操作
 struct PlayOperation {
-    PlayOperationType type; // 操作类型
+    PlayOperationType type;
     union {
+        SleepOperation sleep;
         ClickOperation click;
         SwipeOperation swipe;
     };
@@ -47,10 +50,11 @@ struct PlayOperation {
 
 class IBLHXPlayer {
 public:
-    virtual bool Init(const std::string &cfg) = 0;
+    virtual ~IBLHXPlayer() {}
 
-    virtual bool Play(const std::vector<ObjectBox> &objects, const std::vector<TextBox> &texts,
-                      std::vector<PlayOperation> &operations) = 0;
+    InitialBaseDefine
+
+    virtual std::vector<PlayOperation> Play(const std::vector<ObjectBox> &objects, const std::vector<TextBox> &texts) = 0;
 
     virtual bool GetLimit() { return false; }
 };

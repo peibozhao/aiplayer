@@ -16,7 +16,7 @@ bool HandleSystemResult(int sys_ret);
 
 std::string Base64Encode(const std::vector<uint8_t> &data);
 
-std::string Base64Decode(const std::string data);
+std::vector<uint8_t> Base64Decode(const std::string &data);
 
 float CalcRadian(const std::vector<float> &p1, const std::vector<float> &o, const std::vector<float> &p2);
 

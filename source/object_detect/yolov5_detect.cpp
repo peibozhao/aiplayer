@@ -10,11 +10,10 @@
 
 Yolov5Detect::~Yolov5Detect() {}
 
-bool Yolov5Detect::Init(const std::string &cfg) {
-    SPDLOG_INFO("Detect config: \n{}", cfg);
+bool Yolov5Detect::Init(std::istream &is) {
     std::string net_fn;
     try {
-        YAML::Node config = YAML::Load(cfg);
+        YAML::Node config = YAML::Load(is);
         img_height_ = config["image_height"].as<int>();
         img_width_ = config["image_width"].as<int>();
         YAML::Node net_config = config["network"];
@@ -62,9 +61,16 @@ bool Yolov5Detect::SetParam(const std::string &key, const std::string &value) {
     return true;
 }
 
-std::vector<ObjectBox> Yolov5Detect::Detect(const std::vector<uint8_t> &data) {
+std::vector<ObjectBox> Yolov5Detect::Detect(const cv::Mat &image) {
     TimeLog time_log("Detect");
-    PreProcess(data);
+    cv::Mat rgb_image;
+    cv::cvtColor(image, rgb_image, cv::COLOR_BGR2RGB);
+    std::vector<uint8_t> rgb_data(rgb_image.data, rgb_image.data + rgb_image.cols * image.rows * rgb_image.channels());
+    return Detect(rgb_data);
+}
+
+std::vector<ObjectBox> Yolov5Detect::Detect(const std::vector<uint8_t> &rgb_data) {
+    PreProcess(rgb_data);
     if (net_->runSession(session_) != MNN::NO_ERROR) {
         SPDLOG_ERROR("MNN runSession failed");
         return {};
@@ -72,7 +78,7 @@ std::vector<ObjectBox> Yolov5Detect::Detect(const std::vector<uint8_t> &data) {
     return PostProcess();
 }
 
-void Yolov5Detect::PreProcess(const std::vector<uint8_t> &data) {
+void Yolov5Detect::PreProcess(const std::vector<uint8_t> &rgb_data) {
     MNN::CV::ImageProcess::Config cv_config;
     cv_config.sourceFormat = MNN::CV::RGB;
     cv_config.destFormat = MNN::CV::RGB;
@@ -85,7 +91,7 @@ void Yolov5Detect::PreProcess(const std::vector<uint8_t> &data) {
     trans_matrix.postScale(float(input_width_) / img_width_, float(input_height_) / img_height_);
     trans_matrix.invert(&trans_matrix);
     cv_proc->setMatrix(trans_matrix);
-    cv_proc->convert(data.data(), img_width_, img_height_, 0,
+    cv_proc->convert(rgb_data.data(), img_width_, img_height_, 0,
                      net_->getSessionInput(session_, nullptr));
 }
 
@@ -133,11 +139,10 @@ std::vector<ObjectBox> Yolov5Detect::PostProcess() {
     std::vector<std::vector<float>> nms_boxes = NMS(boxes, nms_thresh_);
     for (const std::vector<float> &nms_box : nms_boxes) {
         ObjectBox box;
-        box.xmin = nms_box[0] * img_width_ / input_width_;
-        box.ymin = nms_box[1] * img_height_ / input_height_;
-        box.xmax = nms_box[2] * img_width_ / input_width_;
-        box.ymax = nms_box[3] * img_height_ / input_height_;
-        box.conf = nms_box[4];
+        box.x = nms_box[0] * img_width_ / input_width_;
+        box.y = nms_box[1] * img_height_ / input_height_;
+        box.width = (nms_box[2] - nms_box[0]) * img_width_ / input_width_;
+        box.height = (nms_box[3] - nms_box[1]) * img_height_ / input_height_;
         box.name = class_names_[static_cast<int>(nms_box[5])];
         ret.emplace_back(std::move(box));
     }

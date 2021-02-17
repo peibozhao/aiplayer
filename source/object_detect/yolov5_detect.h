@@ -24,12 +24,13 @@
 class Yolov5Detect : public IObjectDetect {
 public:
     ~Yolov5Detect() override;
-    bool Init(const std::string &cfg) override;
+    bool Init(std::istream &is) override;
     bool SetParam(const std::string &key, const std::string &value) override;
-    std::vector<ObjectBox> Detect(const std::vector<uint8_t> &data) override;
+    std::vector<ObjectBox> Detect(const cv::Mat &image) override;
 
 private:
-    void PreProcess(const std::vector<uint8_t> &data);
+    std::vector<ObjectBox> Detect(const std::vector<uint8_t> &rgb_data);
+    void PreProcess(const std::vector<uint8_t> &rgb_data);
     std::vector<ObjectBox> PostProcess();
 
 private:

@@ -8,24 +8,30 @@
 
 #pragma once
 
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
+#include "spdlog/spdlog.h"
+#include "opencv2/opencv.hpp"
+#include "utils/util_defines.h"
 
 struct ObjectBox {
-    int xmin, xmax, ymin, ymax;
-    float conf;
+    int x, y, width, height;
     std::string name;
 
-    ObjectBox() : xmin(0), xmax(0), ymin(0), ymax(0), conf(0.0) {}
+    ObjectBox() : x(0), y(0), width(0), height(0) {}
+    ObjectBox(int xl, int yt, int w, int h, const std::string &n)
+        : x(xl), y(yt), width(w), height(h), name(n) {}
 };
 
 class IObjectDetect {
 public:
     virtual ~IObjectDetect() {}
 
-    virtual bool Init(const std::string &cfg) = 0;
+    InitialBaseDefine
 
     virtual bool SetParam(const std::string &key, const std::string &value) { return true; }
 
-    virtual std::vector<ObjectBox> Detect(const std::vector<uint8_t> &image) = 0;
+    virtual std::vector<ObjectBox> Detect(const cv::Mat &image) = 0;
 };

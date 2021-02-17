@@ -1,19 +1,41 @@
 
 #include "chineselite_ocr.h"
+#include <fstream>
 #include <opencv4/opencv2/opencv.hpp>
+#include "yaml-cpp/yaml.h"
+#include "spdlog/spdlog.h"
 
-
-bool ChineseLiteOcr::Init(const std::string &cfg) {
+bool ChineseOcr::Init(std::istream &is) {
+    std::string dbnet_fname;
+    std::string crnn_fname;
+    std::string keys_fname;
+    try {
+        YAML::Node config = YAML::Load(is);
+        const YAML::Node &net_config = config["chinese_ocr"];
+        dbnet_fname = net_config["dbnet_model"].as<std::string>();
+        crnn_fname = net_config["crnn_model"].as<std::string>();
+        keys_fname = net_config["keys"].as<std::string>();
+    } catch (std::exception &e) {
+        SPDLOG_ERROR("Catch error: {}", e.what());
+        return false;
+    }
     db_net_.reset(new DbNet());
-    db_net_->InitModel("/home/peibozhao/Code/test/dbnet_changed.mnn");
-    padding_ = 50;
+    if (!db_net_->InitModel(dbnet_fname)) {
+        SPDLOG_ERROR("Dbnet init failed");
+        return false;
+    }
+    crnn_net_.reset(new CrnnNet());
+    if (!crnn_net_->InitModel(crnn_fname) || !crnn_net_->InitKeys(keys_fname)) {
+        SPDLOG_ERROR("Crnn init failed");
+        return false;
+    }
     maxside_len_ = 1024;
     return true;
 }
 
-std::vector<TextBox> ChineseLiteOcr::Detect(const Image &/*image*/) {
-    cv::Mat cv_image = cv::imread("image.png");
-    cv::cvtColor(cv_image, cv_image, cv::COLOR_BGR2RGB);
+std::vector<TextBox> ChineseOcr::Detect(const cv::Mat &image) {
+    cv::Mat cv_image;
+    cv::cvtColor(image, cv_image, cv::COLOR_BGR2RGB);
     int origin_maxside = std::max(cv_image.cols, cv_image.rows);
     int resize;
     if (maxside_len_ <= 0 || maxside_len_ > origin_maxside) {
@@ -21,15 +43,7 @@ std::vector<TextBox> ChineseLiteOcr::Detect(const Image &/*image*/) {
     } else {
         resize = maxside_len_;
     }
-    resize += 2 * padding_;
 
-    if (padding_ > 0) {
-        cv::Scalar padding_scalar = {255, 255, 255};
-        cv::copyMakeBorder(cv_image, cv_image, padding_, padding_, padding_, padding_,
-                           cv::BORDER_ISOLATED, padding_scalar);
-    }
-
-    std::cout << cv_image.rows << " " << cv_image.cols << std::endl;
     cv::Size dst_size;
     dst_size.width = cv_image.cols;
     dst_size.height = cv_image.rows;
@@ -52,18 +66,24 @@ std::vector<TextBox> ChineseLiteOcr::Detect(const Image &/*image*/) {
     float ratio_width = (float) dst_size.width / (float) cv_image.cols;
     float ratio_height = (float) dst_size.height / (float) cv_image.rows;
 
-    std::cout << dst_size.width << " " << dst_size.height << std::endl;
     cv::resize(cv_image, cv_image, dst_size);
-    std::vector<ChineseliteTextBox> boxes = db_net_->Detect(cv_image);
+    std::vector<Box> boxes = db_net_->Detect(cv_image);
 
     std::vector<TextBox> text_boxes;
-    for (const ChineseliteTextBox &box : boxes) {
-        TextBox text_box{box.points[0].first,
-                         box.points[0].second,
-                         box.points[1].first,
-                         box.points[1].second,
-                         0.f,
-                         "123"};
+    for (const Box &box : boxes) {
+        cv::Rect cv_rect(box.x, box.y, box.width, box.height);
+        cv::Mat part_image = cv_image(cv_rect);
+        std::string text = crnn_net_->Detect(part_image);
+        if (text.empty()) {
+            continue;
+        }
+        float width_ratio = float(image.cols) / float(cv_image.cols);
+        float height_ratio = float(image.rows) / float(cv_image.rows);
+        TextBox text_box{int(box.x * width_ratio),
+                         int(box.y * height_ratio),
+                         int(box.width * width_ratio),
+                         int(box.height * height_ratio),
+                         text};
         text_boxes.emplace_back(text_box);
     }
     return text_boxes;

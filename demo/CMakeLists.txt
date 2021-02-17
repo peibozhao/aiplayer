@@ -5,7 +5,7 @@ target_link_libraries(aiplayer_server
   aiplayer
   )
 
-set(AIPLAYER_CLIENT_SOURCES client/client.cpp client/adb_client.cpp)
+set(AIPLAYER_CLIENT_SOURCES adb_client/client.cpp)
 add_executable(aiplayer_client ${AIPLAYER_CLIENT_SOURCES})
 target_link_libraries(aiplayer_client
   aiplayer

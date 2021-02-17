@@ -8,10 +8,9 @@
 ///< 演习模式
 class YanxiPlayer : public IBLHXPlayer {
 public:
-    bool Init(const std::string &cfg) override;
+    bool Init(std::istream &is) override;
 
-    bool Play(const std::vector<ObjectBox> &objects, const std::vector<TextBox> &texts,
-              std::vector<PlayOperation> &operations) override;
+    std::vector<PlayOperation> Play(const std::vector<ObjectBox> &object_boxes, const std::vector<TextBox> &text_boxes) override;
 
     bool GetLimit() override;
 

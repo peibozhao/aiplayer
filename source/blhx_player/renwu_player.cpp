@@ -1,11 +1,18 @@
 
 #include "renwu_player.h"
 
-bool RenwuPlayer::Init(const std::string &cfg) { return true; }
-
-bool RenwuPlayer::Play(const std::vector<ObjectBox> &objects, const std::vector<TextBox> &texts,
-                       std::vector<PlayOperation> &operations) {
+bool RenwuPlayer::Init(std::istream &is)
+{
     return true;
 }
 
-bool RenwuPlayer::GetLimit() { return true; }
+std::vector<PlayOperation> RenwuPlayer::Play(const std::vector<ObjectBox> &object_boxes, const std::vector<TextBox> &text_boxes)
+{
+    return {};
+}
+
+bool RenwuPlayer::GetLimit()
+{
+    return true;
+}
+
