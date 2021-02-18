@@ -7,34 +7,47 @@
 #include "ocr_detect/chineselite_ocr.h"
 #include "opencv2/opencv.hpp"
 #include "utils/util_functions.h"
+#include "yaml-cpp/yaml.h"
 #include <linux/uuid.h>
 
 static nlohmann::json PlayOperation2Json(const PlayOperation &operation) {
     nlohmann::json root;
     switch (operation.type) {
-        case PlayOperationType::SCREEN_CLICK:
-            root["type"] = "click";
-            root["x"] = operation.click.x;
-            root["y"] = operation.click.y;
-            break;
-        case PlayOperationType::SCREEN_SWIPE:
-            root["type"] = "swipe";
-            root["delta_x"] = operation.swipe.delta_x;
-            root["delta_y"] = operation.swipe.delta_y;
-            break;
-        case PlayOperationType::LIMITS:
-            root["type"] = "limit";
-            break;
-        default:
-            break;
+    case PlayOperationType::SCREEN_CLICK:
+        root["type"] = "click";
+        root["x"] = operation.click.x;
+        root["y"] = operation.click.y;
+        break;
+    case PlayOperationType::SCREEN_SWIPE:
+        root["type"] = "swipe";
+        root["delta_x"] = operation.swipe.delta_x;
+        root["delta_y"] = operation.swipe.delta_y;
+        break;
+    case PlayOperationType::LIMITS:
+        root["type"] = "limit";
+        break;
+    default:
+        break;
     }
     return root;
 }
 
-bool BlhxHttpServer::Init(const std::string &config_str) {
-    ip_ = "0.0.0.0";
-    port_ = 8080;
-    if (InitHttplibServer() && InitAlgorithm("blhx-detect-config.yaml", "chineseocr.yaml", "blhx-player-battle.yaml")) {
+bool BlhxHttpServer::Init(std::istream &is) {
+    try {
+        YAML::Node root = YAML::Load(is);
+        ip_ = root["ip"].as<std::string>();
+        port_ = root["port"].as<int>();
+        detect_fname_ = root["detect_fname"].as<std::string>();
+        ocr_fname_ = root["ocr_fname"].as<std::string>();
+        player_fname_ = root["player_fname"].as<std::string>();
+    } catch (std::exception &e) {
+        is.seekg(std::ios::beg);
+        SPDLOG_ERROR("{}", e.what());
+        SPDLOG_ERROR(
+            std::string(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>()));
+        return false;
+    }
+    if (InitHttplibServer() && InitAlgorithm(detect_fname_, ocr_fname_, player_fname_)) {
         return true;
     }
     return false;
@@ -75,9 +88,14 @@ bool BlhxHttpServer::InitAlgorithm(const std::string &detect_fname, const std::s
     ocr_detect_.reset(new ChineseOcr());
     blhx_player_.reset(new BattlePlayer());
 
-    if (!object_detect_->InitWithFile(detect_fname) ||
-        !ocr_detect_->InitWithFile(ocr_fname) ||
-        !blhx_player_->InitWithFile(player_fname)) {
+    if (!object_detect_->InitWithFile(detect_fname)) {
+        SPDLOG_ERROR("Detect init failed. {}", detect_fname);
+        return false;
+    } else if (!ocr_detect_->InitWithFile(ocr_fname)) {
+        SPDLOG_ERROR("Ocr init failed. {}", ocr_fname);
+        return false;
+    } else if(!blhx_player_->InitWithFile(player_fname)) {
+        SPDLOG_ERROR("Player init failed. {}", player_fname);
         return false;
     }
 

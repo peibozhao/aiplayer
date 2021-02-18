@@ -1,0 +1,5 @@
+detect_fname: blhx_detect.yaml
+ocr_fname: chineseocr.yaml
+player_fname: blhx_player_battle.yaml
+ip: 0.0.0.0
+port: 8080

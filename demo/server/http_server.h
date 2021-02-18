@@ -5,10 +5,11 @@
 #include "object_detect/object_detect.h"
 #include "ocr_detect/ocr_detect.h"
 #include "blhx_player/blhx_player.h"
+#include "utils/util_defines.h"
 
 class BlhxHttpServer {
 public:
-    bool Init(const std::string &config_str);
+    InitialDefine
 
     void Start();
 
@@ -31,6 +32,7 @@ private:
     std::string ip_;
     int port_;
     httplib::Server server_;
+    std::string detect_fname_, ocr_fname_, player_fname_;
 
     std::shared_ptr<IObjectDetect> object_detect_;
     std::shared_ptr<IOcrDetect> ocr_detect_;

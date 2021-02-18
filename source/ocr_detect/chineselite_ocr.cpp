@@ -11,10 +11,9 @@ bool ChineseOcr::Init(std::istream &is) {
     std::string keys_fname;
     try {
         YAML::Node config = YAML::Load(is);
-        const YAML::Node &net_config = config["chinese_ocr"];
-        dbnet_fname = net_config["dbnet_model"].as<std::string>();
-        crnn_fname = net_config["crnn_model"].as<std::string>();
-        keys_fname = net_config["keys"].as<std::string>();
+        dbnet_fname = config["dbnet"]["model"].as<std::string>();
+        crnn_fname = config["crnn"]["model"].as<std::string>();
+        keys_fname = config["crnn"]["keys"].as<std::string>();
     } catch (std::exception &e) {
         SPDLOG_ERROR("Catch error: {}", e.what());
         return false;

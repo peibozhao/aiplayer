@@ -3,6 +3,6 @@
 
 int main(int argc, char *argv[]) {
     BlhxHttpServer server;
-    server.Init("");
+    server.InitWithFile("server.yaml");
     server.Start();
 }

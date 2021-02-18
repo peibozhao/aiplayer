@@ -14,7 +14,7 @@
 #include "chineselite/crnn_net.h"
 
 /**
- * @brief 基于https://github.com/ouyanghuiyu/chineseocr_lite
+ * @brief Base on https://github.com/ouyanghuiyu/chineseocr_lite
  */
 class ChineseOcr : public IOcrDetect {
 public:
