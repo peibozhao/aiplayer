@@ -18,7 +18,7 @@
  */
 class ChineseOcr : public IOcrDetect {
 public:
-    bool Init(std::istream &is) override;
+    bool Init(const std::string &config_str) override;
 
     std::vector<TextBox> Detect(const cv::Mat &image) override;
 

@@ -3,7 +3,7 @@
 #include "yaml-cpp/yaml.h"
 #include <random>
 
-#define PLAY_CENTER(obj, prio)                                                                     \
+#define _PLAY_CENTER(obj, prio)                                                                    \
     if (priority < prio) {                                                                         \
         ret = {CreatePlayOperation(PlayOperationType::SCREEN_CLICK, Pair2Vector(BoxCenter(obj)))}; \
         priority = prio;                                                                           \
@@ -47,8 +47,8 @@ bool BattlePlayer::Init(std::istream &is) {
         const YAML::Node &screen = config["screen"];
         width_ = screen["width"].as<int>();
         height_ = screen["height"].as<int>();
-        chapter_pattern_ = config["chapter-pattern"].as<std::string>(),
-        name_pattern_ = config["name-pattern"].as<std::string>(),
+        chapter_pattern_ = config["chapter_pattern"].as<std::string>(),
+        name_pattern_ = config["name_pattern"].as<std::string>(),
         left_times_ = config["times"].as<int>();
     } catch (std::exception &e) {
         SPDLOG_ERROR("Catch exception. {}", e.what());
@@ -77,31 +77,31 @@ std::vector<PlayOperation> BattlePlayer::Play(const std::vector<ObjectBox> &obje
     std::vector<PlayOperation> ret;
     int priority = -1;
     for (const auto &text_box : text_boxes) {
-        if (std::regex_match(text_box.text, chapter_pattern_)) {
-            PLAY_CENTER(text_box, 9)
-        } else if (text_box.text == "点击继续") {
-            PLAY_CENTER(text_box, 10)
-        } else if (std::regex_match(text_box.text, std::regex("点击关闭"))) {
+        if (Match(text_box.text, chapter_pattern_)) {
+            _PLAY_CENTER(text_box, 9)
+        } else if (Match(text_box.text, "点击继续")) {
+            _PLAY_CENTER(text_box, 10)
+        } else if (Match(text_box.text, "点击关闭")) {
             SPDLOG_WARN("Defeat");
-            PLAY_CENTER(text_box, 10)
-        } else if (text_box.text == "锁定" || text_box.text == "分享" ||
-                   text_box.text == "检视") {
+            _PLAY_CENTER(text_box, 10)
+        } else if (Match(text_box.text, "锁定") || Match(text_box.text, "分享") ||
+                   Match(text_box.text, "检视")) {
             if (priority < 10) {
                 ret = {CreatePlayOperation(PlayOperationType::SCREEN_CLICK, {1000, 500})};
                 priority = 10;
             }
-        } else if (text_box.text == "立刻前往") {
+        } else if (Match(text_box.text, "立刻前往")) {
             Reset();
-            PLAY_CENTER(text_box, 10)
-        } else if (text_box.text == "点击继续") {
-            PLAY_CENTER(text_box, 10)
-        } else if (text_box.text == "确定") {
-            PLAY_CENTER(text_box, 10)
-        } else if (text_box.text == "出击") {
-            PLAY_CENTER(text_box, 10)
-        } else if (std::regex_match(text_box.text, name_pattern_)) {
-            PLAY_CENTER(text_box, 1)
-        } else if (text_box.text == "撤退" || text_box.text == "切换") {
+            _PLAY_CENTER(text_box, 10)
+        } else if (Match(text_box.text, "点击继续")) {
+            _PLAY_CENTER(text_box, 10)
+        } else if (Match(text_box.text, "确定")) {
+            _PLAY_CENTER(text_box, 10)
+        } else if (Match(text_box.text, "出击")) {
+            _PLAY_CENTER(text_box, 10)
+        } else if (Match(text_box.text, name_pattern_)) {
+            _PLAY_CENTER(text_box, 1)
+        } else if (Match(text_box.text, "撤退") || Match(text_box.text, "切换")) {
             // Battle
             if (priority < 10) {
                 ret = AttackEnemy(object_boxes);
@@ -130,7 +130,8 @@ std::vector<PlayOperation> BattlePlayer::AttackEnemy(const std::vector<ObjectBox
 }
 
 std::vector<PlayOperation> BattlePlayer::Move(const ObjectBox &object_box) {
-    return {CreatePlayOperation(PlayOperationType::SCREEN_CLICK, Pair2Vector(BoxCenter(object_box)))};
+    return {
+        CreatePlayOperation(PlayOperationType::SCREEN_CLICK, Pair2Vector(BoxCenter(object_box)))};
 }
 
 void BattlePlayer::Reset() {
@@ -151,4 +152,8 @@ PlayOperation BattlePlayer::CheckBoundray(const PlayOperation &opt) {
         return ret;
     }
     return opt;
+}
+
+bool BattlePlayer::Match(const std::string &str, const std::string &pattern) {
+    return std::regex_match(str, std::regex(pattern));
 }

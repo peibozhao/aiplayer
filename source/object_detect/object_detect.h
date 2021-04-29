@@ -12,7 +12,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include "spdlog/spdlog.h"
 #include "opencv2/opencv.hpp"
 #include "utils/util_defines.h"
 
@@ -29,7 +28,7 @@ class IObjectDetect {
 public:
     virtual ~IObjectDetect() {}
 
-    InitialBaseDefine
+    virtual bool Init(const std::string &config_str) { return true; }
 
     virtual bool SetParam(const std::string &key, const std::string &value) { return true; }
 

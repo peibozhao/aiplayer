@@ -24,7 +24,7 @@
 class Yolov5Detect : public IObjectDetect {
 public:
     ~Yolov5Detect() override;
-    bool Init(std::istream &is) override;
+    bool Init(const std::string &config_str) override;
     bool SetParam(const std::string &key, const std::string &value) override;
     std::vector<ObjectBox> Detect(const cv::Mat &image) override;
 

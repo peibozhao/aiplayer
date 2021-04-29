@@ -1,5 +1,0 @@
-dbnet:
-    model: dbnet_fix.mnn
-crnn:
-    model: crnn_lite_lstm.mnn
-    keys: keys.txt

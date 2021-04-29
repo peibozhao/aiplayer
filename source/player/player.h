@@ -1,18 +1,10 @@
-/**
- * @file player.h
- * @brief
- * @author peibozhao
- * @version 1.0.0
- * @date 2020-10-13
- */
 
 #pragma once
 
-#include <string>
-#include <vector>
 #include "object_detect/object_detect.h"
 #include "ocr_detect/ocr_detect.h"
 #include "utils/util_defines.h"
+#include <vector>
 
 enum class PlayOperationType {
     NONE,         // 没有操作
@@ -23,7 +15,7 @@ enum class PlayOperationType {
 };
 
 struct SleepOperation {
-    int time;  // ms
+    int time; // ms
     SleepOperation() : time(0) {}
 };
 
@@ -48,14 +40,14 @@ struct PlayOperation {
     PlayOperation(PlayOperationType type = PlayOperationType::NONE) { this->type = type; }
 };
 
-class IBLHXPlayer {
+class IPlayer {
 public:
-    virtual ~IBLHXPlayer() {}
+    virtual ~IPlayer() {}
 
-    InitialBaseDefine
+    virtual bool Init(const std::string &config_str) { return true; };
 
-    virtual std::vector<PlayOperation> Play(const std::vector<ObjectBox> &objects, const std::vector<TextBox> &texts) = 0;
+    virtual std::vector<PlayOperation>
+    Play(const std::vector<ObjectBox> &objects, const std::vector<TextBox> &texts);
 
     virtual bool GetLimit() { return false; }
 };
-

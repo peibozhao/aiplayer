@@ -21,7 +21,7 @@ class IOcrDetect {
 public:
     virtual ~IOcrDetect() {}
 
-    InitialBaseDefine
+    virtual bool Init(const std::string &config_str) { return true; }
 
     virtual bool SetParam(const std::string &key, const std::string &value) { return true; }
 

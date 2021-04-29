@@ -1,5 +1,6 @@
 
 #include "crnn_net.h"
+#include "spdlog/spdlog.h"
 #include <algorithm>
 #include <fstream>
 #include <numeric>
@@ -7,13 +8,13 @@
 bool CrnnNet::InitModel(const std::string &model_fname) {
     mnn_net_.reset(MNN::Interpreter::createFromFile(model_fname.c_str()));
     if (mnn_net_ == nullptr) {
-        std::cout << "MNN read net" << std::endl;
+        SPDLOG_ERROR("MNN read net");
         return false;
     }
     MNN::ScheduleConfig mnn_config;
     mnn_session_ = mnn_net_->createSession(mnn_config);
     if (mnn_session_ == nullptr) {
-        std::cout << "MNN create session" << std::endl;
+        SPDLOG_ERROR("MNN create session");
         return false;
     }
     return true;
@@ -23,13 +24,29 @@ bool CrnnNet::InitKeys(const std::string &keys_fname) {
     keys_.clear();
     std::ifstream ifs(keys_fname);
     if (!ifs.is_open()) {
-        std::cout << "read keys" << std::endl;
         return false;
     }
     std::string line;
     while (std::getline(ifs, line)) {
         keys_.emplace_back(line);
     }
+    return true;
+}
+
+bool CrnnNet::InitConfig(const Config &config) {
+    if (keys_.empty()) {
+        SPDLOG_ERROR("Init keys first");
+        return false;
+    }
+    for (int i = 0; i < keys_.size(); ++i) {
+        for (const auto &hot : config.hot_word) {
+            if (hot == keys_[i]) {
+                hot_keys_.insert(i + 1);
+            }
+        }
+    }
+    hot_scale_ = config.hot_scale;
+    charscore_thresh_ = config.word_thresh;
     return true;
 }
 
@@ -74,39 +91,45 @@ std::string CrnnNet::Detect(const cv::Mat &image) {
     mnn_output->copyToHostTensor(nchw_output);
 
     float *output_buffer = nchw_output->host<float>();
+    std::vector<std::vector<float>> output(output_shape[0]);
+    for (int i = 0; i < output_shape[0]; ++i) {
+        output[i].resize(output_shape[2]);
+        memcpy(output[i].data(), output_buffer + i * output_shape[2],
+               output_shape[2] * sizeof(float));
+    }
+    return PostProcess(output);
+}
+
+std::string CrnnNet::PostProcess(const std::vector<std::vector<float>> &output) {
     int key_size = keys_.size();
+    assert(key_size == output[0].size());
     std::string res;
-    std::vector<float> scores;
     int last_index = 0;
     int max_index;
     float max_value;
 
-    for (int i = 0; i < output_shape[0]; i++) {
-        max_index = 0;
-        max_value = -1000.f;
-        // do softmax
-        std::vector<float> exps(output_shape[2]);
-        for (int j = 0; j < output_shape[2]; j++) {
-            float exp_single = std::exp(output_buffer[i * output_shape[2] + j]);
-            exps.at(j) = exp_single;
+    for (int i = 0; i < output.size(); i++) {
+        const std::vector<float> &oneword_output = output[i];
+        int max_index = 0;
+        float max_value = -1000.f;
+        // Do softmax
+        std::vector<float> exps(oneword_output.size());
+        for (int j = 0; j < oneword_output.size(); j++) {
+            exps[j] = std::exp(oneword_output[j]);
+            if (hot_keys_.find(j) != hot_keys_.end()) {
+                exps[j] *= hot_scale_;
+            }
         }
         float partition = std::accumulate(exps.begin(), exps.end(), 0.0); // row sum
         max_index = std::max_element(exps.begin(), exps.end()) - exps.begin();
         max_value = float(*std::max_element(exps.begin(), exps.end())) / partition;
-        if (max_index > 0 && max_index < key_size && (!(i > 0 && max_index == last_index))) {
-            scores.emplace_back(max_value);
-            res.append(keys_[max_index - 1]);
+        if (max_index > 0 && max_index < key_size) {
+            SPDLOG_DEBUG("{}: {}", keys_[max_index - 1], max_value);
+            if (max_value > charscore_thresh_ && (!(i > 0 && max_index == last_index))) {
+                res.append(keys_[max_index - 1]);
+            }
         }
         last_index = max_index;
     }
-    return CheckValid(scores) ? res : "";
-}
-
-bool CrnnNet::CheckValid(const std::vector<float> &scores) {
-    for (float score : scores) {
-        if (score < charscore_thresh_) {
-            return false;
-        }
-    }
-    return true;
+    return res;
 }

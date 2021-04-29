@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "blhx_player.h"
+#include "player/blhx_player.h"
 #include <map>
 #include <regex>
 

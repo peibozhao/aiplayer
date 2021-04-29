@@ -4,15 +4,15 @@
 #include "object_detect/yolov5_detect.h"
 #include "blhx_player/battle_player.h"
 
-TEST_CASE("blhx", "battle") {
+TEST_CASE("battle", "blhx") {
     cv::Mat image = cv::imread("image.png");
     REQUIRE_FALSE(image.empty());
     ChineseOcr ocr;
     Yolov5Detect detect;
     BattlePlayer player;
-    REQUIRE(ocr.InitWithFile("chineseocr.yaml"));
-    REQUIRE(detect.InitWithFile("blhx-detect-config.yaml"));
-    REQUIRE(player.InitWithFile("blhx-player-battle.yaml"));
+    REQUIRE(ocr.InitWithFile("../../unittest/config/ocr.yaml"));
+    REQUIRE(detect.InitWithFile("../../unittest/config/detect.yaml"));
+    REQUIRE(player.InitWithFile("../../unittest/config/player.yaml"));
     std::vector<TextBox> text_boxes = ocr.Detect(image);
     for (const TextBox &box : text_boxes) {
         cv::Rect rect(box.x, box.y, box.width, box.height);

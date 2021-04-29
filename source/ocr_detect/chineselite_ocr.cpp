@@ -5,15 +5,19 @@
 #include "yaml-cpp/yaml.h"
 #include "spdlog/spdlog.h"
 
-bool ChineseOcr::Init(std::istream &is) {
+bool ChineseOcr::Init(const std::string &config_str) {
     std::string dbnet_fname;
     std::string crnn_fname;
     std::string keys_fname;
+    CrnnNet::Config crnn_config;
     try {
-        YAML::Node config = YAML::Load(is);
+        YAML::Node config = YAML::Load(config_str);
         dbnet_fname = config["dbnet"]["model"].as<std::string>();
         crnn_fname = config["crnn"]["model"].as<std::string>();
         keys_fname = config["crnn"]["keys"].as<std::string>();
+        crnn_config.hot_word = config["crnn"]["hot_keys"].as<std::vector<std::string>>();
+        crnn_config.hot_scale = config["crnn"]["hot_scale"].as<float>();
+        crnn_config.word_thresh = config["crnn"]["thresh"].as<float>();
     } catch (std::exception &e) {
         SPDLOG_ERROR("Catch error: {}", e.what());
         return false;
@@ -24,8 +28,16 @@ bool ChineseOcr::Init(std::istream &is) {
         return false;
     }
     crnn_net_.reset(new CrnnNet());
-    if (!crnn_net_->InitModel(crnn_fname) || !crnn_net_->InitKeys(keys_fname)) {
-        SPDLOG_ERROR("Crnn init failed");
+    if (!crnn_net_->InitModel(crnn_fname)) {
+        SPDLOG_ERROR("Crnn init model failed");
+        return false;
+    }
+    if (!crnn_net_->InitKeys(keys_fname)) {
+        SPDLOG_ERROR("Crnn init keys failed");
+        return false;
+    }
+    if (!crnn_net_->InitConfig(crnn_config)) {
+        SPDLOG_ERROR("Crnn init config");
         return false;
     }
     maxside_len_ = 1024;

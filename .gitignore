@@ -5,7 +5,7 @@
 !tool/
 !config/
 !third/
-!unittest/
+!test/
 !CMakeLists.txt
 !.gitignore
 !.gitmodules

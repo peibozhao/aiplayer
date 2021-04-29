@@ -1,5 +1,38 @@
-detect_fname: blhx_detect.yaml
-ocr_fname: chineseocr.yaml
-player_fname: blhx_player_battle.yaml
-ip: 0.0.0.0
-port: 8080
+detect:
+    image_height: 1176
+    image_width: 2400
+    network:
+      net_file: blhx_detect.mnn
+      nms_thresh: 0.7
+      score_thresh: 0.7
+      input_width: 640
+      input_height: 320
+      class_names: [敌人, boss, 每日任务, 立刻前往, 迎击, 出击, 战斗评价, 点击继续, 确定, 船舰小图, 当前船舰, 弹药]
+      stride:
+        output: 8
+        1036: 16
+        1056: 32
+      anchor_grid:
+        output: [[10, 13], [16, 30], [33, 23]]
+        1036: [[30, 61], [62, 45], [59, 119]]
+        1056: [[116, 90], [156, 198], [373, 326]]
+ocr:
+    dbnet:
+        model: dbnet.mnn
+    crnn:
+        model: crnn_lite_lstm.mnn
+        keys: keys.txt
+        hot_keys: [切, 换, 立, 刻, 前, 往, 继, 续, 点, 关, 闭, 锁, 分, 享, 检, 视, 确, 定, 出, 击, 撤, 退]
+        hot_scale: 100
+        thresh: 0.6
+player:
+    type: battle
+    screen:
+      width: 2340
+      height: 1080
+    chapter_pattern: .*极北的.*
+    name_pattern: 肥宅.*
+    times: 5
+server:
+    ip: 0.0.0.0
+    port: 8080

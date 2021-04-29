@@ -33,13 +33,14 @@ static nlohmann::json PlayOperation2Json(const PlayOperation &operation) {
 }
 
 bool BlhxHttpServer::Init(std::istream &is) {
+    std::string detect_config, ocr_config, player_config;
     try {
         YAML::Node root = YAML::Load(is);
-        ip_ = root["ip"].as<std::string>();
-        port_ = root["port"].as<int>();
-        detect_fname_ = root["detect_fname"].as<std::string>();
-        ocr_fname_ = root["ocr_fname"].as<std::string>();
-        player_fname_ = root["player_fname"].as<std::string>();
+        ip_ = root["server"]["ip"].as<std::string>();
+        port_ = root["server"]["port"].as<int>();
+        detect_config = YAML::Dump(root["detect"]);
+        ocr_config = YAML::Dump(root["ocr"]);
+        player_config = YAML::Dump(root["player"]);
     } catch (std::exception &e) {
         is.seekg(std::ios::beg);
         SPDLOG_ERROR("{}", e.what());
@@ -47,7 +48,7 @@ bool BlhxHttpServer::Init(std::istream &is) {
             std::string(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>()));
         return false;
     }
-    if (InitHttplibServer() && InitAlgorithm(detect_fname_, ocr_fname_, player_fname_)) {
+    if (InitHttplibServer() && InitAlgorithm(detect_config, ocr_config, player_config)) {
         return true;
     }
     return false;
@@ -82,20 +83,20 @@ bool BlhxHttpServer::InitHttplibServer() {
     return true;
 }
 
-bool BlhxHttpServer::InitAlgorithm(const std::string &detect_fname, const std::string &ocr_fname,
-                                   const std::string &player_fname) {
+bool BlhxHttpServer::InitAlgorithm(const std::string &detect_config, const std::string &ocr_config,
+                                   const std::string &player_config) {
     object_detect_.reset(new Yolov5Detect());
     ocr_detect_.reset(new ChineseOcr());
     blhx_player_.reset(new BattlePlayer());
 
-    if (!object_detect_->InitWithFile(detect_fname)) {
-        SPDLOG_ERROR("Detect init failed. {}", detect_fname);
+    if (!object_detect_->Init(detect_config)) {
+        SPDLOG_ERROR("Detect init failed. {}", detect_config);
         return false;
-    } else if (!ocr_detect_->InitWithFile(ocr_fname)) {
-        SPDLOG_ERROR("Ocr init failed. {}", ocr_fname);
+    } else if (!ocr_detect_->Init(ocr_config)) {
+        SPDLOG_ERROR("Ocr init failed. {}", ocr_config);
         return false;
-    } else if(!blhx_player_->InitWithFile(player_fname)) {
-        SPDLOG_ERROR("Player init failed. {}", player_fname);
+    } else if(!blhx_player_->Init(player_config)) {
+        SPDLOG_ERROR("Player init failed. {}", player_config);
         return false;
     }
 
@@ -104,7 +105,7 @@ bool BlhxHttpServer::InitAlgorithm(const std::string &detect_fname, const std::s
 
 void BlhxHttpServer::CreatePlayer(BlhxHttpServer *this_, const httplib::Request &request,
                                   httplib::Response &response) {
-    std::cout << "Create player" << std::endl;
+    SPDLOG_INFO("Create player");
 }
 
 void BlhxHttpServer::Play(BlhxHttpServer *this_, const httplib::Request &request,
@@ -152,7 +153,6 @@ void BlhxHttpServer::Play(BlhxHttpServer *this_, const httplib::Request &request
 void BlhxHttpServer::TestDetect(BlhxHttpServer *this_, const httplib::Request &request,
                                 httplib::Response &response) {
     std::string request_body = request.body;
-    std::cout << request_body << std::endl;
     std::vector<uint8_t> data;
     try {
         nlohmann::json root = nlohmann::json::parse(request_body);
@@ -177,13 +177,11 @@ void BlhxHttpServer::TestDetect(BlhxHttpServer *this_, const httplib::Request &r
     }
 
     response.body = res_json.dump();
-    std::cout << response.body << std::endl;
 }
 
 void BlhxHttpServer::TestOcr(BlhxHttpServer *this_, const httplib::Request &request,
                              httplib::Response &response) {
     std::string request_body = request.body;
-    std::cout << request_body << std::endl;
     std::vector<uint8_t> data;
     try {
         nlohmann::json root = nlohmann::json::parse(request_body);
@@ -208,5 +206,4 @@ void BlhxHttpServer::TestOcr(BlhxHttpServer *this_, const httplib::Request &requ
     }
 
     response.body = res_json.dump();
-    std::cout << response.body << std::endl;
 }

@@ -18,7 +18,7 @@ public:
 private:
     bool InitHttplibServer();
 
-    bool InitAlgorithm(const std::string &detect_fname, const std::string &ocr_fname, const std::string &player_fname);
+    bool InitAlgorithm(const std::string &detect_config, const std::string &ocr_config, const std::string &player_config);
 
     static void CreatePlayer(BlhxHttpServer *this_, const httplib::Request &request, httplib::Response &response);
 
@@ -32,7 +32,6 @@ private:
     std::string ip_;
     int port_;
     httplib::Server server_;
-    std::string detect_fname_, ocr_fname_, player_fname_;
 
     std::shared_ptr<IObjectDetect> object_detect_;
     std::shared_ptr<IOcrDetect> ocr_detect_;

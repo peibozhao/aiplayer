@@ -17,9 +17,13 @@ int main(int argc, char *argv[]) {
     request_body["image"]["data"] = Base64Encode(data);
 
     httplib::Client client("127.0.0.1", 8080);
+    client.set_read_timeout(10);
     httplib::Result ret = client.Patch("/blhx/players/123", request_body.dump(), "json");
     if (ret.error() != httplib::Success || ret->status != 200) {
-        SPDLOG_ERROR("Request error");
+        SPDLOG_ERROR("Network error. {}", ret.error());
+        return -1;
+    } else if (ret->status != 200) {
+        SPDLOG_ERROR("Request error. {}", ret->status);
         return -1;
     }
 

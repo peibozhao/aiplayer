@@ -1,23 +1,33 @@
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.11.0)
 project(aiplayer)
 
+option(AIPLAYER_BUILD_DEMO "Build demo or not" OFF)
+option(AIPLAYER_BUILD_TEST "Build test or not" OFF)
+
+include(FetchContent)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(SPDLOG_FMT_EXTERNAL ON)
-set(BUILD_TESTING OFF)
-set(MNN_BUILD_TOOLS OFF)
 set(CMAKE_CXX_STANDARD 17)
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_definitions(-DSPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
-endif()
+FetchContent_Declare(json
+    URL https://github.com/nlohmann/json/archive/refs/tags/v3.9.1.tar.gz
+    )
+FetchContent_MakeAvailable(json)
+
+FetchContent_Declare(log
+    URL https://github.com/google/glog/archive/refs/tags/v0.4.0.tar.gz
+    )
+FetchContent_MakeAvailable(log)
+
+FetchContent_Declare(yaml
+    URL https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.6.3.tar.gz
+    )
+FetchContent_MakeAvailable(yaml)
 
 include_directories(source)
-include_directories(third/yaml-cpp/include)
-include_directories(third/spdlog/include)
-include_directories(third/fmt/include)
-include_directories(third/cpp-httplib)
-include_directories(third/json/include)
+include_directories(${log_BINARY_DIR})
+include_directories(${yaml_SOURCE_DIR}/yaml-cpp/include)
+include_directories(${json_SOURCE_DIR}/include)
 include_directories(/usr/local/include/opencv4)
 
 file(GLOB_RECURSE SOURCE_LIST
@@ -27,9 +37,10 @@ file(GLOB_RECURSE SOURCE_LIST
 add_library(aiplayer SHARED ${SOURCE_LIST})
 target_link_libraries(aiplayer
   MNN
+  # fmt
+  # spdlog
   yaml-cpp
-  fmt
-  spdlog
+  glog
   nlohmann_json
   opencv_imgcodecs
   opencv_imgproc
@@ -38,20 +49,9 @@ target_link_libraries(aiplayer
   stdc++fs
   )
 
-add_subdirectory(third/yaml-cpp)
-add_subdirectory(third/fmt)
-add_subdirectory(third/spdlog)
-# add_subdirectory(third/MNN)
-add_subdirectory(third/json)
-
-# add_custom_target(MNN_PRE
-#   COMMAND ./schema/generate.sh
-#   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/third/MNN
-#   )
-
-# foreach(MNN_TARGET ${MNN_TARGETS})
-#   add_dependencies(${MNN_TARGET} MNN_PRE)
-# endforeach()
-
-add_subdirectory(unittest)
-add_subdirectory(demo)
+if (AIPLAYER_BUILD_DEMO)
+    add_subdirectory(demo)
+endif()
+if (AIPLAYER_BUILD_TEST)
+    add_subdirectory(unittest)
+endif()

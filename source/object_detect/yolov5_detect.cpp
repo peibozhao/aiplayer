@@ -10,10 +10,10 @@
 
 Yolov5Detect::~Yolov5Detect() {}
 
-bool Yolov5Detect::Init(std::istream &is) {
+bool Yolov5Detect::Init(const std::string &config_str) {
     std::string net_fn;
     try {
-        YAML::Node config = YAML::Load(is);
+        YAML::Node config = YAML::Load(config_str);
         img_height_ = config["image_height"].as<int>();
         img_width_ = config["image_width"].as<int>();
         YAML::Node net_config = config["network"];
