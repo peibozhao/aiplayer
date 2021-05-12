@@ -2,7 +2,7 @@
 #include "db_net.h"
 #include <algorithm>
 #include "MNN/ImageProcess.hpp"
-#include "spdlog/spdlog.h"
+#include "glog/logging.h"
 
 bool DbNet::InitModel(const std::string &model_fname) {
     mnn_net_.reset(MNN::Interpreter::createFromFile(model_fname.c_str()));
@@ -42,7 +42,7 @@ std::vector<Box> DbNet::Detect(const cv::Mat &image) {
 
     MNN::ErrorCode predict_ret = mnn_net_->runSession(mnn_session_);
     if (predict_ret != MNN::NO_ERROR) {
-        SPDLOG_ERROR("Predict Error");
+        LOG(ERROR) << "Predict Error";
         return {};
     }
 

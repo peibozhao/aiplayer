@@ -4,12 +4,11 @@
 #include "httplib.h"
 #include "object_detect/object_detect.h"
 #include "ocr_detect/ocr_detect.h"
-#include "blhx_player/blhx_player.h"
-#include "utils/util_defines.h"
+#include "player/player.h"
 
-class BlhxHttpServer {
+class HttpServer {
 public:
-    InitialDefine
+    bool Init(const std::string &config_fname);
 
     void Start();
 
@@ -20,13 +19,13 @@ private:
 
     bool InitAlgorithm(const std::string &detect_config, const std::string &ocr_config, const std::string &player_config);
 
-    static void CreatePlayer(BlhxHttpServer *this_, const httplib::Request &request, httplib::Response &response);
+    static void CreatePlayer(HttpServer *this_, const httplib::Request &request, httplib::Response &response);
 
-    static void Play(BlhxHttpServer *this_, const httplib::Request &request, httplib::Response &response);
+    static void Play(HttpServer *this_, const httplib::Request &request, httplib::Response &response);
 
-    static void TestDetect(BlhxHttpServer *this_, const httplib::Request &request, httplib::Response &response);
+    static void TestDetect(HttpServer *this_, const httplib::Request &request, httplib::Response &response);
 
-    static void TestOcr(BlhxHttpServer *this_, const httplib::Request &request, httplib::Response &response);
+    static void TestOcr(HttpServer *this_, const httplib::Request &request, httplib::Response &response);
 
 private:
     std::string ip_;
@@ -35,5 +34,5 @@ private:
 
     std::shared_ptr<IObjectDetect> object_detect_;
     std::shared_ptr<IOcrDetect> ocr_detect_;
-    std::shared_ptr<IBLHXPlayer> blhx_player_;
+    std::shared_ptr<IPlayer> player_;
 };

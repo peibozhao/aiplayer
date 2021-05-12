@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "spdlog/spdlog.h"
+#include "glog/logging.h"
 #include <chrono>
 
 class TimeLog {
@@ -13,9 +13,10 @@ public:
 
     ~TimeLog() {
         auto end_time = std::chrono::system_clock::now();
-        SPDLOG_DEBUG(
-            "{} cost {}", label_,
-            std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time_).count());
+        LOG(INFO) << label_ << " cost "
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(
+                         end_time - start_time_)
+                         .count();
     }
 
 private:

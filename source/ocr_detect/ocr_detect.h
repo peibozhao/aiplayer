@@ -6,8 +6,6 @@
 #include <fstream>
 #include <opencv2/opencv.hpp>
 #include "common/common_types.h"
-#include "spdlog/spdlog.h"
-#include "utils/util_defines.h"
 
 struct TextBox {
     int x, y, width, height;

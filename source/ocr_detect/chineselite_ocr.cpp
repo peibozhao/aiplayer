@@ -3,7 +3,7 @@
 #include <fstream>
 #include <opencv4/opencv2/opencv.hpp>
 #include "yaml-cpp/yaml.h"
-#include "spdlog/spdlog.h"
+#include "glog/logging.h"
 
 bool ChineseOcr::Init(const std::string &config_str) {
     std::string dbnet_fname;
@@ -19,25 +19,25 @@ bool ChineseOcr::Init(const std::string &config_str) {
         crnn_config.hot_scale = config["crnn"]["hot_scale"].as<float>();
         crnn_config.word_thresh = config["crnn"]["thresh"].as<float>();
     } catch (std::exception &e) {
-        SPDLOG_ERROR("Catch error: {}", e.what());
+        LOG(ERROR) << "Catch error: " << e.what();
         return false;
     }
     db_net_.reset(new DbNet());
     if (!db_net_->InitModel(dbnet_fname)) {
-        SPDLOG_ERROR("Dbnet init failed");
+        LOG(ERROR) << "Dbnet init failed";
         return false;
     }
     crnn_net_.reset(new CrnnNet());
     if (!crnn_net_->InitModel(crnn_fname)) {
-        SPDLOG_ERROR("Crnn init model failed");
+        LOG(ERROR) << "Crnn init model failed";
         return false;
     }
     if (!crnn_net_->InitKeys(keys_fname)) {
-        SPDLOG_ERROR("Crnn init keys failed");
+        LOG(ERROR) << "Crnn init keys failed";
         return false;
     }
     if (!crnn_net_->InitConfig(crnn_config)) {
-        SPDLOG_ERROR("Crnn init config");
+        LOG(ERROR) << "Crnn init config";
         return false;
     }
     maxside_len_ = 1024;

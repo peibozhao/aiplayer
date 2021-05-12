@@ -1,14 +1,14 @@
 
 #include "http_server.h"
-#include "blhx_player/battle_player.h"
-#include "blhx_player/blhx_player.h"
+#include "glog/logging.h"
 #include "nlohmann/json.hpp"
 #include "object_detect/yolov5_detect.h"
 #include "ocr_detect/chineselite_ocr.h"
 #include "opencv2/opencv.hpp"
+#include "player/blhx_player.h"
 #include "utils/util_functions.h"
 #include "yaml-cpp/yaml.h"
-#include <linux/uuid.h>
+// #include <linux/uuid.h>
 
 static nlohmann::json PlayOperation2Json(const PlayOperation &operation) {
     nlohmann::json root;
@@ -32,84 +32,75 @@ static nlohmann::json PlayOperation2Json(const PlayOperation &operation) {
     return root;
 }
 
-bool BlhxHttpServer::Init(std::istream &is) {
-    std::string detect_config, ocr_config, player_config;
+bool HttpServer::Init(const std::string &config_fname) {
+    YAML::Node detect_config, ocr_config, player_config;
     try {
-        YAML::Node root = YAML::Load(is);
-        ip_ = root["server"]["ip"].as<std::string>();
-        port_ = root["server"]["port"].as<int>();
-        detect_config = YAML::Dump(root["detect"]);
-        ocr_config = YAML::Dump(root["ocr"]);
-        player_config = YAML::Dump(root["player"]);
+        YAML::Node config = YAML::LoadFile(config_fname);
+        ip_ = config["server"]["ip"].as<std::string>();
+        port_ = config["server"]["port"].as<int>();
+        detect_config = config["detect"];
+        ocr_config = config["ocr"];
+        player_config = config["player"];
     } catch (std::exception &e) {
-        is.seekg(std::ios::beg);
-        SPDLOG_ERROR("{}", e.what());
-        SPDLOG_ERROR(
-            std::string(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>()));
+        LOG(ERROR) << "Catch error: " << e.what();
         return false;
     }
-    if (InitHttplibServer() && InitAlgorithm(detect_config, ocr_config, player_config)) {
-        return true;
+    object_detect_.reset(new Yolov5Detect());
+    ocr_detect_.reset(new ChineseOcr());
+    player_.reset(new BLHXPlayer());
+    if (!object_detect_->Init(YAML::Dump(detect_config))) {
+        return false;
     }
-    return false;
+    if (!ocr_detect_->Init(YAML::Dump(ocr_config))) {
+        return false;
+    }
+    if (!player_->Init(YAML::Dump(player_config))) {
+        return false;
+    }
+    if (!InitHttplibServer()) {
+        return false;
+    }
+    return true;
 }
 
-void BlhxHttpServer::Start() { server_.listen(ip_.c_str(), port_); }
+void HttpServer::Start() { server_.listen(ip_.c_str(), port_); }
 
-void BlhxHttpServer::Stop() {}
+void HttpServer::Stop() {}
 
-bool BlhxHttpServer::InitHttplibServer() {
-    server_.Post("/blhx/players",
-                 [this](const httplib::Request &request, httplib::Response &response) {
-                     // Create blhx player
-                     CreatePlayer(this, request, response);
-                 });
+bool HttpServer::InitHttplibServer() {
+    server_.Post("/blhx/players", [this](const httplib::Request &request,
+                                         httplib::Response &response) {
+        // Create blhx player
+        CreatePlayer(this, request, response);
+    });
 
-    server_.Patch("/blhx/players/.*",
-                  [this](const httplib::Request &request, httplib::Response &response) {
-                      // Update blhx player
-                      SPDLOG_DEBUG("Request {}", request.path);
-                      Play(this, request, response);
-                  });
+    server_.Patch("/blhx/players/.*", [this](const httplib::Request &request,
+                                             httplib::Response &response) {
+        // Update blhx player
+        LOG(INFO) << "Request " << request.path;
+        Play(this, request, response);
+    });
 
-    server_.Post("/test/detect",
-                 [this](const httplib::Request &request, httplib::Response &response) {
-                     TestDetect(this, request, response);
-                 });
+    server_.Post("/test/detect", [this](const httplib::Request &request,
+                                        httplib::Response &response) {
+        TestDetect(this, request, response);
+    });
 
-    server_.Post("/test/ocr", [this](const httplib::Request &request, httplib::Response &response) {
+    server_.Post("/test/ocr", [this](const httplib::Request &request,
+                                     httplib::Response &response) {
         TestOcr(this, request, response);
     });
     return true;
 }
 
-bool BlhxHttpServer::InitAlgorithm(const std::string &detect_config, const std::string &ocr_config,
-                                   const std::string &player_config) {
-    object_detect_.reset(new Yolov5Detect());
-    ocr_detect_.reset(new ChineseOcr());
-    blhx_player_.reset(new BattlePlayer());
-
-    if (!object_detect_->Init(detect_config)) {
-        SPDLOG_ERROR("Detect init failed. {}", detect_config);
-        return false;
-    } else if (!ocr_detect_->Init(ocr_config)) {
-        SPDLOG_ERROR("Ocr init failed. {}", ocr_config);
-        return false;
-    } else if(!blhx_player_->Init(player_config)) {
-        SPDLOG_ERROR("Player init failed. {}", player_config);
-        return false;
-    }
-
-    return true;
+void HttpServer::CreatePlayer(HttpServer *this_,
+                              const httplib::Request &request,
+                              httplib::Response &response) {
+    LOG(INFO) << "Create player";
 }
 
-void BlhxHttpServer::CreatePlayer(BlhxHttpServer *this_, const httplib::Request &request,
-                                  httplib::Response &response) {
-    SPDLOG_INFO("Create player");
-}
-
-void BlhxHttpServer::Play(BlhxHttpServer *this_, const httplib::Request &request,
-                          httplib::Response &response) {
+void HttpServer::Play(HttpServer *this_, const httplib::Request &request,
+                      httplib::Response &response) {
     std::string request_body = request.body;
     std::vector<uint8_t> data;
     try {
@@ -125,19 +116,25 @@ void BlhxHttpServer::Play(BlhxHttpServer *this_, const httplib::Request &request
     cv::Mat image = cv::imdecode(data, cv::ImreadModes::IMREAD_COLOR);
     std::vector<TextBox> text_boxes = this_->ocr_detect_->Detect(image);
     for (const auto &box : text_boxes) {
-        SPDLOG_INFO("Ocr {}: {} {} {} {}", box.text, box.x, box.y, box.width, box.height);
+        LOG(INFO) << "Ocr " << box.text << ": " << box.x << " " << box.y << " "
+                  << box.width << " " << box.height;
     }
+
     // Detect
     cv::Mat image_rgb;
     cv::cvtColor(image, image_rgb, cv::COLOR_BGR2RGB);
-    std::vector<ObjectBox> object_boxes = this_->object_detect_->Detect(image_rgb);
+    std::vector<ObjectBox> object_boxes =
+        this_->object_detect_->Detect(image_rgb);
     for (const auto &box : object_boxes) {
-        SPDLOG_INFO("Detect {}: {} {} {} {}", box.name, box.x, box.y, box.width, box.height);
+        LOG(INFO) << "Detect " << box.name << ": " << box.x << " " << box.y
+                  << " " << box.width << " " << box.height;
     }
+
     // Player
-    std::vector<PlayOperation> operations = this_->blhx_player_->Play(object_boxes, text_boxes);
+    std::vector<PlayOperation> operations =
+        this_->player_->Play(object_boxes, text_boxes);
     for (const auto &opt : operations) {
-        SPDLOG_INFO("Play {}", opt.type);
+        LOG(INFO) << "Play " << int(opt.type);
     }
     nlohmann::json res_json;
     for (const PlayOperation &operation : operations) {
@@ -150,8 +147,8 @@ void BlhxHttpServer::Play(BlhxHttpServer *this_, const httplib::Request &request
     response.body = res_json.empty() ? "" : res_json.dump();
 }
 
-void BlhxHttpServer::TestDetect(BlhxHttpServer *this_, const httplib::Request &request,
-                                httplib::Response &response) {
+void HttpServer::TestDetect(HttpServer *this_, const httplib::Request &request,
+                            httplib::Response &response) {
     std::string request_body = request.body;
     std::vector<uint8_t> data;
     try {
@@ -179,8 +176,8 @@ void BlhxHttpServer::TestDetect(BlhxHttpServer *this_, const httplib::Request &r
     response.body = res_json.dump();
 }
 
-void BlhxHttpServer::TestOcr(BlhxHttpServer *this_, const httplib::Request &request,
-                             httplib::Response &response) {
+void HttpServer::TestOcr(HttpServer *this_, const httplib::Request &request,
+                         httplib::Response &response) {
     std::string request_body = request.body;
     std::vector<uint8_t> data;
     try {

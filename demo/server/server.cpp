@@ -1,4 +1,5 @@
 
+#include "glog/logging.h"
 #include "http_server.h"
 
 char *GetCommandOptions(int argc, char *argv[], const std::string &flag) {
@@ -12,7 +13,7 @@ char *GetCommandOptions(int argc, char *argv[], const std::string &flag) {
 }
 
 void Usage(char *cmd) {
-    std::cout << fmt::format("Usage: {} --config FILE", cmd) << std::endl;
+    std::cout << "Usage: " << cmd << "--config FILE" << std::endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -22,9 +23,9 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    BlhxHttpServer server;
-    if (!server.InitWithFile(config_fname)) {
-        SPDLOG_ERROR("Server init failed");
+    HttpServer server;
+    if (!server.Init(config_fname)) {
+        LOG(ERROR) << "Server init failed";
         return -1;
     }
     server.Start();

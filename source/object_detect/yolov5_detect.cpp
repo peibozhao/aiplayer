@@ -1,7 +1,7 @@
 
 #include "yolov5_detect.h"
 #include "MNN/ImageProcess.hpp"
-#include "spdlog/spdlog.h"
+#include "glog/logging.h"
 #include "utils/util_functions.h"
 #include "utils/util_types.h"
 #include "yaml-cpp/yaml.h"
@@ -32,9 +32,9 @@ bool Yolov5Detect::Init(const std::string &config_str) {
             YAML::Node anchor_sub_config = anchor_pair.second;
             anchor_grid_[output_name] = anchor_sub_config.as<std::array<std::array<int, 2>, 3>>();
         }
-        net_fn = net_config["net_file"].as<std::string>();
+        net_fn = net_config["model"].as<std::string>();
     } catch (std::exception &e) {
-        SPDLOG_ERROR("Catch error: {}", e.what());
+        LOG(ERROR) << "Catch error: " << e.what();
         return false;
     }
     net_ = MNN::Interpreter::createFromFile(net_fn.c_str());
@@ -72,7 +72,7 @@ std::vector<ObjectBox> Yolov5Detect::Detect(const cv::Mat &image) {
 std::vector<ObjectBox> Yolov5Detect::Detect(const std::vector<uint8_t> &rgb_data) {
     PreProcess(rgb_data);
     if (net_->runSession(session_) != MNN::NO_ERROR) {
-        SPDLOG_ERROR("MNN runSession failed");
+        LOG(ERROR) << "MNN runSession failed";
         return {};
     }
     return PostProcess();

@@ -3,7 +3,6 @@
 
 #include "object_detect/object_detect.h"
 #include "ocr_detect/ocr_detect.h"
-#include "utils/util_defines.h"
 #include <vector>
 
 enum class PlayOperationType {
@@ -37,7 +36,9 @@ struct PlayOperation {
         SwipeOperation swipe;
     };
 
-    PlayOperation(PlayOperationType type = PlayOperationType::NONE) { this->type = type; }
+    PlayOperation(PlayOperationType type = PlayOperationType::NONE) {
+        this->type = type;
+    }
 };
 
 class IPlayer {
@@ -47,7 +48,38 @@ public:
     virtual bool Init(const std::string &config_str) { return true; };
 
     virtual std::vector<PlayOperation>
-    Play(const std::vector<ObjectBox> &objects, const std::vector<TextBox> &texts);
+    Play(const std::vector<ObjectBox> &objects,
+         const std::vector<TextBox> &texts) = 0;
 
     virtual bool GetLimit() { return false; }
 };
+
+inline PlayOperation Click(const std::vector<ObjectBox> &objects,
+                           const std::string &name) {
+    PlayOperation opt;
+    opt.type = PlayOperationType::NONE;
+    for (const ObjectBox &object : objects) {
+        if (object.name == name) {
+            opt.type = PlayOperationType::SCREEN_CLICK;
+            opt.click.x = object.x + object.width / 2;
+            opt.click.y = object.y + object.height / 2;
+            break;
+        }
+    }
+    return opt;
+}
+
+inline PlayOperation Click(const std::vector<TextBox> &texts,
+                           const std::string &name) {
+    PlayOperation opt;
+    opt.type = PlayOperationType::NONE;
+    for (const TextBox &text : texts) {
+        if (text.text == name) {
+            opt.type = PlayOperationType::SCREEN_CLICK;
+            opt.click.x = text.x + text.width / 2;
+            opt.click.y = text.y + text.height / 2;
+            break;
+        }
+    }
+    return opt;
+}

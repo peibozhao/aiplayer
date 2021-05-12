@@ -1,6 +1,6 @@
 
 #include "crnn_net.h"
-#include "spdlog/spdlog.h"
+#include "glog/logging.h"
 #include <algorithm>
 #include <fstream>
 #include <numeric>
@@ -8,13 +8,13 @@
 bool CrnnNet::InitModel(const std::string &model_fname) {
     mnn_net_.reset(MNN::Interpreter::createFromFile(model_fname.c_str()));
     if (mnn_net_ == nullptr) {
-        SPDLOG_ERROR("MNN read net");
+        LOG(ERROR) << "MNN read net";
         return false;
     }
     MNN::ScheduleConfig mnn_config;
     mnn_session_ = mnn_net_->createSession(mnn_config);
     if (mnn_session_ == nullptr) {
-        SPDLOG_ERROR("MNN create session");
+        LOG(ERROR) << "MNN create session";
         return false;
     }
     return true;
@@ -35,7 +35,7 @@ bool CrnnNet::InitKeys(const std::string &keys_fname) {
 
 bool CrnnNet::InitConfig(const Config &config) {
     if (keys_.empty()) {
-        SPDLOG_ERROR("Init keys first");
+        LOG(ERROR) << "Init keys first";
         return false;
     }
     for (int i = 0; i < keys_.size(); ++i) {
@@ -124,7 +124,6 @@ std::string CrnnNet::PostProcess(const std::vector<std::vector<float>> &output) 
         max_index = std::max_element(exps.begin(), exps.end()) - exps.begin();
         max_value = float(*std::max_element(exps.begin(), exps.end())) / partition;
         if (max_index > 0 && max_index < key_size) {
-            SPDLOG_DEBUG("{}: {}", keys_[max_index - 1], max_value);
             if (max_value > charscore_thresh_ && (!(i > 0 && max_index == last_index))) {
                 res.append(keys_[max_index - 1]);
             }

@@ -1,42 +1,46 @@
 
 #include "blhx_player.h"
+#include "player/blhx/yanxi_mode.h"
 
-std::vector<PlayOperation> BLHXPlayer::Play(const std::vector<ObjectBox> &objects, const std::vector<TextBox> &texts) {
-    Page page = RecognizePage(objects, texts);
-    switch (page) {
-        case Unkown:
-            return {};
-        case Capter:
-            return CapterPlay(objects, texts);
-        case Start:
-            return CapterPlay(objects, texts);
-        case FleetSelect:
-            return CapterPlay(objects, texts);
-        case SubChapter:
-            return CapterPlay(objects, texts);
-        case Formation:
-            return CapterPlay(objects, texts);
-        case Pause:
-            return CapterPlay(objects, texts);
-        case Fighting:
-            return CapterPlay(objects, texts);
-        case Checkpoint:
-            return CapterPlay(objects, texts);
-        case GetItems:
-            return CapterPlay(objects, texts);
-        case Mvp:
-            return CapterPlay(objects, texts);
-        case DaiyTasks:
-            return CapterPlay(objects, texts);
-        case SubDailyTask:
-            return CapterPlay(objects, texts);
-        case Attack:
-            return CapterPlay(objects, texts);
-        default:
-            return {};
+BLHXPlayer::BLHXPlayer() {
+    IBLHXBaseMode *yanxi_mode = new YanxiMode();
+    submodes_.push_back(yanxi_mode);
+    cur_mode_ = yanxi_mode;
+}
+
+bool BLHXPlayer::Init(const std::string &config_str) {
+    // for (IBLHXBaseMode *mode : submodes_) {
+    //     if (!mode->Init(config_str)) {
+    //         return false;
+    //     }
+    // }
+    return true;
+}
+
+std::vector<PlayOperation> BLHXPlayer::Play(const std::vector<ObjectBox> &objects,
+                                            const std::vector<TextBox> &texts) {
+    for (const ObjectBox &object : objects) {
     }
+    if (cur_mode_->IsMain(objects, texts)) {
+        return cur_mode_->MainPlay(objects, texts);
+    } else if (cur_mode_->IsWeighAnchor(objects, texts)) {
+        return cur_mode_->WeighAnchorPlay(objects, texts);
+    } else if (cur_mode_->IsOperation(objects, texts)) {
+        return cur_mode_->OperationPlay(objects, texts);
+    } else if (cur_mode_->IsWeighAnchorMain(objects, texts)) {
+        return cur_mode_->WeighAnchorMainPlay(objects, texts);
+    } else if (cur_mode_->IsWeighAnchorMainStage(objects, texts)) {
+        return cur_mode_->WeighAnchorMainStagePlay(objects, texts);
+    } else if (cur_mode_->IsFleetSelect(objects, texts)) {
+        return cur_mode_->FleetSelectPlay(objects, texts);
+    } else if (cur_mode_->IsSubChapter(objects, texts)) {
+        return cur_mode_->SubChapterPlay(objects, texts);
+    } else if (cur_mode_->IsDefeat(objects, texts)) {
+        return cur_mode_->DefeatPlay(objects, texts);
+    } else if (cur_mode_->IsAgain(objects, texts)) {
+        return cur_mode_->AgainPlay(objects, texts);
+    }
+    return {};
 }
+bool BLHXPlayer::GetLimit() { return false; }
 
-BLHXPlayer::Page BLHXPlayer::RecognizePage(const std::vector<ObjectBox> &objects, const std::vector<TextBox> &texts) {
-    return Page::Unkown;
-}

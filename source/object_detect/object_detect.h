@@ -13,7 +13,6 @@
 #include <string>
 #include <vector>
 #include "opencv2/opencv.hpp"
-#include "utils/util_defines.h"
 
 struct ObjectBox {
     int x, y, width, height;

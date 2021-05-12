@@ -9,11 +9,6 @@ include(FetchContent)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_STANDARD 17)
 
-FetchContent_Declare(json
-    URL https://github.com/nlohmann/json/archive/refs/tags/v3.9.1.tar.gz
-    )
-FetchContent_MakeAvailable(json)
-
 FetchContent_Declare(log
     URL https://github.com/google/glog/archive/refs/tags/v0.4.0.tar.gz
     )
