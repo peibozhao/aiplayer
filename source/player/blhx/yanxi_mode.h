@@ -16,4 +16,8 @@ public:
     std::vector<PlayOperation>
     OperationPlay(const std::vector<ObjectBox> &objects,
                   const std::vector<TextBox> &texts) override;
+
+    std::vector<PlayOperation>
+    StartOperationPlay(const std::vector<ObjectBox> &objects,
+                       const std::vector<TextBox> &texts) override;
 };

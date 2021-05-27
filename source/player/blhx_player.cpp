@@ -27,6 +27,8 @@ std::vector<PlayOperation> BLHXPlayer::Play(const std::vector<ObjectBox> &object
         return cur_mode_->WeighAnchorPlay(objects, texts);
     } else if (cur_mode_->IsOperation(objects, texts)) {
         return cur_mode_->OperationPlay(objects, texts);
+    } else if (cur_mode_->IsStartOperation(objects, texts)) {
+        return cur_mode_->StartOperationPlay(objects, texts);
     } else if (cur_mode_->IsWeighAnchorMain(objects, texts)) {
         return cur_mode_->WeighAnchorMainPlay(objects, texts);
     } else if (cur_mode_->IsWeighAnchorMainStage(objects, texts)) {
@@ -39,6 +41,14 @@ std::vector<PlayOperation> BLHXPlayer::Play(const std::vector<ObjectBox> &object
         return cur_mode_->DefeatPlay(objects, texts);
     } else if (cur_mode_->IsAgain(objects, texts)) {
         return cur_mode_->AgainPlay(objects, texts);
+    } else if (cur_mode_->IsCheckpointTask(objects, texts)) {
+        return cur_mode_->CheckpointTaskPlay(objects, texts);
+    } else if (cur_mode_->IsGetItem(objects, texts)) {
+        return cur_mode_->GetItemPlay(objects, texts);
+    } else if (cur_mode_->IsOK(objects, texts)) {
+        return cur_mode_->OKPlay(objects, texts);
+    } else if (cur_mode_->IsFight(objects, texts)) {
+        return cur_mode_->FightPlay(objects, texts);
     }
     return {};
 }

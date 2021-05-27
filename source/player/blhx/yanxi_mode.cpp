@@ -22,3 +22,9 @@ YanxiMode::OperationPlay(const std::vector<ObjectBox> &objects,
     opt.click.y = 300;
     return {opt};
 }
+
+std::vector<PlayOperation>
+YanxiMode::StartOperationPlay(const std::vector<ObjectBox> &objects,
+                              const std::vector<TextBox> &texts) {
+    return {Click(texts, "开演习")};
+}

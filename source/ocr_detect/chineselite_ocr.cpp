@@ -85,9 +85,6 @@ std::vector<TextBox> ChineseOcr::Detect(const cv::Mat &image) {
         cv::Rect cv_rect(box.x, box.y, box.width, box.height);
         cv::Mat part_image = cv_image(cv_rect);
         std::string text = crnn_net_->Detect(part_image);
-        if (text.empty()) {
-            continue;
-        }
         float width_ratio = float(image.cols) / float(cv_image.cols);
         float height_ratio = float(image.rows) / float(cv_image.rows);
         TextBox text_box{int(box.x * width_ratio),

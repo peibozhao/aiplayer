@@ -13,7 +13,7 @@ char *GetCommandOptions(int argc, char *argv[], const std::string &flag) {
 }
 
 void Usage(char *cmd) {
-    std::cout << "Usage: " << cmd << "--config FILE" << std::endl;
+    std::cout << "Usage: " << cmd << " --config FILE" << std::endl;
 }
 
 int main(int argc, char *argv[]) {

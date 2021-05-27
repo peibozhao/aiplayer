@@ -22,7 +22,7 @@ ocr:
     crnn:
         model: ../../models/crnn_lite_lstm.mnn
         keys: ../../models/keys.txt
-        hot_keys: [切, 换, 立, 刻, 前, 往, 继, 续, 点, 关, 闭, 锁, 分, 享, 检, 视, 确, 定, 出, 击, 撤, 退]
+        hot_keys: []
         hot_scale: 100
         thresh: 0.6
 player:
@@ -35,4 +35,4 @@ player:
     times: 5
 server:
     ip: 0.0.0.0
-    port: 8000
+    port: 8080

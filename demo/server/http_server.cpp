@@ -121,14 +121,15 @@ void HttpServer::Play(HttpServer *this_, const httplib::Request &request,
     }
 
     // Detect
-    cv::Mat image_rgb;
-    cv::cvtColor(image, image_rgb, cv::COLOR_BGR2RGB);
-    std::vector<ObjectBox> object_boxes =
-        this_->object_detect_->Detect(image_rgb);
-    for (const auto &box : object_boxes) {
-        LOG(INFO) << "Detect " << box.name << ": " << box.x << " " << box.y
-                  << " " << box.width << " " << box.height;
-    }
+    std::vector<ObjectBox> object_boxes;
+    // cv::Mat image_rgb;
+    // cv::cvtColor(image, image_rgb, cv::COLOR_BGR2RGB);
+    // std::vector<ObjectBox> object_boxes =
+    //     this_->object_detect_->Detect(image_rgb);
+    // for (const auto &box : object_boxes) {
+    //     LOG(INFO) << "Detect " << box.name << ": " << box.x << " " << box.y
+    //               << " " << box.width << " " << box.height;
+    // }
 
     // Player
     std::vector<PlayOperation> operations =
@@ -144,7 +145,8 @@ void HttpServer::Play(HttpServer *this_, const httplib::Request &request,
         }
         res_json["operations"].push_back(operation_json);
     }
-    response.body = res_json.empty() ? "" : res_json.dump();
+    response.body = res_json.empty() ? "{}" : res_json.dump();
+    LOG(INFO) << "Response: " << response.body;
 }
 
 void HttpServer::TestDetect(HttpServer *this_, const httplib::Request &request,
