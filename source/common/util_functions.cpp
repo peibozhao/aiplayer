@@ -2,6 +2,7 @@
 #include "util_functions.h"
 #include <list>
 #include <math.h>
+#include <unistd.h>
 
 float Sigmoid(float x) { return 1 / (1 + std::exp(-x)); }
 
@@ -136,4 +137,14 @@ float CalcRadian(const std::vector<float> &p1, const std::vector<float> &o,
     float l2_len = std::sqrt(std::pow(l2[0], 2) + std::pow(l2[1], 2));
     float cos_ret = dot_ret / (l1_len * l2_len);
     return std::acos(cos_ret);
+}
+
+bool ReadUtil(int fd, void *buffer, int buffer_size) {
+    int read_len = 0;
+    while (read_len < buffer_size) {
+        int cur_read_len = read(fd, (char *)buffer + read_len, buffer_size - read_len);
+        if (cur_read_len < 0) { return false; }
+        read_len += cur_read_len;
+    }
+    return true;
 }

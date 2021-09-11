@@ -45,13 +45,13 @@ class IPlayer {
 public:
     virtual ~IPlayer() {}
 
-    virtual bool Init(const std::string &config_str) { return true; };
+    virtual bool Init() { return true; };
 
     virtual std::vector<PlayOperation>
     Play(const std::vector<ObjectBox> &objects,
          const std::vector<TextBox> &texts) = 0;
 
-    virtual bool GetLimit() { return false; }
+    virtual bool IsGameOver() { return false; }
 };
 
 inline PlayOperation Click(const std::vector<ObjectBox> &objects,

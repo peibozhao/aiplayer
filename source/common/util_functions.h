@@ -20,3 +20,4 @@ std::vector<uint8_t> Base64Decode(const std::string &data);
 
 float CalcRadian(const std::vector<float> &p1, const std::vector<float> &o, const std::vector<float> &p2);
 
+bool ReadUtil(int fd, void *buffer, int buffer_size);

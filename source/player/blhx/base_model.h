@@ -37,32 +37,32 @@
 class IBLHXBaseMode {
 public:
     // 主页
-    DeclarePage(Main, "", "出击", "建造");
+    DeclarePage(Main, "", "出击", "商店");
     // 主页 出击
     DeclarePage(WeighAnchor, "", "主线", "大型作战");
     // 主页 出击 演习
     DeclarePage(Operation, "", "规则说明", "排行榜", "军需补给");
     // 主页 出击 演习 点击对手
-    DeclarePage(StartOperation, "", "开演习");
+    DeclarePage(StartOperation, "", "开演习");  // TODO
     // 主页 出击 主线
     DeclarePage(WeighAnchorMain, "", "限界挑战", "每日任务", "委托任务", "演习");
-    // 主页 出击 主线 章节
-    DeclarePage(WeighAnchorMainStage, "", "自律寻敌", "立刻前往");
-    // 主页 出击 主线 章节 立刻前往
-    DeclarePage(FleetSelect, "", "舰队选择", "立刻前往");
     // 主页 出击 主线 章节 立刻前往 立刻前往
     DeclarePage(SubChapter, "", "撤退", "切换", "迎击");
-
+    // 特别作战
+    DeclarePage(Special, "", "出击", "D3时此刻");
     // 战斗评价. 可能是通过或者被击败
     DeclarePage(CheckpointTask, "战斗评价", "战斗评价");
     // 被击败
     DeclarePage(Defeat, "点击关闭", "点击关闭");
     // 再次前往
-    DeclarePage(Again, "再次前往", "离开", "再次前往");
+    DeclarePage(Again, "", "离开", "再次前往");
     // 获得道具
     DeclarePage(GetItem, "点击继续", "点击继续");
-    // 右下角有确定的界面
+    // 舰队编队
+    DeclarePage(Formation, "出击", "编队", "出击");
+
+    // 有确定的界面
     DeclarePage(OK, "确定", "确定");
-    // 右下角有出击的界面
-    DeclarePage(Fight, "出击", "出击");
+    // 有立刻前往的界面. 点击章节之后, 选择舰队时
+    DeclarePage(ImmediateStart, "立刻前往", "立刻前往");
 };
