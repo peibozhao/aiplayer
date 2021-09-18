@@ -1,4 +1,4 @@
-image_source:
+source:
     ip: 127.0.0.1
     port: 1111
 ocr:
@@ -7,15 +7,18 @@ ocr:
 player:
     pages:
       - conditions:
-          - ocr_name: test
-            grid: [2, 2]
-            position: [0, 0]
-          - ocr_name: test2
-            grid: [3, 3]
-            position: [1, 2]
+          - ocr_pattern: test
+            x_min: 0
+            x_max: 0.5
+            y_min: 0.1
+            y_max: 0.5
+          - ocr_pattern: test2
+            x_min: 0
+            x_max: 0.5
+            y_min: 0.1
+            y_max: 0.5
         actions:
-          - type: click
-            name: test
-device_operation:
+          - name: test
+operation:
     ip: 127.0.0.1
     port: 11

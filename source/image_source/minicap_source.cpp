@@ -30,7 +30,8 @@ struct MinicapFrame {
 
 #pragma pack()
 
-MinicapSource::MinicapSource(unsigned short port) {
+MinicapSource::MinicapSource(const std::string &ip, unsigned short port) {
+    ip_ = ip;
     server_port_ = port;
 }
 
@@ -47,7 +48,7 @@ bool MinicapSource::Init() {
     sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof(sockaddr_in));
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    server_addr.sin_addr.s_addr = inet_addr(ip_.c_str());
     server_addr.sin_port = htons(server_port_);
 
     if (connect(socket_, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {

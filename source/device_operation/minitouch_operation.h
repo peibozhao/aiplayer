@@ -1,11 +1,12 @@
 
 #pragma once
 
-#include "touch_screen_operation.h"
+#include "device_operation.h"
+#include <string>
 
 class MinitouchOperation : public ITouchScreenOperation {
 public:
-    MinitouchOperation(unsigned short port);
+    MinitouchOperation(const std::string &ip, unsigned short port);
 
     ~MinitouchOperation() override;
 
@@ -18,6 +19,7 @@ public:
     void TouchUp(int id) override;
 
 private:
+    std::string ip_;
     unsigned short server_port_;
 
     int socket_;

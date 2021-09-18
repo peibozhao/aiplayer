@@ -16,7 +16,7 @@ int main(int argc, char *argv[]) {
     int x = std::stoi(argv[1]);
     int y = std::stoi(argv[2]);
 
-    MinitouchOperation minitouch(1111);
+    MinitouchOperation minitouch("127.0.0.1", 1111);
     minitouch.Init();
     int id = minitouch.TouchDown(x, y);
     minitouch.TouchUp(id);

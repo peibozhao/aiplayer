@@ -4,7 +4,7 @@
 #include <fstream>
 
 int main() {
-    MinicapSource minicap(1313);
+    MinicapSource minicap("127.0.0.1", 1313);
     if (!minicap.Init()) {
         LOG_ERROR("Minicap init failed");
         return -1;

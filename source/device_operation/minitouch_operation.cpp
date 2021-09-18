@@ -9,7 +9,8 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-MinitouchOperation::MinitouchOperation(unsigned short port) {
+MinitouchOperation::MinitouchOperation(const std::string &ip, unsigned short port) {
+    ip_ = ip;
     server_port_ = port;
 }
 
@@ -24,7 +25,7 @@ bool MinitouchOperation::Init() {
     sockaddr_in peer_sock;
     memset(&peer_sock, 0, sizeof(peer_sock));
     peer_sock.sin_family = AF_INET;
-    peer_sock.sin_addr.s_addr = inet_addr("127.0.0.1");
+    peer_sock.sin_addr.s_addr = inet_addr(ip_.c_str());
     peer_sock.sin_port = htons(server_port_);
     if (connect(socket_, (sockaddr *)&peer_sock, sizeof(peer_sock)) < 0) {
         throw std::runtime_error("minitouch connect failed");
