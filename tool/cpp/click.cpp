@@ -1,5 +1,5 @@
 
-#include "operation/minitouch_operation.h"
+#include "device_operation/minitouch_operation.h"
 #include <string>
 #include <iostream>
 
@@ -18,5 +18,6 @@ int main(int argc, char *argv[]) {
 
     MinitouchOperation minitouch(1111);
     minitouch.Init();
-    minitouch.Click(x, y);
+    int id = minitouch.TouchDown(x, y);
+    minitouch.TouchUp(id);
 }

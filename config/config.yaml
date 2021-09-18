@@ -1,0 +1,21 @@
+image_source:
+    ip: 127.0.0.1
+    port: 1111
+ocr:
+    ip: 127.0.0.1
+    port: 8868
+player:
+    pages:
+      - conditions:
+          - ocr_name: test
+            grid: [2, 2]
+            position: [0, 0]
+          - ocr_name: test2
+            grid: [3, 3]
+            position: [1, 2]
+        actions:
+          - type: click
+            name: test
+device_operation:
+    ip: 127.0.0.1
+    port: 11

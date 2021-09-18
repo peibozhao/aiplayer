@@ -45,9 +45,9 @@ include_directories(${http_SOURCE_DIR})
 include_directories(/usr/local/include/opencv4)
 
 set(AIPLAYER_SOURCE_LIST
-    source/image/minicap_source.cpp
+    source/image_source/minicap_source.cpp
     source/common/util_functions.cpp
-    source/operation/minitouch_operation.cpp
+    source/device_operation/minitouch_operation.cpp
     )
 
 add_library(aiplayer SHARED ${AIPLAYER_SOURCE_LIST})

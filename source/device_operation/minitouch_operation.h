@@ -11,9 +11,11 @@ public:
 
     bool Init() override;
 
-    bool Click(int x, int y) override;
+    int TouchDown(int x, int y) override;
 
-    bool Move(int x_src, int y_src, int x_dst, int y_dst) override;
+    void Move(int id, int x_dst, int y_dst) override;
+
+    void TouchUp(int id) override;
 
 private:
     unsigned short server_port_;

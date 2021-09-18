@@ -1,21 +1,19 @@
 
 #include "minitouch_operation.h"
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <string.h>
-#include <stdexcept>
-#include <unistd.h>
 #include "common/util_defines.h"
 #include "httplib.h"
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdexcept>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 MinitouchOperation::MinitouchOperation(unsigned short port) {
     server_port_ = port;
 }
 
-MinitouchOperation::~MinitouchOperation() {
-    close(socket_);
-}
+MinitouchOperation::~MinitouchOperation() { close(socket_); }
 
 bool MinitouchOperation::Init() {
     socket_ = socket(AF_INET, SOCK_STREAM, 0);
@@ -34,25 +32,50 @@ bool MinitouchOperation::Init() {
 
     // Must read
     char buf[1000];
-    int read_len = read(socket_, buf, sizeof(buf));
+    int return_count = 0;
+    int read_len = 0;
+    while (return_count < 3) {
+        read_len += read(socket_, buf, sizeof(buf));
+        for (int i = 0; i < read_len; ++i) {
+            if (buf[i] == '\n')
+                ++return_count;
+        }
+    }
     LOG_INFO("%s", buf);
     return true;
 }
 
-bool MinitouchOperation::Click(int x, int y) {
-    std::stringstream ss;
-    ss << "d 0 " << std::to_string(x) << ' ' << std::to_string(y) << " 0\n";
-    ss << "c\n";
-    ss << "u 0\n";
-    ss << "c\n";
-    std::string data = ss.str();
-    int write_len = write(socket_, data.c_str(), data.size());
-    if (write_len != data.size()) {
-        LOG_ERROR("write len error %ld %d", data.size(), write_len);
+int MinitouchOperation::TouchDown(int x, int y) {
+    std::stringstream op_ss;
+    op_ss << "d 0 " << std::to_string(x) << ' ' << std::to_string(y) << " 0\n";
+    op_ss << "c\n";
+    std::string op_str = op_ss.str();
+    int write_len = write(socket_, op_str.c_str(), op_str.size());
+    if (write_len != op_str.size()) {
+        LOG_ERROR("write len error %ld %d", op_str.size(), write_len);
     }
     return true;
 }
 
-bool MinitouchOperation::Move(int x_src, int y_src, int x_dst, int y_dst) {
-    return false;
+void MinitouchOperation::Move(int id, int x_dst, int y_dst) {
+    std::stringstream op_ss;
+    op_ss << "m " << std::to_string(id) << ' '
+          << std::to_string(x_dst) << ' ' << std::to_string(y_dst) << " 0\n";
+    op_ss << "c\n";
+    std::string op_str = op_ss.str();
+    int write_len = write(socket_, op_str.c_str(), op_str.size());
+    if (write_len != op_str.size()) {
+        LOG_ERROR("write len error %ld %d", op_str.size(), write_len);
+    }
+}
+
+void MinitouchOperation::TouchUp(int id) {
+    std::stringstream op_ss;
+    op_ss << "u 0\n";
+    op_ss << "c\n";
+    std::string op_str = op_ss.str();
+    int write_len = write(socket_, op_str.c_str(), op_str.size());
+    if (write_len != op_str.size()) {
+        LOG_ERROR("write len error %ld %d", op_str.size(), write_len);
+    }
 }
