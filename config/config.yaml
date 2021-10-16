@@ -1,24 +1,98 @@
 source:
-    ip: 127.0.0.1
-    port: 1111
+    type: minicap
+    host: localhost
+    port: 1313
+    width: 2340
+    height: 1080
+    orientation: 90
 ocr:
-    ip: 127.0.0.1
+    type: paddleocr
+    host: localhost
     port: 8868
 player:
+    type: common
     pages:
-      - conditions:
-          - ocr_pattern: test
-            x_min: 0
-            x_max: 0.5
-            y_min: 0.1
-            y_max: 0.5
-          - ocr_pattern: test2
-            x_min: 0
-            x_max: 0.5
-            y_min: 0.1
-            y_max: 0.5
-        actions:
-          - name: test
+        - name: '主页'
+          conditions:
+              - pattern: '出击'
+                x_range: [0.7, 1.]
+                y_range: [0.4, 0.5]
+          actions:
+              - type: 'click'
+                pattern: '出击'
+        - name: '出击主页'
+          conditions:
+              - pattern: '主线'
+                x_range: [0., 0.5]
+                y_range: [0.5, 1.]
+          actions:
+              - type: 'click'
+                pattern: '主线'
+        - name: '章节选择'
+          conditions:
+              - pattern: '12-4.*'
+          actions:
+              - type: 'click'
+                pattern: '12-4.*'
+        - name: '立刻前往'
+          conditions:
+              - pattern: '立刻前往'
+                y_range: [0.5, 1]
+          actions:
+              - type: 'click'
+                pattern: '立刻前往'
+        - name: '再次前往'
+          conditions:
+              - pattern: '再次前往'
+                y_range: [0.5, 1]
+          actions:
+              - type: 'click'
+                pattern: '再次前往'
+        - name: '信息-应援'
+          conditions:
+              - pattern: '知道了'
+          actions:
+              - type: 'click'
+                pattern: '知道了'
+        - name: '战斗中'
+          conditions:
+              - pattern: '停止自律'
+                x_range: [0., 0.2]
+                y_range: [0., 0.1]
+          actions:
+              - type: 'sleep'
+                time: 1000  # ms
+        # - name: '信息-船坞已满'
+        #   conditions:
+        #       - pattern: '整理'
+        #         x_range: [0., 0.5]
+        #         y_range: [0.5, 1.]
+        #       - pattern: '强化'
+        #         x_range: [0.5, 1.]
+        #         y_range: [0.5, 1.]
+        #   actions:
+        #       - type: 'click'
+        #         pattern: '整理'
+        # - name: '退役'
+        #   conditions:
+        #       - pattern: '.*键退役'
+        #         x_range: [0.5, 1.]
+        #         y_range: [0.8, 1.]
+        #   actions:
+        #       - type: 'click'
+        #         pattern: '.*键退役'
+        # - name: '信息-确认'
+        #   conditions:
+        #       - pattern: '信息'
+        #         x_range: [0., 0.5]
+        #         y_range: [0., 0.5]
+        #       - pattern: '确定'
+        #         x_range: [0.5, 1.]
+        #         y_range: [0.5, 1.]
+        #   actions:
+        #       - type: 'click'
+        #         pattern: '确定'
 operation:
-    ip: 127.0.0.1
-    port: 11
+    type: minitouch
+    host: localhost
+    port: 1111

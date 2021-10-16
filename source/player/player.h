@@ -7,15 +7,9 @@
 
 enum class PlayOperationType {
     SCREEN_CLICK = 1, // 触屏点击操作
-    // SCREEN_SWIPE,  // 触屏滑动操作
-    // SLEEP,     // 等待
+    SLEEP,     // 等待
     LIMITS = 1000, // 特殊符号. 到达限制
 };
-
-// struct SleepOperation {
-//     int time; // ms
-//     SleepOperation(int t = 0) : time(t) {}
-// };
 
 struct ClickOperation {
     int x, y;
@@ -30,9 +24,8 @@ struct ClickOperation {
 struct PlayOperation {
     PlayOperationType type;
     union {
-        // SleepOperation sleep;
         ClickOperation click;
-        // SwipeOperation swipe;
+        int sleep_ms;
     };
 
     PlayOperation(PlayOperationType type) { this->type = type; }

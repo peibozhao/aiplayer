@@ -6,6 +6,7 @@
 !config/
 !third/
 !test/
+!docker/
 !CMakeLists.txt
 !.gitignore
 !.gitmodules

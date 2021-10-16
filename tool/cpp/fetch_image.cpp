@@ -1,6 +1,6 @@
 
 #include "image_source/minicap_source.cpp"
-#include "common/util_types.h"
+#include "common/log.h"
 #include <fstream>
 
 int main() {

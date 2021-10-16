@@ -7,5 +7,7 @@ public:
 
     virtual void Run() = 0;
 
-    virtual void Stop() = 0;
+    virtual void Pause() = 0;
+
+    virtual void Continue() = 0;
 };

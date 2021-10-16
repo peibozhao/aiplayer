@@ -5,13 +5,14 @@
 #include <vector>
 
 struct TextBox {
-    int x, y, width, height;
+    int x, y;  // center
+    int width, height;
     std::string text;
 
     TextBox() : x(0), y(0), width(0), height(0) {}
 
-    TextBox(int xl, int yt, int w, int h, const std::string &t)
-        : x(xl), y(yt), width(w), height(h), text(t) {}
+    TextBox(int x_center, int y_center, int w, int h, const std::string &t)
+        : x(x_center), y(y_center), width(w), height(h), text(t) {}
 };
 
 class IOcrDetect {

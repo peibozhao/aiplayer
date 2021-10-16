@@ -1,0 +1,36 @@
+# Version: 2.1.2
+FROM registry.baidubce.com/paddlepaddle/paddle:2.1.2-gpu-cuda10.2-cudnn7
+
+# PaddleOCR base on Python3.7
+RUN pip3.7 install --upgrade pip -i https://mirror.baidu.com/pypi/simple
+
+RUN pip3.7 install paddlehub --upgrade -i https://mirror.baidu.com/pypi/simple
+
+RUN git clone -b release/2.2 https://github.com/PaddlePaddle/PaddleOCR.git /PaddleOCR
+
+WORKDIR /PaddleOCR
+# RUN git reset --hard 2dcc6a99fe5d6e0c66a4508d9413c2a864390a64
+
+RUN pip3.7 install -r requirements.txt -i https://mirror.baidu.com/pypi/simple
+
+ADD https://gitee.com/mirrors/cpython/raw/3.7/Lib/typing.py /usr/local/python3.7.0/lib/python3.7/
+
+RUN mkdir -p /PaddleOCR/inference/
+# Download orc detect model(light version). if you want to change normal version, you can change ch_ppocr_mobile_v2.0_det_infer to ch_ppocr_server_v2.0_det_infer, also remember change det_model_dir in deploy/hubserving/ocr_system/params.py）
+ADD https://paddleocr.bj.bcebos.com/dygraph_v2.0/ch/ch_ppocr_server_v2.0_det_infer.tar /PaddleOCR/inference/
+RUN tar xf /PaddleOCR/inference/ch_ppocr_server_v2.0_det_infer.tar -C /PaddleOCR/inference/
+
+# Download direction classifier(light version). If you want to change normal version, you can change ch_ppocr_mobile_v2.0_cls_infer to ch_ppocr_mobile_v2.0_cls_infer, also remember change cls_model_dir in deploy/hubserving/ocr_system/params.py）
+ADD https://paddleocr.bj.bcebos.com/dygraph_v2.0/ch/ch_ppocr_mobile_v2.0_cls_infer.tar /PaddleOCR/inference/
+RUN tar xf /PaddleOCR/inference/ch_ppocr_mobile_v2.0_cls_infer.tar -C /PaddleOCR/inference/
+
+# Download orc recognition model(light version). If you want to change normal version, you can change ch_ppocr_mobile_v2.0_rec_infer to ch_ppocr_server_v2.0_rec_infer, also remember change rec_model_dir in deploy/hubserving/ocr_system/params.py）
+ADD https://paddleocr.bj.bcebos.com/dygraph_v2.0/ch/ch_ppocr_server_v2.0_rec_infer.tar /PaddleOCR/inference/
+RUN tar xf /PaddleOCR/inference/ch_ppocr_server_v2.0_rec_infer.tar -C /PaddleOCR/inference/
+
+RUN sed -i 's/ch_ppocr_mobile_v2.0_det_infer/ch_ppocr_server_v2.0_det_infer/' deploy/hubserving/ocr_system/params.py
+RUN sed -i 's/ch_ppocr_mobile_v2.0_rec_infer/ch_ppocr_server_v2.0_rec_infer/' deploy/hubserving/ocr_system/params.py
+
+EXPOSE 8868
+
+CMD ["/bin/bash","-c","hub install deploy/hubserving/ocr_system/ && env CUDA_VISIBLE_DEVICES=0 hub serving start -c deploy/hubserving/ocr_system/config.json -p 8868"]

@@ -8,19 +8,19 @@
 
 #pragma once
 
+#include "common/common_types.h"
 #include <string>
 #include <vector>
-#include "common/common_types.h"
 
 struct ObjectBox {
-    int x, y, width, height;
+    int x, y; // center
+    int width, height;
     std::string name;
 
     ObjectBox() : x(0), y(0), width(0), height(0) {}
 
-    ObjectBox(int xl, int yt, int w, int h, const std::string &n)
-        : x(xl), y(yt), width(w), height(h), name(n) {}
-
+    ObjectBox(int x_center, int y_center, int w, int h, const std::string &n)
+        : x(x_center), y(y_center), width(w), height(h), name(n) {}
 };
 
 class IObjectDetect {
@@ -29,5 +29,6 @@ public:
 
     virtual bool Init() { return true; }
 
-    virtual std::vector<ObjectBox> Detect(ImageFormat format, const std::vector<char> &buffer) = 0;
+    virtual std::vector<ObjectBox> Detect(ImageFormat format,
+                                          const std::vector<char> &buffer) = 0;
 };

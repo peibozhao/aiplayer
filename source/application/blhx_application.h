@@ -5,12 +5,22 @@
 #include <string>
 #include <memory>
 #include <atomic>
+#include <chrono>
+#include <mutex>
+#include <condition_variable>
 #include "image_source/image_source.h"
 #include "ocr_detect/ocr_detect.h"
 #include "player/player.h"
 #include "device_operation/device_operation.h"
 
 class BlhxApplication : public IApplication {
+private:
+    enum ApplicationStatus {
+        Stopped,
+        Running,
+        Pausing
+    };
+
 public:
     BlhxApplication(const std::string &config_fname);
 
@@ -18,7 +28,9 @@ public:
 
     void Run() override;
 
-    void Stop() override;
+    void Pause() override;
+
+    void Continue() override;
 
 private:
     std::string config_fname_;
@@ -27,6 +39,6 @@ private:
     std::shared_ptr<IPlayer> player_;
     std::shared_ptr<ITouchScreenOperation> operation_;
 
-    std::atomic<bool> running_;
+    std::atomic<ApplicationStatus> status_;
 };
 

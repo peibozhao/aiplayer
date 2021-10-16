@@ -139,12 +139,3 @@ float CalcRadian(const std::vector<float> &p1, const std::vector<float> &o,
     return std::acos(cos_ret);
 }
 
-bool ReadUtil(int fd, void *buffer, int buffer_size) {
-    int read_len = 0;
-    while (read_len < buffer_size) {
-        int cur_read_len = read(fd, (char *)buffer + read_len, buffer_size - read_len);
-        if (cur_read_len < 0) { return false; }
-        read_len += cur_read_len;
-    }
-    return true;
-}

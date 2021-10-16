@@ -13,5 +13,4 @@ public:
     virtual ImageFormat GetFormat() = 0;
 
     virtual std::vector<char> GetImageBuffer() = 0;
-
 };
