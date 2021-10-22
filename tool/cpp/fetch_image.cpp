@@ -1,5 +1,5 @@
 
-#include "image_source/minicap_source.cpp"
+#include "source/minicap_source.cpp"
 #include "common/log.h"
 #include <fstream>
 

@@ -1,5 +1,6 @@
 # Version: 2.1.2
-FROM registry.baidubce.com/paddlepaddle/paddle:2.1.2-gpu-cuda10.2-cudnn7
+# FROM registry.baidubce.com/paddlepaddle/paddle:2.1.2-gpu-cuda10.2-cudnn7
+FROM registry.baidubce.com/paddlepaddle/paddle:2.1.2
 
 # PaddleOCR base on Python3.7
 RUN pip3.7 install --upgrade pip -i https://mirror.baidu.com/pypi/simple
@@ -33,4 +34,5 @@ RUN sed -i 's/ch_ppocr_mobile_v2.0_rec_infer/ch_ppocr_server_v2.0_rec_infer/' de
 
 EXPOSE 8868
 
-CMD ["/bin/bash","-c","hub install deploy/hubserving/ocr_system/ && env CUDA_VISIBLE_DEVICES=0 hub serving start -c deploy/hubserving/ocr_system/config.json -p 8868"]
+# CMD ["/bin/bash","-c","hub install deploy/hubserving/ocr_system/ && env CUDA_VISIBLE_DEVICES=0 hub serving start -c deploy/hubserving/ocr_system/config.json -p 8868"]
+CMD ["/bin/bash","-c","hub install deploy/hubserving/ocr_system/ && hub serving start -c deploy/hubserving/ocr_system/config.json -p 8868"]

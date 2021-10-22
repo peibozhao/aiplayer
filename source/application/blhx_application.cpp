@@ -1,14 +1,16 @@
 
 #include "blhx_application.h"
-#include "common/log.h"
-#include "device_operation/minitouch_operation.h"
-#include "image_source/minicap_source.h"
-#include "ocr_detect/paddle_ocr.h"
-#include "player/common_player.h"
-#include "yaml-cpp/yaml.h"
 #include <arpa/inet.h>
 #include <fstream>
 #include <netdb.h>
+#include "yaml-cpp/yaml.h"
+#include "common/log.h"
+#include "source/minicap_source.h"
+#include "source/image_source.h"
+#include "ocr_detect/paddle_ocr.h"
+#include "player/common_player.h"
+#include "sink/minitouch_operation.h"
+#include "sink/dummy_operation.h"
 
 static std::tuple<std::string, unsigned short>
 GetServerInfo(const YAML::Node &config_yaml) {
@@ -23,9 +25,9 @@ GetServerInfo(const YAML::Node &config_yaml) {
                            port);
 }
 
-static ConditionConfig GetConditionConfig(const YAML::Node &yaml_node,
+static PageConditionConfig GetConditionConfig(const YAML::Node &yaml_node,
                                           int width, int height) {
-    ConditionConfig ret;
+    PageConditionConfig ret;
     ret.pattern = yaml_node["pattern"].as<std::string>();
     if (yaml_node["x_range"].IsDefined()) {
         ret.x_min = yaml_node["x_range"][0].as<float>() * width;
@@ -60,10 +62,13 @@ bool BlhxApplication::Init() {
         orientation = source_yaml["orientation"].IsDefined()
                           ? source_yaml["orientation"].as<int>()
                           : 0;
-    if (source_yaml["type"].as<std::string>() == "minicap") {
+    std::string source_type = source_yaml["type"].as<std::string>();
+    if (source_type == "minicap") {
         auto source_server_info(GetServerInfo(source_yaml));
         source_.reset(new MinicapSource(std::get<0>(source_server_info),
                                         std::get<1>(source_server_info)));
+    } else if (source_type == "image") {
+        source_.reset(new ImageSource(source_yaml["file_name"].as<std::string>()));
     }
     if (!source_ || !source_->Init()) {
         LOG_ERROR("source init failed");
@@ -88,35 +93,45 @@ bool BlhxApplication::Init() {
     const YAML::Node &player_yaml(config_yaml["player"]);
     if (player_yaml["type"].as<std::string>() == "common") {
         std::vector<PageConfig> page_configs;
-        for (auto page_yaml : player_yaml["pages"]) {
+        for (auto &page_yaml : player_yaml["pages"]) {
             PageConfig page_config;
-            page_config.name = page_yaml["name"].IsDefined()
-                                   ? page_yaml["name"].as<std::string>()
-                                   : "";
+            page_config.name = page_yaml["name"].as<std::string>();
 
-            PageConditionConfig page_condition_config;
-            for (auto page_condition_yaml : page_yaml["conditions"]) {
-                ConditionConfig condition_config = GetConditionConfig(
-                    page_condition_yaml, image_width, image_height);
-                page_condition_config.push_back(condition_config);
-                page_config.condition_configs.push_back(condition_config);
-            }
-
-            PageActionConfig page_action_config;
-            for (auto page_action_yaml : page_yaml["actions"]) {
-                ActionConfig action_config;
-                action_config.type = page_action_yaml["type"].as<std::string>();
-                if (action_config.type == "click") {
-                    action_config.pattern =
-                        page_action_yaml["pattern"].as<std::string>();
-                } else if (action_config.type == "sleep") {
-                    action_config.sleep_time = page_action_yaml["time"].as<int>();
-                }
-                page_config.action_configs.push_back(action_config);
+            for (auto &page_condition_yaml : page_yaml["conditions"]) {
+                PageConditionConfig page_condition_config =
+                    GetConditionConfig(page_condition_yaml, image_width, image_height);
+                page_config.condition_configs.push_back(page_condition_config);
             }
             page_configs.push_back(page_config);
         }
-        player_.reset(new CommonPlayer(page_configs));
+
+        std::vector<ModeConfig> mode_configs;
+        for (auto &mode_yaml : player_yaml["modes"]) {
+            ModeConfig mode_config;
+            mode_config.name = mode_yaml["name"].as<std::string>();
+            for (auto &pipeline_yaml : mode_yaml["pipeline"]) {
+                std::string page_name = pipeline_yaml["page"].as<std::string>();
+                std::vector<ActionConfig> action_configs;
+                for (auto &action_yaml : pipeline_yaml["actions"]) {
+                    ActionConfig action_config;
+                    std::string action_type = action_yaml["type"].as<std::string>();
+                    if (action_type == "click") {
+                        action_config.type = PlayOperationType::SCREEN_CLICK;
+                        action_config.pattern = action_yaml["pattern"].as<std::string>();
+                    } else if (action_type == "sleep") {
+                        action_config.type = PlayOperationType::SLEEP;
+                        action_config.sleep_time = action_yaml["time"].as<int>();
+                    } else {
+                        LOG_ERROR("Unsupport action type: %s", action_type.c_str());
+                        return false;
+                    }
+                    action_configs.push_back(action_config);
+                }
+                mode_config.page_to_actions[page_name] = action_configs;
+            }
+            mode_configs.push_back(mode_config);
+        }
+        player_.reset(new CommonPlayer(page_configs, mode_configs));
     }
     if (!player_ || !player_->Init()) {
         LOG_ERROR("player init failed");
@@ -126,7 +141,8 @@ bool BlhxApplication::Init() {
 
     // Operation
     const YAML::Node &operation_yaml = config_yaml["operation"];
-    if (operation_yaml["type"].as<std::string>() == "minitouch") {
+    std::string operation_type = operation_yaml["type"].as<std::string>();
+    if (operation_type == "minitouch") {
         auto operation_server_info(GetServerInfo(operation_yaml));
         ImageInfo image_info;
         image_info.width = image_width;
@@ -135,6 +151,8 @@ bool BlhxApplication::Init() {
         operation_.reset(new MinitouchOperation(
             std::get<0>(operation_server_info),
             std::get<1>(operation_server_info), image_info));
+    } else if (operation_type == "dummy") {
+        operation_.reset(new DummyOperation());
     }
     if (!operation_ || !operation_->Init()) {
         LOG_ERROR("operation init failed");

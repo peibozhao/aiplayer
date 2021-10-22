@@ -3,47 +3,37 @@
 
 #include "player.h"
 #include <regex>
+#include <mutex>
 
-struct ConditionConfig {
-    std::string pattern;
+// Page
+struct PageConditionConfig {
+    std::regex pattern;
     int x_min, x_max;
     int y_min, y_max;
 };
 
-struct ActionConfig {
-    std::string type;
-
-    std::string pattern;
-    int sleep_time;
-};
-
-struct Condition {
-    std::regex pattern;
-    std::pair<int, int> x_range;
-    std::pair<int, int> y_range;
-};
-
-struct Action {
-    PlayOperationType type;
-    // TODO
-    std::regex pattern;  // click
-    int sleep_time;  // sleep
-};
-
-typedef std::vector<ConditionConfig> PageConditionConfig;
-typedef std::vector<Condition> PageCondition;
-typedef std::vector<ActionConfig> PageActionConfig;
-typedef std::vector<Action> PageAction;
-
 struct PageConfig {
     std::string name;
-    PageConditionConfig condition_configs;
-    PageActionConfig action_configs;
+    std::vector<PageConditionConfig> condition_configs;
 };
 
+// Play mode
+struct ActionConfig {
+    PlayOperationType type;
+
+    std::regex pattern;  // Click
+    int sleep_time;  // Sleep
+};
+
+struct ModeConfig {
+    std::string name;
+    std::map<std::string, std::vector<ActionConfig>> page_to_actions;
+};
+
+// Common player
 class CommonPlayer : public IPlayer {
 public:
-    CommonPlayer(const std::vector<PageConfig> &page_configs);
+    CommonPlayer(const std::vector<PageConfig> &page_configs, const std::vector<ModeConfig> &mode_configs);
 
     ~CommonPlayer() override;
 
@@ -55,9 +45,12 @@ public:
 
     bool IsGameOver() override;
 
+    bool SetMode(const std::string &mode) override;
+
 private:
-    std::vector<std::string> page_names_;
-    std::vector<PageConfig> page_configs_;
-    std::vector<PageCondition> page_conditions_;
-    std::vector<PageAction> page_actions_;
+    const std::vector<PageConfig> page_configs_;
+    const std::vector<ModeConfig> mode_configs_;
+
+    const ModeConfig *cur_mode_;
+    std::mutex mutex_;
 };

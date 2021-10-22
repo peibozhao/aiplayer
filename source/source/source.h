@@ -4,9 +4,9 @@
 #include <vector>
 #include "common/common_types.h"
 
-class IImageSource {
+class ISource {
 public:
-    virtual ~IImageSource() {}
+    virtual ~ISource() {}
 
     virtual bool Init() { return true; }
 

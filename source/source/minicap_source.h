@@ -1,13 +1,13 @@
 
 #pragma once
 
-#include "image_source.h"
+#include "source.h"
 #include <string>
 #include <thread>
 #include <memory>
 #include <mutex>
 
-class MinicapSource : public IImageSource {
+class MinicapSource : public ISource {
 public:
     MinicapSource(const std::string &ip, unsigned short port);
 

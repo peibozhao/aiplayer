@@ -8,10 +8,10 @@
 #include <chrono>
 #include <mutex>
 #include <condition_variable>
-#include "image_source/image_source.h"
+#include "source/source.h"
 #include "ocr_detect/ocr_detect.h"
 #include "player/player.h"
-#include "device_operation/device_operation.h"
+#include "sink/device_operation.h"
 
 class BlhxApplication : public IApplication {
 private:
@@ -34,7 +34,7 @@ public:
 
 private:
     std::string config_fname_;
-    std::shared_ptr<IImageSource> source_;
+    std::shared_ptr<ISource> source_;
     std::shared_ptr<IOcrDetect> ocr_;
     std::shared_ptr<IPlayer> player_;
     std::shared_ptr<ITouchScreenOperation> operation_;

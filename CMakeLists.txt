@@ -49,8 +49,9 @@ include_directories(source)
 
 set(AIPLAYER_SOURCE_LIST
     source/application/blhx_application.cpp
-    source/image_source/minicap_source.cpp
-    source/device_operation/minitouch_operation.cpp
+    source/source/minicap_source.cpp
+    source/source/image_source.cpp
+    source/sink/minitouch_operation.cpp
     source/ocr_detect/paddle_ocr.cpp
     source/player/common_player.cpp
     source/common/util_functions.cpp

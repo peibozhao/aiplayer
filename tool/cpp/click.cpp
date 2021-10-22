@@ -1,5 +1,5 @@
 
-#include "device_operation/minitouch_operation.h"
+#include "sink/minitouch_operation.h"
 #include <string>
 #include <iostream>
 

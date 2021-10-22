@@ -1,98 +1,80 @@
 source:
-    type: minicap
-    host: localhost
-    port: 1313
-    width: 2340
-    height: 1080
-    orientation: 90
+  type: 'image'
+  host: 'localhost'
+  port: 1313
+  width: 2340
+  height: 1080
+  orientation: 90
+  file_name: 'test.jpg'
 ocr:
-    type: paddleocr
-    host: localhost
-    port: 8868
+  type: 'paddleocr'
+  host: 'localhost'
+  port: 8868
 player:
-    type: common
-    pages:
-        - name: '主页'
-          conditions:
-              - pattern: '出击'
-                x_range: [0.7, 1.]
-                y_range: [0.4, 0.5]
+  type: 'common'
+  pages:
+    - name: '主页'
+      conditions:
+        - pattern: '出击'
+          x_range: [0.7, 1.]
+          y_range: [0.4, 0.5]
+    - name: '出击主页'
+      conditions:
+        - pattern: '主线'
+          x_range: [0., 0.5]
+          y_range: [0.5, 1.]
+    - name: '章节选择'
+      conditions:
+        - pattern: '12-4.*'
+    - name: '立刻前往'
+      conditions:
+        - pattern: '立刻前往'
+          y_range: [0.5, 1]
+    - name: '再次前往'
+      conditions:
+        - pattern: '再次前往'
+          y_range: [0.5, 1]
+    - name: '信息-应援'
+      conditions:
+        - pattern: '知道了'
+    - name: '战斗中'
+      conditions:
+        - pattern: '停止自律'
+          x_range: [0., 0.2]
+          y_range: [0., 0.1]
+  modes:
+    - name: '12-4'
+      pipeline:
+        - page: '主页'
           actions:
-              - type: 'click'
-                pattern: '出击'
-        - name: '出击主页'
-          conditions:
-              - pattern: '主线'
-                x_range: [0., 0.5]
-                y_range: [0.5, 1.]
+            - type: 'click'
+              pattern: '出击'
+        - page: '出击主页'
           actions:
-              - type: 'click'
-                pattern: '主线'
-        - name: '章节选择'
-          conditions:
-              - pattern: '12-4.*'
+            - type: 'click'
+              pattern: '主线'
+        - page: '章节选择'
           actions:
-              - type: 'click'
-                pattern: '12-4.*'
-        - name: '立刻前往'
-          conditions:
-              - pattern: '立刻前往'
-                y_range: [0.5, 1]
+            - type: 'click'
+              pattern: '12-4.*'
+        - page: '立刻前往'
           actions:
-              - type: 'click'
-                pattern: '立刻前往'
-        - name: '再次前往'
-          conditions:
-              - pattern: '再次前往'
-                y_range: [0.5, 1]
+            - type: 'click'
+              pattern: '立刻前往'
+        - page: '再次前往'
           actions:
-              - type: 'click'
-                pattern: '再次前往'
-        - name: '信息-应援'
-          conditions:
-              - pattern: '知道了'
+            - type: 'click'
+              pattern: '再次前往'
+        - page: '信息-应援'
           actions:
-              - type: 'click'
-                pattern: '知道了'
-        - name: '战斗中'
-          conditions:
-              - pattern: '停止自律'
-                x_range: [0., 0.2]
-                y_range: [0., 0.1]
+            - type: 'click'
+              pattern: '知道了'
+        - page: '战斗中'
           actions:
-              - type: 'sleep'
-                time: 1000  # ms
-        # - name: '信息-船坞已满'
-        #   conditions:
-        #       - pattern: '整理'
-        #         x_range: [0., 0.5]
-        #         y_range: [0.5, 1.]
-        #       - pattern: '强化'
-        #         x_range: [0.5, 1.]
-        #         y_range: [0.5, 1.]
-        #   actions:
-        #       - type: 'click'
-        #         pattern: '整理'
-        # - name: '退役'
-        #   conditions:
-        #       - pattern: '.*键退役'
-        #         x_range: [0.5, 1.]
-        #         y_range: [0.8, 1.]
-        #   actions:
-        #       - type: 'click'
-        #         pattern: '.*键退役'
-        # - name: '信息-确认'
-        #   conditions:
-        #       - pattern: '信息'
-        #         x_range: [0., 0.5]
-        #         y_range: [0., 0.5]
-        #       - pattern: '确定'
-        #         x_range: [0.5, 1.]
-        #         y_range: [0.5, 1.]
-        #   actions:
-        #       - type: 'click'
-        #         pattern: '确定'
+            - type: 'sleep'
+              time: 1000  # ms
+
 operation:
-    type: minitouch
-    host: localhost
-    port: 1111
+  type: 'dummy'
+  host: 'localhost'
+  port: 1111

@@ -42,4 +42,6 @@ public:
          const std::vector<TextBox> &text_boxes) = 0;
 
     virtual bool IsGameOver() { return false; }
+
+    virtual bool SetMode(const std::string &mode) { return false; }
 };
