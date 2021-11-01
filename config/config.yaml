@@ -13,7 +13,6 @@ operation:
   type: 'minitouch'
   host: 'localhost'
   port: 1111
-  delay: 0  # milliseconds
 
 player:
   type: 'common'

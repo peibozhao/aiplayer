@@ -10,11 +10,18 @@ PaddleOcr::PaddleOcr(const std::string &host, unsigned short port) {
     port_ = port;
 }
 
+PaddleOcr::PaddleOcr(const std::string &host, unsigned short port, int timeout)
+    : PaddleOcr(host, port) {
+    recv_timeout_ = timeout;
+}
+
 PaddleOcr::~PaddleOcr() {}
 
 bool PaddleOcr::Init() {
     client_.reset(new httplib::Client(host_, port_));
-    client_->set_read_timeout(10);
+    if (recv_timeout_) {
+        client_->set_read_timeout(recv_timeout_.value());
+    }
     return true;
 }
 

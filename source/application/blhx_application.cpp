@@ -78,7 +78,11 @@ bool BlhxApplication::Init() {
     if (ocr_yaml["type"].as<std::string>() == "paddleocr") {
         std::string host_name = ocr_yaml["host"].as<std::string>();
         unsigned short port = ocr_yaml["port"].as<unsigned short>();
-        ocr_.reset(new PaddleOcr(host_name, port));
+        if (ocr_yaml["recv_timeout"].IsDefined()) {
+            ocr_.reset(new PaddleOcr(host_name, port, ocr_yaml["recv_timeout"].as<int>()));
+        } else {
+            ocr_.reset(new PaddleOcr(host_name, port));
+        }
     }
     if (!ocr_ || !ocr_->Init()) {
         LOG_ERROR("ocr init failed");
@@ -143,7 +147,7 @@ bool BlhxApplication::Init() {
         auto operation_server_info(GetServerInfo(operation_yaml));
         int orientation =
             source_yaml["orientation"].IsDefined() ? source_yaml["orientation"].as<int>() : 0;
-        int delay_ms = operation_yaml["delay"].as<int>();
+        int delay_ms = operation_yaml["delay"].IsDefined() ? operation_yaml["delay"].as<int>() : 0;
         operation_.reset(new MinitouchOperation(std::get<0>(operation_server_info),
                                                 std::get<1>(operation_server_info), image_info,
                                                 orientation, delay_ms));

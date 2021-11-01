@@ -116,5 +116,7 @@ std::pair<int, int> MinitouchOperation::CoordinateConvertion(int x, int y) {
 }
 
 void MinitouchOperation::Delay() {
-    std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms_));
+    if (delay_ms_ > 0) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms_));
+    }
 }
