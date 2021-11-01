@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "common/common_types.h"
 #include <string>
 #include <vector>
+#include "source/image/source.h"
 
 struct ObjectBox {
     int x, y; // center
@@ -29,6 +29,6 @@ public:
 
     virtual bool Init() { return true; }
 
-    virtual std::vector<ObjectBox> Detect(ImageFormat format,
+    virtual std::vector<ObjectBox> Detect(const ImageInfo &image_info,
                                           const std::vector<char> &buffer) = 0;
 };

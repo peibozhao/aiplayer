@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/common_types.h"
+#include "source/image/source.h"
 #include <string>
 #include <vector>
 
@@ -21,6 +21,6 @@ public:
 
     virtual bool Init() { return true; }
 
-    virtual std::vector<TextBox> Detect(ImageFormat format,
+    virtual std::vector<TextBox> Detect(const ImageInfo &image_info,
                                         const std::vector<char> &buffer) = 0;
 };

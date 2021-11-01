@@ -4,11 +4,10 @@
 #include "application.h"
 #include <string>
 #include <memory>
-#include <atomic>
 #include <chrono>
 #include <mutex>
 #include <condition_variable>
-#include "source/source.h"
+#include "source/image/source.h"
 #include "ocr_detect/ocr_detect.h"
 #include "player/player.h"
 #include "sink/device_operation.h"
@@ -18,7 +17,8 @@ private:
     enum ApplicationStatus {
         Stopped,
         Running,
-        Pausing
+        Pausing,
+        Over
     };
 
 public:
@@ -32,6 +32,10 @@ public:
 
     void Continue() override;
 
+    void Stop() override;
+
+    bool SetParam(const std::string &key, const std::string &value) override;
+
 private:
     std::string config_fname_;
     std::shared_ptr<ISource> source_;
@@ -39,6 +43,8 @@ private:
     std::shared_ptr<IPlayer> player_;
     std::shared_ptr<ITouchScreenOperation> operation_;
 
-    std::atomic<ApplicationStatus> status_;
+    ApplicationStatus status_;
+    std::mutex status_mutex_;
+    std::condition_variable status_con_;
 };
 

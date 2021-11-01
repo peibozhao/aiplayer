@@ -4,18 +4,19 @@
 #include "source.h"
 #include <string>
 
+// Read local image file
 class ImageSource : public ISource {
 public:
-    ImageSource(const std::string &fname);
+    ImageSource(const std::string &fname, const ImageInfo &image_info);
 
     bool Init() override;
 
-    ImageFormat GetFormat() override;
+    ImageInfo GetImageInfo() override;
 
     std::vector<char> GetImageBuffer() override;
 
 private:
     std::string fname_;
-    ImageFormat format_;
+    ImageInfo image_info_;
     std::vector<char> image_buffer_;
 };

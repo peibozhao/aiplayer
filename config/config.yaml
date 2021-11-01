@@ -1,80 +1,304 @@
 source:
-  type: 'image'
+  type: 'minicap'
   host: 'localhost'
   port: 1313
-  width: 2340
-  height: 1080
   orientation: 90
-  file_name: 'test.jpg'
+
 ocr:
   type: 'paddleocr'
   host: 'localhost'
   port: 8868
+
+operation:
+  type: 'minitouch'
+  host: 'localhost'
+  port: 1111
+  delay: 0  # milliseconds
+
 player:
   type: 'common'
   pages:
+    - name: '信息-演习次数不足'
+      conditions:
+        - {pattern: '演习次数不足'}
+    - name: '信息-困难关卡次数不足'
+      conditions:
+        - {pattern: '困难关卡每日挑战次数已达上限'}
     - name: '主页'
       conditions:
-        - pattern: '出击'
-          x_range: [0.7, 1.]
-          y_range: [0.4, 0.5]
+        - {pattern: '出击', x_range: [0.7, 1.], y_range: [0.4, 0.5]}
     - name: '出击主页'
       conditions:
-        - pattern: '主线'
-          x_range: [0., 0.5]
-          y_range: [0.5, 1.]
-    - name: '章节选择'
+        - {pattern: '主线', x_range: [0., 0.5], y_range: [0.5, 1.]}
+    - name: '章节选择-1章'
       conditions:
-        - pattern: '12-4.*'
+        - {pattern: '第1章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-2章'
+      conditions:
+        - {pattern: '第2章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-3章'
+      conditions:
+        - {pattern: '第3章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-4章'
+      conditions:
+        - {pattern: '第4章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-5章'
+      conditions:
+        - {pattern: '第5章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-6章'
+      conditions:
+        - {pattern: '第6章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-7章'
+      conditions:
+        - {pattern: '第7章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-8章'
+      conditions:
+        - {pattern: '第8章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-9章'
+      conditions:
+        - {pattern: '第9章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-10章'
+      conditions:
+        - {pattern: '第10章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-11章'
+      conditions:
+        - {pattern: '第11章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-12章'
+      conditions:
+        - {pattern: '第12章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-13章'
+      conditions:
+        - {pattern: '第13章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-1章'
+      conditions:
+        - {pattern: '第1章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-2章'
+      conditions:
+        - {pattern: '第2章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-3章'
+      conditions:
+        - {pattern: '第3章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-4章'
+      conditions:
+        - {pattern: '第4章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-5章'
+      conditions:
+        - {pattern: '第5章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-6章'
+      conditions:
+        - {pattern: '第6章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-7章'
+      conditions:
+        - {pattern: '第7章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-8章'
+      conditions:
+        - {pattern: '第8章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-9章'
+      conditions:
+        - {pattern: '第9章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-10章'
+      conditions:
+        - {pattern: '第10章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-11章'
+      conditions:
+        - {pattern: '第11章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-12章'
+      conditions:
+        - {pattern: '第12章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+    - name: '章节选择-困难-13章'
+      conditions:
+        - {pattern: '第13章', x_range: [0., 0.3], y_range: [0., 0.3]}
+        - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
     - name: '立刻前往'
       conditions:
-        - pattern: '立刻前往'
-          y_range: [0.5, 1]
+        - {pattern: '立刻前往', y_range: [0.5, 1]}
     - name: '再次前往'
       conditions:
-        - pattern: '再次前往'
-          y_range: [0.5, 1]
-    - name: '信息-应援'
+        - {pattern: '再次前往', y_range: [0.5, 1]}
+    - name: '战场'
       conditions:
-        - pattern: '知道了'
+        - {pattern: '撤退', x_range: [0.5, 1.], y_range: [0.8, 1.]}
+        - {pattern: '切换', x_range: [0.5, 1.], y_range: [0.8, 1.]}
+        - {pattern: '迎击', x_range: [0.5, 1.], y_range: [0.8, 1.]}
     - name: '战斗中'
       conditions:
-        - pattern: '停止自律'
-          x_range: [0., 0.2]
-          y_range: [0., 0.1]
+        - {pattern: '暂停', x_range: [0.8, 1.], y_range: [0., 0.1]}
+    - name: '演习主页'
+      conditions:
+        - {pattern: '演习', x_range: [0., 0.3], y_range: [0., 0.2]}
+        - {pattern: '排行榜', x_range: [0.6, 0.8], y_range: [0.8, 1.]}
+        - {pattern: '军需补给', x_range: [0.7, 1.], y_range: [0.8, 1.]}
+    - name: '演习对手信息'
+      conditions:
+        - {pattern: '演习对手信息'}
+    - name: '编队出击'
+      conditions:
+        - {pattern: '编队', x_range: [0, 0.3], y_range: [0, 0.1]}
+        - {pattern: '出击', x_range: [0.8, 1.], y_range: [0.8, 1.]}
+    - name: '战斗评价-全军覆没'
+      conditions:
+        - {pattern: '战斗评价', x_range: [0.5, 0.7], y_range: [0.4, 0.6]}
+        - {pattern: '全军覆没', x_range: [0.3, 0.5], y_range: [0.3, 0.5]}
+    - name: '战斗评价-大获全胜'
+      conditions:
+        - {pattern: '战斗评价', x_range: [0.5, 0.7], y_range: [0.4, 0.6]}
+        - {pattern: '大获全胜', x_range: [0.3, 0.5], y_range: [0.3, 0.5]}
+    - name: '战斗结束-获得道具'
+      conditions:
+        - {pattern: '获得道具', x_range: [0.4, 0.6], y_range: [0.3, 0.5]}
+    - name: '战斗失败-获得经验'
+      conditions:
+        - {pattern: '全军覆没', x_range: [0.2, 0.4], y_range: [0., 0.3]}
+        - {pattern: '确定', x_range: [0.7, 1.], y_range: [0.8, 1.]}
+    - name: '战斗成功-获得经验'
+      conditions:
+        - {pattern: '大获全胜', x_range: [0.2, 0.4], y_range: [0., 0.3]}
+        - {pattern: '确定', x_range: [0.7, 1.], y_range: [0.8, 1.]}
+    - name: '战斗失败-提升建议'
+      conditions:
+        - {pattern: '点击关闭', x_range: [0.4, 0.6], y_range: [0.7, 1.]}
+        - {pattern: '指挥官可以通过以下方式提升舰队实力', x_range: [0.4, 0.6], y_range: [0.2, 0.5]}
+    - name: '应援' # 活动
+      conditions:
+        - pattern: '知道了'
+    - name: '其他页面'
   modes:
-    - name: '12-4'
+    - name: '11-4'
       pipeline:
         - page: '主页'
           actions:
-            - type: 'click'
-              pattern: '出击'
+            - {type: 'click', pattern: '出击'}
         - page: '出击主页'
           actions:
-            - type: 'click'
-              pattern: '主线'
-        - page: '章节选择'
+            - {type: 'click', pattern: '主线'}
+        - page: '章节选择-10章'
           actions:
-            - type: 'click'
-              pattern: '12-4.*'
+            - {type: 'click', pattern: '下一章'}
+        - page: '章节选择-11章'
+          actions:
+            - {type: 'click', pattern: '11-4.*'}
+        - page: '章节选择-12章'
+          actions:
+            - {type: 'click', pattern: '上一章'}
         - page: '立刻前往'
           actions:
-            - type: 'click'
-              pattern: '立刻前往'
+            - {type: 'click', pattern: '立刻前往'}
         - page: '再次前往'
           actions:
-            - type: 'click'
-              pattern: '再次前往'
-        - page: '信息-应援'
+            - {type: 'click', pattern: '再次前往'}
+        - page: '应援'
           actions:
-            - type: 'click'
-              pattern: '知道了'
+            - {type: 'click', pattern: '知道了'}
         - page: '战斗中'
           actions:
-            - type: 'sleep'
-              time: 1000  # ms
+            - {type: 'sleep', time: 3000}
+    - name: 'hard-10-2'
+      pipeline:
+        - page: '主页'
+          actions:
+            - {type: 'click', pattern: '出击'}
+        - page: '出击主页'
+          actions:
+            - {type: 'click', pattern: '主线'}
+        - page: '章节选择-困难-9章'
+          actions:
+            - {type: 'click', pattern: '下一章'}
+        - page: '章节选择-困难-10章'
+          actions:
+            - {type: 'click', pattern: '10-2.*'}
+        - page: '章节选择-困难-11章'
+          actions:
+            - {type: 'click', pattern: '上一章'}
+        - page: '章节选择-困难-12章'
+          actions:
+            - {type: 'click', pattern: '上一章'}
+        - page: '立刻前往'
+          actions:
+            - {type: 'click', pattern: '立刻前往'}
+        - page: '再次前往'
+          actions:
+            - {type: 'click', pattern: '再次前往'}
+        - page: '应援'
+          actions:
+            - {type: 'click', pattern: '知道了'}
+        - page: '战斗中'
+          actions:
+            - {type: 'sleep', time: 3000}
+        - page: '信息-困难关卡次数不足'
+          actions:
+            - {type: 'over'}
+    - name: 'exercise'
+      pipeline:
+        - page: '主页'
+          actions:
+            - {type: 'click', pattern: '出击'}
+        - page: '出击主页'
+          actions:
+            - {type: 'click', pattern: '演习'}
+        - page: '演习主页'
+          actions:
+            - {type: 'click', pattern: '综合实力'}
+        - page: '演习对手信息'
+          actions:
+            - {type: 'click', pattern: '开始演习'}
+        - page: '编队出击'
+          actions:
+            - {type: 'click', pattern: '出击'}
+        - page: '战斗评价-全军覆没'
+          actions:
+            - {type: 'click', pattern: '战斗评价'}
+        - page: '战斗评价-大获全胜'
+          actions:
+            - {type: 'click', pattern: '战斗评价'}
+        - page: '战斗结束-获得道具'
+          actions:
+            - {type: 'click', pattern: '获得道具'}
+        - page: '战斗失败-获得经验'
+          actions:
+            - {type: 'click', pattern: '确定'}
+        - page: '战斗成功-获得经验'
+          actions:
+            - {type: 'click', pattern: '确定'}
+        - page: '战斗失败-提升建议'
+          actions:
+            - {type: 'click', pattern: '点击关闭'}
+        - page: '战斗中'
+          actions:
+            - {type: 'sleep', time: 3000}
+        - page: '信息-演习次数不足'
+          actions:
+            - {type: 'over'}
+    - name: 'return'
+      pipeline:
+        - page: '主页'
+          actions:
+            - {type: 'over'}
+        - page: '其他页面'
+          actions:
+            - {type: 'click-pos', point: [0.11, 0.05]}
 
-operation:
-  type: 'dummy'
-  host: 'localhost'
-  port: 1111

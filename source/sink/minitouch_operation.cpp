@@ -9,35 +9,36 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
-MinitouchOperation::MinitouchOperation(const std::string &ip,
-                                       unsigned short port,
-                                       const ImageInfo &image_info) {
+MinitouchOperation::MinitouchOperation(const std::string &ip, unsigned short port,
+                                       const ImageInfo &image_info, int orientation, int delay_ms) {
     ip_ = ip;
     server_port_ = port;
     socket_ = -1;
-    width_ = image_info.width;
-    height_ = image_info.height;
-    orientation_ = image_info.orientation;
+    image_width_ = image_info.width;
+    image_height_ = image_info.height;
+    orientation_ = orientation;
+    max_x_ = -1, max_y_ = -1;
+    delay_ms_ = delay_ms;
 }
 
 MinitouchOperation::~MinitouchOperation() { close(socket_); }
 
 bool MinitouchOperation::Init() {
     if (orientation_ != 0 && orientation_ != 90) {
-        throw std::runtime_error("Ensupport orientation value " +
-                                 std::to_string(orientation_));
+        LOG_ERROR("Ensupport orientation value %d", orientation_);
+        return false;
     }
 
     socket_ = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_ < 0) {
-        throw std::runtime_error("minitouch create socket failed");
+        LOG_ERROR("Minitouch create socket failed");
+        return false;
     }
 
     struct timeval overtime;
     memset(&overtime, 0, sizeof(overtime));
     overtime.tv_sec = 3;
-    int setopt_ret = setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, &overtime,
-                                sizeof(overtime));
+    int setopt_ret = setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, &overtime, sizeof(overtime));
     if (setopt_ret != 0) {
         LOG_ERROR("setsockopt failed %d", setopt_ret);
         return false;
@@ -49,14 +50,16 @@ bool MinitouchOperation::Init() {
     peer_sock.sin_addr.s_addr = inet_addr(ip_.c_str());
     peer_sock.sin_port = htons(server_port_);
     if (connect(socket_, (sockaddr *)&peer_sock, sizeof(peer_sock)) < 0) {
-        throw std::runtime_error("minitouch connect failed");
+        LOG_ERROR("Minitouch connect failed");
+        return false;
     }
 
     // If dont recv header, need to restart minitouch
-    char buf[1000] = "\0";
+    char header_buf[100] = "\0";
+    int header_len = 0;
     int return_count = 0;
     while (return_count < 3) {
-        int read_len = read(socket_, buf, sizeof(buf));
+        int read_len = read(socket_, header_buf + header_len, sizeof(header_buf) - header_len);
         if (read_len == -1) {
             LOG_ERROR("Network error %d", errno);
             return false;
@@ -65,39 +68,53 @@ bool MinitouchOperation::Init() {
             return false;
         }
         for (int i = 0; i < read_len; ++i) {
-            if (buf[i] == '\n')
-                ++return_count;
+            if (header_buf[header_len + i] == '\n') ++return_count;
         }
+        header_len += read_len;
     }
 
-    if (buf[0] != '\0')
-        LOG_INFO("%s", buf)
-    else
-        LOG_INFO("Minitouch has no header");
+    LOG_INFO("%s", header_buf);
+    ParseHeader(header_buf, header_len);
     return true;
 }
 
 void MinitouchOperation::Click(int x, int y) {
-    std::pair<int, int> point = TurnAroundPoint(x, y);
+    std::pair<int, int> point = CoordinateConvertion(x, y);
     std::tie(x, y) = point;
     LOG_INFO("Click %d %d", x, y);
 
     std::stringstream op_ss;
     op_ss << "d 0 " << std::to_string(x) << ' ' << std::to_string(y) << " 1\n"
-          << "c\n" << "u 0\n" << "c\n";
+          << "c\n"
+          << "u 0\n"
+          << "c\n";
     std::string op_str = op_ss.str();
     int write_len = write(socket_, op_str.c_str(), op_str.size());
     if (write_len != op_str.size()) {
         LOG_ERROR("write len error %ld %d", op_str.size(), write_len);
+        return;
     }
+    Delay();
 }
 
-std::pair<int, int> MinitouchOperation::TurnAroundPoint(int x, int y) {
+void MinitouchOperation::ParseHeader(char *buffer, int len) {
+    buffer[len] = '\0';
+    sscanf(buffer, "v %*d\n^ %*d %d %d %*d\n$ %*d\n", &max_x_, &max_y_);
+    LOG_INFO("Max x %d, max y %d", max_x_, max_y_);
+}
+
+std::pair<int, int> MinitouchOperation::CoordinateConvertion(int x, int y) {
+    int ret_x = 0, ret_y = 0;
     if (orientation_ == 0) {
-        return std::make_pair(x, y);
+        ret_x = x + (max_x_ - image_width_) / 2;
+        ret_y = y + (max_y_ - image_height_) / 2;
     } else if (orientation_ == 90) {
-        return std::make_pair(height_ - y, x);
+        ret_x = (image_height_ - y) + (max_x_ - image_height_);
+        ret_y = x;
     }
-    return std::make_pair(0, 0);
+    return std::make_pair(ret_x, ret_y);
 }
 
+void MinitouchOperation::Delay() {
+    std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms_));
+}

@@ -12,7 +12,7 @@ public:
 
     bool Init() override;
 
-    std::vector<TextBox> Detect(ImageFormat format,
+    std::vector<TextBox> Detect(const ImageInfo &image_info,
                                 const std::vector<char> &buffer) override;
 
 private:

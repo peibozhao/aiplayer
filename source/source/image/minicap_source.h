@@ -6,6 +6,8 @@
 #include <thread>
 #include <memory>
 #include <mutex>
+#include <atomic>
+#include <condition_variable>
 
 class MinicapSource : public ISource {
 public:
@@ -15,7 +17,11 @@ public:
 
     bool Init() override;
 
-    ImageFormat GetFormat() override;
+    void Start() override;
+
+    void Stop() override;
+
+    ImageInfo GetImageInfo() override;
 
     std::vector<char> GetImageBuffer() override;
 
@@ -28,7 +34,11 @@ private:
     int socket_;
 
     std::shared_ptr<std::thread> recv_thread_;
-    std::mutex image_buffer_mutex_;
+    std::mutex image_mutex_;
+    std::condition_variable image_con_;
     std::vector<char> image_buffer_;
+    ImageInfo image_info_;
+
+    std::atomic_bool is_running_;
 };
 

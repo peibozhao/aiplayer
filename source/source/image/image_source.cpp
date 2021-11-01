@@ -3,8 +3,9 @@
 #include <fstream>
 #include "common/log.h"
 
-ImageSource::ImageSource(const std::string &fname) {
+ImageSource::ImageSource(const std::string &fname, const ImageInfo &image_info) {
     fname_ = fname;
+    image_info_ = image_info;
 }
 
 bool ImageSource::Init() {
@@ -18,12 +19,11 @@ bool ImageSource::Init() {
     ifs.seekg(0, std::ios::beg);
     image_buffer_.resize(file_size);
     ifs.read(image_buffer_.data(), image_buffer_.size());
-    format_ = ImageFormat::JPEG;
     return true;
 }
 
-ImageFormat ImageSource::GetFormat() {
-    return format_;
+ImageInfo ImageSource::GetImageInfo() {
+    return image_info_;
 }
 
 std::vector<char> ImageSource::GetImageBuffer() {

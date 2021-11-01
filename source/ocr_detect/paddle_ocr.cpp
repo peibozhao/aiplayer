@@ -1,36 +1,37 @@
 
 #include "paddle_ocr.h"
-#include <cassert>
-#include "nlohmann/json.hpp"
-#include "common/util_functions.h"
 #include "common/log.h"
+#include "common/util_functions.h"
+#include "nlohmann/json.hpp"
+#include <cassert>
 
 PaddleOcr::PaddleOcr(const std::string &host, unsigned short port) {
     host_ = host;
     port_ = port;
 }
 
-PaddleOcr::~PaddleOcr() {
-}
+PaddleOcr::~PaddleOcr() {}
 
 bool PaddleOcr::Init() {
     client_.reset(new httplib::Client(host_, port_));
+    client_->set_read_timeout(10);
     return true;
 }
 
-std::vector<TextBox> PaddleOcr::Detect(ImageFormat format, const std::vector<char> &buffer) {
-    assert(format == ImageFormat::JPEG);
+std::vector<TextBox> PaddleOcr::Detect(const ImageInfo &image_info,
+                                       const std::vector<char> &buffer) {
+    assert(image_info.format == ImageFormat::JPEG);
 
     std::vector<uint8_t> buffer_uint8(buffer.size());
-    std::transform(buffer.begin(), buffer.end(),
-                   buffer_uint8.begin(),
+    std::transform(buffer.begin(), buffer.end(), buffer_uint8.begin(),
                    [](char c) { return static_cast<uint8_t>(c); });
     std::string image_base64 = Base64Encode(buffer_uint8);
 
     nlohmann::json request_json;
     request_json["images"].push_back(image_base64);
 
-    httplib::Result http_ret = client_->Post("/predict/ocr_system", request_json.dump(), "application/json");
+    httplib::Result http_ret =
+        client_->Post("/predict/ocr_system", request_json.dump(), "application/json");
 
     if (http_ret.error() != httplib::Error::Success) {
         LOG_ERROR("Http return error %d", static_cast<int>(http_ret.error()));
@@ -39,9 +40,7 @@ std::vector<TextBox> PaddleOcr::Detect(ImageFormat format, const std::vector<cha
 
     nlohmann::json http_body = nlohmann::json::parse(http_ret->body);
 
-    if (http_body["results"].empty()) {
-        return {};
-    }
+    if (http_body["results"].empty()) { return {}; }
     nlohmann::json ocr_texts_json = http_body["results"].front();
     std::vector<TextBox> ret;
     for (const auto &ocr_text_json : ocr_texts_json) {

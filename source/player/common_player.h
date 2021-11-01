@@ -19,9 +19,10 @@ struct PageConfig {
 
 // Play mode
 struct ActionConfig {
-    PlayOperationType type;
+    std::string type;
 
     std::regex pattern;  // Click
+    std::pair<float, float> point;  // Click point
     int sleep_time;  // Sleep
 };
 
@@ -33,7 +34,8 @@ struct ModeConfig {
 // Common player
 class CommonPlayer : public IPlayer {
 public:
-    CommonPlayer(const std::vector<PageConfig> &page_configs, const std::vector<ModeConfig> &mode_configs);
+    CommonPlayer(const std::vector<PageConfig> &page_configs,
+                 const std::vector<ModeConfig> &mode_configs, int width, int height);
 
     ~CommonPlayer() override;
 
@@ -48,9 +50,12 @@ public:
     bool SetMode(const std::string &mode) override;
 
 private:
+    int width_, height_;
     const std::vector<PageConfig> page_configs_;
     const std::vector<ModeConfig> mode_configs_;
 
     const ModeConfig *cur_mode_;
     std::mutex mutex_;
+
+    bool is_over_;
 };

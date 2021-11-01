@@ -3,6 +3,7 @@
 #include "common/log.h"
 #include "common/util_functions.h"
 #include "glog/logging.h"
+#include "source/image/source.h"
 #include <arpa/inet.h>
 #include <stdexcept>
 #include <string.h>
@@ -50,6 +51,7 @@ static bool ReadUtil(int fd, void *buffer, int buffer_size) {
 MinicapSource::MinicapSource(const std::string &ip, unsigned short port) {
     ip_ = ip;
     server_port_ = port;
+    is_running_ = false;
 }
 
 MinicapSource::~MinicapSource() { close(socket_); }
@@ -57,7 +59,8 @@ MinicapSource::~MinicapSource() { close(socket_); }
 bool MinicapSource::Init() {
     socket_ = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_ < 0) {
-        throw std::runtime_error("minicap socket create failed");
+        LOG_ERROR("Minicap socket create failed");
+        return false;
     }
 
     struct timeval overtime;
@@ -78,30 +81,59 @@ bool MinicapSource::Init() {
 
     if (connect(socket_, (struct sockaddr *)&server_addr, sizeof(server_addr)) <
         0) {
-        throw std::runtime_error("minicap connect failed");
+        LOG_ERROR("Minicap connect failed");
+        return false;
     }
 
     MinicapHeader header;
     if (!ReadUtil(socket_, &header, sizeof(header))) {
-        throw std::runtime_error("minicap read head failed");
+        LOG_ERROR("Minicap read head failed");
+        return false;
     }
     LOG_INFO("Minicap width %d height %d vwidth %d vheight %d orientate %d quirk %d",
              header.real_width, header.real_height, header.virtual_width,
              header.virtual_height, header.orientation, header.quirk);
 
-    recv_thread_.reset(new std::thread(&MinicapSource::RecvImageThread, this));
+    image_info_.format = ImageFormat::JPEG;
+    if (header.orientation == 0 || header.orientation == 2) {
+        image_info_.width = header.virtual_width;
+        image_info_.height = header.virtual_height;
+    } else if (header.orientation == 1 || header.orientation == 3) {
+        image_info_.width = header.virtual_height;
+        image_info_.height = header.virtual_width;
+    } else {
+        LOG_ERROR("Minicap unsopport orientation %d", header.orientation);
+        return false;
+    }
     return true;
 }
 
-ImageFormat MinicapSource::GetFormat() { return ImageFormat::JPEG; }
+void MinicapSource::Start() {
+    is_running_ = true;
+    recv_thread_.reset(new std::thread(&MinicapSource::RecvImageThread, this));
+}
+
+void MinicapSource::Stop() {
+    is_running_ = false;
+    recv_thread_->join();
+}
+
+ImageInfo MinicapSource::GetImageInfo() {
+    return image_info_;
+}
 
 std::vector<char> MinicapSource::GetImageBuffer() {
-    std::lock_guard<std::mutex> lock(image_buffer_mutex_);
-    return image_buffer_;
+    std::unique_lock<std::mutex> lock(image_mutex_);
+    image_con_.wait(lock, [this] {
+            return !image_buffer_.empty();
+            });
+    std::vector<char> ret = image_buffer_;
+    image_buffer_.clear();
+    return ret;
 }
 
 void MinicapSource::RecvImageThread() {
-    while (true) {
+    while (is_running_) {
         int frame_size;
         if (!ReadUtil(socket_, &frame_size, sizeof(frame_size))) {
             LOG_ERROR("Minicap get frame failed");
@@ -111,7 +143,8 @@ void MinicapSource::RecvImageThread() {
             LOG_ERROR("Minicap get frame failed");
         }
 
-        std::lock_guard<std::mutex> lock(image_buffer_mutex_);
+        std::lock_guard<std::mutex> lock(image_mutex_);
         image_buffer_ = tmp_image_buffer;
+        image_con_.notify_one();
     }
 }
