@@ -8,11 +8,13 @@ ocr:
   type: 'paddleocr'
   host: 'localhost'
   port: 8868
+  recv_timeout: 3  # CPU version run slower
 
 operation:
   type: 'minitouch'
   host: 'localhost'
   port: 1111
+  delay: 0  # milliseconds. Wait for operation animation
 
 request:
   type: 'http'
@@ -31,6 +33,9 @@ player:
     - name: '主页'
       conditions:
         - {pattern: '出击', x_range: [0.7, 1.], y_range: [0.4, 0.5]}
+    - name: '个人信息'
+      conditions:
+        - {pattern: '个人信息', x_range: [0., 0.3], y_range: [0., 0.2]}
     - name: '出击主页'
       conditions:
         - {pattern: '主线', x_range: [0., 0.5], y_range: [0.5, 1.]}
@@ -151,7 +156,7 @@ player:
         - {pattern: '迎击', x_range: [0.5, 1.], y_range: [0.8, 1.]}
     - name: '战斗中'
       conditions:
-        - {pattern: '暂停', x_range: [0.8, 1.], y_range: [0., 0.1]}
+        - {pattern: '暂停.*', x_range: [0.8, 1.], y_range: [0., 0.1]}
     - name: '演习主页'
       conditions:
         - {pattern: '演习', x_range: [0., 0.3], y_range: [0., 0.2]}
@@ -196,6 +201,9 @@ player:
         - page: '主页'
           actions:
             - {type: 'click', pattern: '出击'}
+        - page: '个人信息'
+          actions:
+            - {type: 'click', point: [0.05, 0.1]}
         - page: '出击主页'
           actions:
             - {type: 'click', pattern: '主线'}
@@ -208,6 +216,15 @@ player:
         - page: '章节选择-12章'
           actions:
             - {type: 'click', pattern: '上一章'}
+        - page: '章节选择-困难-10章'
+          actions:
+            - {type: 'click', pattern: '普通'}
+        - page: '章节选择-困难-11章'
+          actions:
+            - {type: 'click', pattern: '普通'}
+        - page: '章节选择-困难-12章'
+          actions:
+            - {type: 'click', pattern: '普通'}
         - page: '立刻前往'
           actions:
             - {type: 'click', pattern: '立刻前往'}
@@ -225,9 +242,21 @@ player:
         - page: '主页'
           actions:
             - {type: 'click', pattern: '出击'}
+        - page: '个人信息'
+          actions:
+            - {type: 'click', point: [0.05, 0.1]}
         - page: '出击主页'
           actions:
             - {type: 'click', pattern: '主线'}
+        - page: '章节选择-10章'
+          actions:
+            - {type: 'click', pattern: '困难'}
+        - page: '章节选择-11章'
+          actions:
+            - {type: 'click', pattern: '困难'}
+        - page: '章节选择-12章'
+          actions:
+            - {type: 'click', pattern: '困难'}
         - page: '章节选择-困难-9章'
           actions:
             - {type: 'click', pattern: '下一章'}
@@ -260,6 +289,9 @@ player:
         - page: '主页'
           actions:
             - {type: 'click', pattern: '出击'}
+        - page: '个人信息'
+          actions:
+            - {type: 'click', point: [0.05, 0.1]}
         - page: '出击主页'
           actions:
             - {type: 'click', pattern: '演习'}
@@ -301,9 +333,12 @@ player:
         - page: '主页'
           actions:
             - {type: 'over'}
+        - page: '战斗中'
+          actions:
+            - {type: 'sleep', time: 3000}
       other_page_actions:
         actions:
-          - {type: 'click', point: [0.11, 0.1]}
+          - {type: 'click', point: [0.05, 0.1]}
       undefined_page_actions:
         actions:
-          - {type: 'click', point: [0.11, 0.1]}
+          - {type: 'click', point: [0.05, 0.1]}

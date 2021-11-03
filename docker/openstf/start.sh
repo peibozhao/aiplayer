@@ -8,6 +8,12 @@ if [[ -z $? ]]; then
     exit -1
 fi
 
+# Show home
+echo "--- Show home"
+if [[ ! `adb shell dumpsys window | grep mCurrentFocus` =~ home ]]; then
+    adb shell input keyevent KEYCODE_HOME
+fi
+
 # STFService
 adb shell am start-foreground-service --user 0 \
     -a jp.co.cyberagent.stf.ACTION_START \
