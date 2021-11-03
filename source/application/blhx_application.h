@@ -37,8 +37,16 @@ public:
 
     bool SetParam(const std::string &key, const std::string &value) override;
 
+    std::string GetParam(const std::string &key) override;
+
 private:
-    bool RequestConfigCallback(const std::string &request_str);
+    bool QueryCurrentModeCallback(const std::string &request_str, std::string &response_str);
+
+    bool ReplaceCurrentModeCallback(const std::string &request_str, std::string &response_str);
+
+    bool QueryStatusCallback(const std::string &request_str, std::string &response_str);
+
+    bool ReplaceStatusCallback(const std::string &request_str, std::string &response_str);
 
 private:
     std::string config_fname_;

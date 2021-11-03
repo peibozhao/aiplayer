@@ -1,17 +1,14 @@
 
 #pragma once
 
-#include "request.h"
-#include <queue>
-#include <mutex>
-#include <condition_variable>
 #include "httplib.h"
+#include "request.h"
+#include <condition_variable>
+#include <mutex>
+#include <queue>
 
 // Return json format
 class HttpRequest : public IRequest {
-public:
-    typedef std::function<bool(const std::string &)> RequestCallback;
-
 public:
     HttpRequest(const std::string &ip, unsigned short port);
 
@@ -23,16 +20,19 @@ public:
 
     void Stop() override;
 
-    void SetCallback(const std::string &path, RequestCallback callback) override;
+    void SetCallback(const std::string &path, RequestOperation op,
+                     RequestCallback callback) override;
 
 private:
     void RequestHandler(const httplib::Request &req, httplib::Response &res);
 
 private:
+    static std::map<std::string, RequestOperation> httpmethod_to_ops_;
+
     std::string ip_;
     unsigned short port_;
     httplib::Server server_;
 
     std::shared_ptr<std::thread> recv_thread_;
-    std::map<std::string, RequestCallback> callbacks_;
+    std::map<std::pair<std::string, RequestOperation>, RequestCallback> callbacks_;
 };

@@ -37,7 +37,7 @@ static bool ReadUtil(int fd, void *buffer, int buffer_size) {
         int cur_read_len =
             read(fd, (char *)buffer + read_len, buffer_size - read_len);
         if (cur_read_len < 0) {
-            LOG_INFO("minicap recv failed %d", errno);
+            LOG_ERROR("minicap recv failed %d", errno);
             return false;
         } else if (cur_read_len == 0) {
             LOG_ERROR("Peer close");
@@ -137,10 +137,14 @@ void MinicapSource::RecvImageThread() {
         int frame_size;
         if (!ReadUtil(socket_, &frame_size, sizeof(frame_size))) {
             LOG_ERROR("Minicap get frame failed");
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            continue;
         }
         std::vector<char> tmp_image_buffer(frame_size);
         if (!ReadUtil(socket_, tmp_image_buffer.data(), tmp_image_buffer.size())) {
             LOG_ERROR("Minicap get frame failed");
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            continue;
         }
 
         std::lock_guard<std::mutex> lock(image_mutex_);

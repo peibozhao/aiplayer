@@ -51,6 +51,8 @@ public:
 
     bool SetMode(const std::string &mode) override;
 
+    std::string GetMode() override;
+
 private:
     // Maybe change is_over_ flag
     std::vector<PlayOperation>

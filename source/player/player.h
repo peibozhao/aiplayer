@@ -38,4 +38,6 @@ public:
     virtual bool IsGameOver() { return false; }
 
     virtual bool SetMode(const std::string &mode) { return false; }
+
+    virtual std::string GetMode() { return ""; }
 };

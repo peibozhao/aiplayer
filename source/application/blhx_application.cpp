@@ -200,8 +200,21 @@ bool BlhxApplication::Init() {
         request_.reset();
         LOG_ERROR("Request init failed");
     } else {
-        request_->SetCallback("/config", std::bind(&BlhxApplication::RequestConfigCallback, this,
-                                                   std::placeholders::_1));
+        request_->SetCallback("/current_mode/name", RequestOperation::Query,
+                              std::bind(&BlhxApplication::QueryCurrentModeCallback, this,
+                                        std::placeholders::_1, std::placeholders::_2));
+
+        request_->SetCallback("/current_mode/name", RequestOperation::Replace,
+                              std::bind(&BlhxApplication::ReplaceCurrentModeCallback, this,
+                                        std::placeholders::_1, std::placeholders::_2));
+
+        request_->SetCallback("/status", RequestOperation::Query,
+                              std::bind(&BlhxApplication::QueryStatusCallback, this,
+                                        std::placeholders::_1, std::placeholders::_2));
+
+        request_->SetCallback("/status", RequestOperation::Replace,
+                              std::bind(&BlhxApplication::ReplaceStatusCallback, this,
+                                        std::placeholders::_1, std::placeholders::_2));
     }
 
     return true;
@@ -299,29 +312,62 @@ bool BlhxApplication::SetParam(const std::string &key, const std::string &value)
     }
 }
 
-bool BlhxApplication::RequestConfigCallback(const std::string &request_str) {
-    nlohmann::json req_root = nlohmann::json::parse(request_str);
-    for (auto iter = req_root.begin(); iter != req_root.end(); ++iter) {
-        if (iter.key() == "status") {
-            if (iter.value() == "pause") {
-                Pause();
-            } else if (iter.value() == "continue") {
-                Continue();
-            } else if (iter.value() == "stop") {
-                Stop();
-            } else {
-                LOG_ERROR("Unkown application status: %s", iter.value().get<std::string>().c_str());
-                return false;
-            }
-        } else if (iter.key() == "mode") {
-            if (!SetParam("mode", iter.value())) {
-                LOG_ERROR("Application set param failed. %s",
-                          iter.value().get<std::string>().c_str());
-                return false;
-            }
-        } else {
-            LOG_ERROR("Unkown param: %s", iter.key().c_str());
+std::string BlhxApplication::GetParam(const std::string &key) {
+    if (key == "status") {
+        switch (status_) {
+        case ApplicationStatus::Stopped:
+            return "stop";
+        case ApplicationStatus::Pausing:
+            return "pause";
+        case BlhxApplication::Running:
+            return "running";
+        case BlhxApplication::Over:
+            return "over";
+        default:
+            LOG_ERROR("Status unkown status");
+            return "";
         }
+    } else if (key == "mode") {
+        return player_->GetMode();
+    } else {
+        LOG_ERROR("Unknown param. %s", key.c_str());
+        return "";
+    }
+}
+
+bool BlhxApplication::QueryCurrentModeCallback(const std::string &request_str,
+                                               std::string &response_str) {
+    response_str = GetParam("mode");
+    LOG_INFO("Get current mode %s", response_str.c_str());
+    return true;
+}
+
+bool BlhxApplication::ReplaceCurrentModeCallback(const std::string &request_str,
+                                                 std::string &response_str) {
+    LOG_INFO("Application set mode %s", request_str.c_str());
+    bool ret = SetParam("mode", request_str);
+    if (!ret) { LOG_ERROR("Player set mode failed"); }
+    return ret;
+}
+
+bool BlhxApplication::QueryStatusCallback(const std::string &request_str,
+                                          std::string &response_str) {
+    response_str = GetParam("status");
+    LOG_INFO("Get status %s", response_str.c_str());
+    return !response_str.empty();
+}
+
+bool BlhxApplication::ReplaceStatusCallback(const std::string &request_str, std::string &response_str) {
+    LOG_INFO("Replace status %s", request_str.c_str());
+    if (request_str == "continue") {
+        Continue();
+    } else if (request_str == "pause") {
+        Pause();
+    } else if (request_str == "stop") {
+        Stop();
+    } else {
+        LOG_ERROR("Unkown status changed. %s", request_str.c_str());
+        return false;
     }
     return true;
 }

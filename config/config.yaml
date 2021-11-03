@@ -192,6 +192,11 @@ player:
       conditions:
         - {pattern: '点击关闭', x_range: [0.4, 0.6], y_range: [0.7, 1.]}
         - {pattern: '指挥官可以通过以下方式提升舰队实力', x_range: [0.4, 0.6], y_range: [0.2, 0.5]}
+    - name: '船坞已满'
+      conditions:
+        - {pattern: '整理', x_range: [0.3, 0.5], y_range: [0.5, 0.7]}
+        - {pattern: '拓展', x_range: [0.4, 0.6], y_range: [0.5, 0.7]}
+        - {pattern: '强化', x_range: [0.5, 0.7], y_range: [0.5, 0.7]}
     - name: '应援' # 活动
       conditions:
         - pattern: '知道了'
@@ -237,6 +242,9 @@ player:
         - page: '战斗中'
           actions:
             - {type: 'sleep', time: 3000}
+        - page: '船坞已满'
+          actions:
+            - {type: 'over'}
     - name: 'hard-10-2'
       page_actions:
         - page: '主页'
@@ -282,6 +290,9 @@ player:
           actions:
             - {type: 'sleep', time: 3000}
         - page: '信息-困难关卡次数不足'
+          actions:
+            - {type: 'over'}
+        - page: '船坞已满'
           actions:
             - {type: 'over'}
     - name: 'exercise'

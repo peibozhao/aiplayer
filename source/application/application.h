@@ -16,4 +16,6 @@ public:
     virtual void Stop() = 0;
 
     virtual bool SetParam(const std::string &key, const std::string &value) { return false; }
+
+    virtual std::string GetParam(const std::string &key) { return ""; }
 };

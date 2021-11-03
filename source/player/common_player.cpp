@@ -133,6 +133,11 @@ bool CommonPlayer::SetMode(const std::string &mode) {
     return false;
 }
 
+std::string CommonPlayer::GetMode() {
+    std::lock_guard<std::mutex> lock(mode_mutex_);
+    return cur_mode_->name;
+}
+
 std::vector<PlayOperation>
 CommonPlayer::CreatePlayOperation(const std::vector<ObjectBox> &object_boxes,
                                   const std::vector<TextBox> &text_boxes,
