@@ -1,12 +1,14 @@
 
 #include "blhx_application.h"
 #include "common/log.h"
+#include "nlohmann/json.hpp"
 #include "ocr_detect/paddle_ocr.h"
 #include "player/common_player.h"
 #include "sink/dummy_operation.h"
 #include "sink/minitouch_operation.h"
 #include "source/image/image_source.h"
 #include "source/image/minicap_source.h"
+#include "source/request/http_request.h"
 #include "yaml-cpp/yaml.h"
 #include <arpa/inet.h>
 #include <fstream>
@@ -41,6 +43,23 @@ static PageConditionConfig GetConditionConfig(const YAML::Node &yaml_node, int w
         ret.y_max = height;
     }
     return ret;
+}
+
+static ActionConfig CreateActionConfig(const YAML::Node &action_yaml) {
+    ActionConfig action_config;
+    std::string action_type = action_yaml["type"].as<std::string>();
+    action_config.type = action_type;
+    if (action_type == "click") {
+        if (action_yaml["pattern"].IsDefined()) {
+            action_config.pattern = action_yaml["pattern"].as<std::string>();
+        } else if (action_yaml["point"].IsDefined()) {
+            action_config.point = std::make_pair(action_yaml["point"][0].as<float>(),
+                                                 action_yaml["point"][1].as<float>());
+        }
+    } else if (action_type == "sleep") {
+        action_config.sleep_time = action_yaml["time"].as<int>();
+    }
+    return action_config;
 }
 
 BlhxApplication::BlhxApplication(const std::string &config_fname) {
@@ -110,25 +129,34 @@ bool BlhxApplication::Init() {
         for (auto &mode_yaml : player_yaml["modes"]) {
             ModeConfig mode_config;
             mode_config.name = mode_yaml["name"].as<std::string>();
-            for (auto &pipeline_yaml : mode_yaml["pipeline"]) {
-                std::string page_name = pipeline_yaml["page"].as<std::string>();
+            for (auto &defined_page_yaml : mode_yaml["page_actions"]) {
+                std::string page_name = defined_page_yaml["page"].as<std::string>();
                 std::vector<ActionConfig> action_configs;
-                for (auto &action_yaml : pipeline_yaml["actions"]) {
-                    ActionConfig action_config;
-                    std::string action_type = action_yaml["type"].as<std::string>();
-                    action_config.type = action_type;
-                    if (action_type == "click") {
-                        action_config.pattern = action_yaml["pattern"].as<std::string>();
-                    } else if (action_type == "click-pos") {
-                        action_config.point.first = action_yaml["point"][0].as<float>();
-                        action_config.point.second = action_yaml["point"][1].as<float>();
-                    } else if (action_type == "sleep") {
-                        action_config.sleep_time = action_yaml["time"].as<int>();
-                    }
+                for (auto &action_yaml : defined_page_yaml["actions"]) {
+                    ActionConfig action_config = CreateActionConfig(action_yaml);
                     action_configs.push_back(action_config);
                 }
                 mode_config.page_to_actions[page_name] = action_configs;
             }
+
+            if (mode_yaml["other_page_actions"].IsDefined()) {
+                std::vector<ActionConfig> action_configs;
+                const YAML::Node &other_page_yaml = mode_yaml["other_page_actions"];
+                for (auto action_yaml : other_page_yaml["actions"]) {
+                    ActionConfig action_config = CreateActionConfig(action_yaml);
+                    mode_config.other_page_actions.push_back(action_config);
+                }
+            }
+
+            if (mode_yaml["undefined_page_actions"].IsDefined()) {
+                std::vector<ActionConfig> action_configs;
+                const YAML::Node &undefined_page_yaml = mode_yaml["undefined_page_actions"];
+                for (auto action_yaml : undefined_page_yaml["actions"]) {
+                    ActionConfig action_config = CreateActionConfig(action_yaml);
+                    mode_config.undefined_page_actions.push_back(action_config);
+                }
+            }
+
             mode_configs.push_back(mode_config);
         }
         player_.reset(
@@ -160,14 +188,32 @@ bool BlhxApplication::Init() {
     }
     LOG_INFO("Operation init success");
 
+    // Request
+    const YAML::Node &request_yaml = config_yaml["request"];
+    std::string request_type = request_yaml["type"].as<std::string>();
+    if (request_type == "http") {
+        auto request_server_info(GetServerInfo(request_yaml));
+        request_.reset(
+            new HttpRequest(std::get<0>(request_server_info), std::get<1>(request_server_info)));
+    }
+    if (!request_ || !request_->Init()) {
+        request_.reset();
+        LOG_ERROR("Request init failed");
+    } else {
+        request_->SetCallback("/config", std::bind(&BlhxApplication::RequestConfigCallback, this,
+                                                   std::placeholders::_1));
+    }
+
     return true;
 }
 
 void BlhxApplication::Run() {
     source_->Start();
+    if (request_) { request_->Start(); }
 
     LOG_INFO("Application running");
     status_ = ApplicationStatus::Running;
+
     while (true) {
         std::unique_lock<std::mutex> lock(status_mutex_);
         if (status_ == ApplicationStatus::Stopped) {
@@ -218,13 +264,13 @@ void BlhxApplication::Run() {
 
 void BlhxApplication::Pause() {
     LOG_INFO("Application pause");
-    source_->Stop();
+    std::lock_guard<std::mutex> lock(status_mutex_);
     status_ = ApplicationStatus::Pausing;
 }
 
 void BlhxApplication::Continue() {
     LOG_INFO("Application continue");
-    source_->Start();
+    std::lock_guard<std::mutex> lock(status_mutex_);
     status_ = ApplicationStatus::Running;
     status_con_.notify_one();
 }
@@ -232,6 +278,7 @@ void BlhxApplication::Continue() {
 void BlhxApplication::Stop() {
     LOG_INFO("Application stop");
     source_->Stop();
+    std::lock_guard<std::mutex> lock(status_mutex_);
     status_ = ApplicationStatus::Stopped;
 }
 
@@ -241,11 +288,40 @@ bool BlhxApplication::SetParam(const std::string &key, const std::string &value)
         if (player_->SetMode(value)) {
             std::lock_guard<std::mutex> lock(status_mutex_);
             status_ = ApplicationStatus::Running;
+            status_con_.notify_one();
             return true;
         }
+        LOG_INFO("Set mode failed");
         return false;
     } else {
         LOG_ERROR("Unknown param. %s", key.c_str());
         return false;
     }
+}
+
+bool BlhxApplication::RequestConfigCallback(const std::string &request_str) {
+    nlohmann::json req_root = nlohmann::json::parse(request_str);
+    for (auto iter = req_root.begin(); iter != req_root.end(); ++iter) {
+        if (iter.key() == "status") {
+            if (iter.value() == "pause") {
+                Pause();
+            } else if (iter.value() == "continue") {
+                Continue();
+            } else if (iter.value() == "stop") {
+                Stop();
+            } else {
+                LOG_ERROR("Unkown application status: %s", iter.value().get<std::string>().c_str());
+                return false;
+            }
+        } else if (iter.key() == "mode") {
+            if (!SetParam("mode", iter.value())) {
+                LOG_ERROR("Application set param failed. %s",
+                          iter.value().get<std::string>().c_str());
+                return false;
+            }
+        } else {
+            LOG_ERROR("Unkown param: %s", iter.key().c_str());
+        }
+    }
+    return true;
 }

@@ -22,8 +22,9 @@ sleep 1
 # adb forward tcp:1090 localabstract:stfagent
 
 # minicap
+screen_size=`adb shell wm size | awk '{print $3}'`
 pushd /minicap
-./run.sh -P 1080x2340@1080x2340/90 &
+./run.sh -P ${screen_size}@${screen_size}/90 &
 adb forward tcp:1313 localabstract:minicap &
 popd
 

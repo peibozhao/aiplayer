@@ -106,17 +106,15 @@ void MinitouchOperation::ParseHeader(char *buffer, int len) {
 std::pair<int, int> MinitouchOperation::CoordinateConvertion(int x, int y) {
     int ret_x = 0, ret_y = 0;
     if (orientation_ == 0) {
-        ret_x = x + (max_x_ - image_width_) / 2;
-        ret_y = y + (max_y_ - image_height_) / 2;
+        ret_x = x * max_x_ / image_width_;
+        ret_y = y * max_y_ / image_height_;
     } else if (orientation_ == 90) {
-        ret_x = (image_height_ - y) + (max_x_ - image_height_);
-        ret_y = x;
+        ret_x = max_x_ - y * max_x_ / image_height_;
+        ret_y = x * max_y_ / image_width_;
     }
     return std::make_pair(ret_x, ret_y);
 }
 
 void MinitouchOperation::Delay() {
-    if (delay_ms_ > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms_));
-    }
+    if (delay_ms_ > 0) { std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms_)); }
 }

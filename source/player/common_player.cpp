@@ -88,6 +88,7 @@ bool CommonPlayer::Init() {
 
 std::vector<PlayOperation> CommonPlayer::Play(const std::vector<ObjectBox> &object_boxes,
                                               const std::vector<TextBox> &text_boxes) {
+    std::lock_guard<std::mutex> lock(mode_mutex_);
     for (const PageConfig &page_config : page_configs_) {
         // Detect page
         if (!SatisfyPageCondition(object_boxes, text_boxes, page_config.condition_configs)) {
@@ -97,59 +98,74 @@ std::vector<PlayOperation> CommonPlayer::Play(const std::vector<ObjectBox> &obje
         LOG_INFO("Detect page %s", page_name.c_str());
 
         // Return page actions
-        std::lock_guard<std::mutex> lock(mutex_);
         auto iter = cur_mode_->page_to_actions.find(page_name);
 
         std::vector<PlayOperation> ret;
         if (iter != cur_mode_->page_to_actions.end()) {
-            for (const ActionConfig &action_config : iter->second) {
-                if (action_config.type == "click") {
-                    auto point_info =
-                        GetPatternPoint(object_boxes, text_boxes, action_config.pattern);
-                    LOG_INFO("Click %s", std::get<0>(point_info).c_str());
-                    PlayOperation operation(PlayOperationType::SCREEN_CLICK);
-                    operation.click.x = std::get<1>(point_info);
-                    operation.click.y = std::get<2>(point_info);
-                    ret.push_back(operation);
-                } else if (action_config.type == "click-pos") {
-                    PlayOperation operation(PlayOperationType::SCREEN_CLICK);
-                    operation.click.x = width_ * action_config.point.first;
-                    operation.click.y = height_ * action_config.point.second;
-                    LOG_INFO("Click point %d %d", operation.click.x, operation.click.y);
-                    ret.push_back(operation);
-                } else if (action_config.type == "sleep") {
-                    LOG_INFO("Sleep %d", action_config.sleep_time);
-                    PlayOperation operation(PlayOperationType::SLEEP);
-                    operation.sleep_ms = action_config.sleep_time;
-                    ret.push_back(operation);
-                } else if (action_config.type == "over") {
-                    LOG_INFO("Play end");
-                    is_over_ = true;
-                }
-            }
+            ret = CreatePlayOperation(object_boxes, text_boxes, iter->second);
+        } else {
+            ret = CreatePlayOperation(object_boxes, text_boxes, cur_mode_->other_page_actions);
         }
         return ret;
     }
 
     // Page is not defined
     LOG_INFO("Undefined page");
-    return {};
+    return CreatePlayOperation(object_boxes, text_boxes, cur_mode_->undefined_page_actions);
 }
 
 bool CommonPlayer::IsGameOver() {
-    if (is_over_) { LOG_INFO("Mode play end. %s", cur_mode_->name.c_str()); }
+    if (is_over_) { LOG_INFO("Mode play end."); }
     return is_over_;
 }
 
 bool CommonPlayer::SetMode(const std::string &mode) {
+    std::lock_guard<std::mutex> lock(mode_mutex_);
     for (const auto &mode_config : mode_configs_) {
         if (mode_config.name == mode) {
-            std::lock_guard<std::mutex> lock(mutex_);
             cur_mode_ = &mode_config;
+            LOG_INFO("Player mode %s", cur_mode_->name.c_str());
             is_over_ = false;
             return true;
         }
     }
     LOG_ERROR("Unsupport mode %s", mode.c_str());
     return false;
+}
+
+std::vector<PlayOperation>
+CommonPlayer::CreatePlayOperation(const std::vector<ObjectBox> &object_boxes,
+                                  const std::vector<TextBox> &text_boxes,
+                                  const std::vector<ActionConfig> &action_configs) {
+    std::vector<PlayOperation> ret;
+    for (const ActionConfig &action_config : action_configs) {
+        if (action_config.type == "click") {
+            PlayOperation operation(PlayOperationType::SCREEN_CLICK);
+            if (action_config.pattern) {
+                auto point_info = GetPatternPoint(object_boxes, text_boxes, *action_config.pattern);
+                std::string click_text = std::get<0>(point_info);
+                if (click_text.empty()) {
+                    LOG_ERROR("Can not find click pattern");
+                    return {};
+                }
+                LOG_INFO("Click %s", std::get<0>(point_info).c_str());
+                operation.click.x = std::get<1>(point_info);
+                operation.click.y = std::get<2>(point_info);
+            } else if (action_config.point) {
+                operation.click.x = width_ * action_config.point->first;
+                operation.click.y = height_ * action_config.point->second;
+                LOG_INFO("Click point %d %d", operation.click.x, operation.click.y);
+            }
+            ret.push_back(operation);
+        } else if (action_config.type == "sleep") {
+            LOG_INFO("Sleep %d", *action_config.sleep_time);
+            PlayOperation operation(PlayOperationType::SLEEP);
+            operation.sleep_ms = *action_config.sleep_time;
+            ret.push_back(operation);
+        } else if (action_config.type == "over") {
+            LOG_INFO("Play end");
+            is_over_ = true;
+        }
+    }
+    return ret;
 }

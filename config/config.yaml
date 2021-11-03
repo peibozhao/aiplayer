@@ -14,6 +14,11 @@ operation:
   host: 'localhost'
   port: 1111
 
+request:
+  type: 'http'
+  host: '0.0.0.0'
+  port: 9000
+
 player:
   type: 'common'
   pages:
@@ -185,10 +190,9 @@ player:
     - name: '应援' # 活动
       conditions:
         - pattern: '知道了'
-    - name: '其他页面'
   modes:
     - name: '11-4'
-      pipeline:
+      page_actions:
         - page: '主页'
           actions:
             - {type: 'click', pattern: '出击'}
@@ -217,7 +221,7 @@ player:
           actions:
             - {type: 'sleep', time: 3000}
     - name: 'hard-10-2'
-      pipeline:
+      page_actions:
         - page: '主页'
           actions:
             - {type: 'click', pattern: '出击'}
@@ -252,7 +256,7 @@ player:
           actions:
             - {type: 'over'}
     - name: 'exercise'
-      pipeline:
+      page_actions:
         - page: '主页'
           actions:
             - {type: 'click', pattern: '出击'}
@@ -293,11 +297,13 @@ player:
           actions:
             - {type: 'over'}
     - name: 'return'
-      pipeline:
+      page_actions:
         - page: '主页'
           actions:
             - {type: 'over'}
-        - page: '其他页面'
-          actions:
-            - {type: 'click-pos', point: [0.11, 0.05]}
-
+      other_page_actions:
+        actions:
+          - {type: 'click', point: [0.11, 0.1]}
+      undefined_page_actions:
+        actions:
+          - {type: 'click', point: [0.11, 0.1]}

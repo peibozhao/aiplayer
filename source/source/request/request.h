@@ -14,5 +14,6 @@ public:
 
     virtual void Stop() {}
 
-    virtual void SetCallback(std::function<void(const std::string &json_str)> callback) = 0;
+    virtual void SetCallback(const std::string &key,
+                             std::function<bool(const std::string &json_str)> callback) = 0;
 };

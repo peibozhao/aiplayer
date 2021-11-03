@@ -2,8 +2,9 @@
 #pragma once
 
 #include "player.h"
-#include <regex>
 #include <mutex>
+#include <regex>
+#include <atomic>
 
 // Page
 struct PageConditionConfig {
@@ -21,14 +22,16 @@ struct PageConfig {
 struct ActionConfig {
     std::string type;
 
-    std::regex pattern;  // Click
-    std::pair<float, float> point;  // Click point
-    int sleep_time;  // Sleep
+    std::optional<std::regex> pattern;            // Click
+    std::optional<std::pair<float, float>> point; // Click point
+    std::optional<int> sleep_time;                // Sleep
 };
 
 struct ModeConfig {
     std::string name;
     std::map<std::string, std::vector<ActionConfig>> page_to_actions;
+    std::vector<ActionConfig> other_page_actions;
+    std::vector<ActionConfig> undefined_page_actions;
 };
 
 // Common player
@@ -41,21 +44,27 @@ public:
 
     bool Init() override;
 
-    std::vector<PlayOperation>
-    Play(const std::vector<ObjectBox> &object_boxes,
-         const std::vector<TextBox> &text_boxes) override;
+    std::vector<PlayOperation> Play(const std::vector<ObjectBox> &object_boxes,
+                                    const std::vector<TextBox> &text_boxes) override;
 
     bool IsGameOver() override;
 
     bool SetMode(const std::string &mode) override;
 
 private:
+    // Maybe change is_over_ flag
+    std::vector<PlayOperation>
+    CreatePlayOperation(const std::vector<ObjectBox> &object_boxes,
+                        const std::vector<TextBox> &text_boxes,
+                        const std::vector<ActionConfig> &action_configs);
+
+private:
     int width_, height_;
     const std::vector<PageConfig> page_configs_;
     const std::vector<ModeConfig> mode_configs_;
 
+    std::mutex mode_mutex_;
     const ModeConfig *cur_mode_;
-    std::mutex mutex_;
 
-    bool is_over_;
+    std::atomic<bool> is_over_;
 };

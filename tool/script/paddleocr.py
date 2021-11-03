@@ -32,6 +32,7 @@ for ocr_result in ocr_results:
     points = ocr_result['text_region']
     drawer.polygon([tuple(i) for i in points], outline=(255,0,0))
     drawer.text((points[0][0], points[0][1]-font_size), ocr_result['text'], font=font, fill=(255,0,0))
+    print(ocr_result['text'], ' -> ', points)
 
 image.show()
 image.save('output.jpg')

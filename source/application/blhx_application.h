@@ -11,6 +11,7 @@
 #include "ocr_detect/ocr_detect.h"
 #include "player/player.h"
 #include "sink/device_operation.h"
+#include "source/request/request.h"
 
 class BlhxApplication : public IApplication {
 private:
@@ -37,11 +38,15 @@ public:
     bool SetParam(const std::string &key, const std::string &value) override;
 
 private:
+    bool RequestConfigCallback(const std::string &request_str);
+
+private:
     std::string config_fname_;
     std::shared_ptr<ISource> source_;
     std::shared_ptr<IOcrDetect> ocr_;
     std::shared_ptr<IPlayer> player_;
     std::shared_ptr<ITouchScreenOperation> operation_;
+    std::shared_ptr<IRequest> request_;
 
     ApplicationStatus status_;
     std::mutex status_mutex_;
