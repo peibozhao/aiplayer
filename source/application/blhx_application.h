@@ -7,11 +7,13 @@
 #include <chrono>
 #include <mutex>
 #include <condition_variable>
+#include "yaml-cpp/yaml.h"
 #include "source/image/source.h"
 #include "ocr_detect/ocr_detect.h"
 #include "player/player.h"
-#include "sink/device_operation.h"
+#include "sink/operation/device_operation.h"
 #include "source/request/request.h"
+#include "sink/notify/event_notify.h"
 
 class BlhxApplication : public IApplication {
 private:
@@ -40,6 +42,8 @@ public:
     std::string GetParam(const std::string &key) override;
 
 private:
+    bool InitByYaml(const YAML::Node &yaml);
+
     bool QueryCurrentModeCallback(const std::string &request_str, std::string &response_str);
 
     bool ReplaceCurrentModeCallback(const std::string &request_str, std::string &response_str);
@@ -55,6 +59,7 @@ private:
     std::shared_ptr<IPlayer> player_;
     std::shared_ptr<ITouchScreenOperation> operation_;
     std::shared_ptr<IRequest> request_;
+    std::shared_ptr<IEventNotify> notify_;
 
     ApplicationStatus status_;
     std::mutex status_mutex_;

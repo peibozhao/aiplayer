@@ -26,7 +26,6 @@ FetchContent_Declare(yaml
     )
 FetchContent_MakeAvailable(yaml)
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "Yaml build test or not" FORCE)
-set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "Yaml build tools or not" FORCE)
 include_directories(${yaml_SOURCE_DIR})
 target_compile_options(yaml-cpp PRIVATE -w)
 
@@ -52,7 +51,8 @@ set(AIPLAYER_SOURCE_LIST
     source/source/image/minicap_source.cpp
     source/source/image/image_source.cpp
     source/source/request/http_request.cpp
-    source/sink/minitouch_operation.cpp
+    source/sink/operation/minitouch_operation.cpp
+    source/sink/notify/miao_notify.cpp
     source/ocr_detect/paddle_ocr.cpp
     source/player/common_player.cpp
     source/common/util_functions.cpp
@@ -68,7 +68,4 @@ target_link_libraries(aiplayer
 
 if (AIPLAYER_BUILD_DEMO)
     add_subdirectory(demo)
-endif()
-if (AIPLAYER_BUILD_TOOL)
-    add_subdirectory(tool)
 endif()

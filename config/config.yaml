@@ -21,13 +21,17 @@ request:
   host: '0.0.0.0'
   port: 9000
 
+notify:
+  type: 'miao'
+  id: 'tWTuzPK'
+
 player:
   type: 'common'
   pages:
-    - name: '信息-演习次数不足'
+    - name: '弹出-演习次数不足'
       conditions:
         - {pattern: '演习次数不足'}
-    - name: '信息-困难关卡次数不足'
+    - name: '弹出-困难关卡次数不足'
       conditions:
         - {pattern: '困难关卡每日挑战次数已达上限'}
     - name: '主页'
@@ -192,12 +196,16 @@ player:
       conditions:
         - {pattern: '点击关闭', x_range: [0.4, 0.6], y_range: [0.7, 1.]}
         - {pattern: '指挥官可以通过以下方式提升舰队实力', x_range: [0.4, 0.6], y_range: [0.2, 0.5]}
-    - name: '船坞已满'
+    - name: '信息-船坞已满'
       conditions:
         - {pattern: '整理', x_range: [0.3, 0.5], y_range: [0.5, 0.7]}
         - {pattern: '拓展', x_range: [0.4, 0.6], y_range: [0.5, 0.7]}
         - {pattern: '强化', x_range: [0.5, 0.7], y_range: [0.5, 0.7]}
-    - name: '应援' # 活动
+    - name: '信息-低心情状态'
+      conditions:
+        - {pattern: '.*低心情状态.*', x_range: [0.4, 0.6], y_range: [0.4, 0.5]}
+        - {pattern: '确定', x_range: [0.5, 0.7], y_range: [0.5, 0.8]}
+    - name: '信息-应援' # 活动
       conditions:
         - pattern: '知道了'
   modes:
@@ -236,13 +244,16 @@ player:
         - page: '再次前往'
           actions:
             - {type: 'click', pattern: '再次前往'}
-        - page: '应援'
+        - page: '信息-应援'
           actions:
             - {type: 'click', pattern: '知道了'}
         - page: '战斗中'
           actions:
             - {type: 'sleep', time: 3000}
-        - page: '船坞已满'
+        - page: '信息-船坞已满'
+          actions:
+            - {type: 'over'}
+        - page: '信息-低心情状态'
           actions:
             - {type: 'over'}
     - name: 'hard-10-2'
@@ -283,16 +294,19 @@ player:
         - page: '再次前往'
           actions:
             - {type: 'click', pattern: '再次前往'}
-        - page: '应援'
+        - page: '信息-应援'
           actions:
             - {type: 'click', pattern: '知道了'}
         - page: '战斗中'
           actions:
             - {type: 'sleep', time: 3000}
-        - page: '信息-困难关卡次数不足'
+        - page: '弹出-困难关卡次数不足'
           actions:
             - {type: 'over'}
-        - page: '船坞已满'
+        - page: '信息-船坞已满'
+          actions:
+            - {type: 'over'}
+        - page: '信息-低心情状态'
           actions:
             - {type: 'over'}
     - name: 'exercise'
@@ -336,7 +350,7 @@ player:
         - page: '战斗中'
           actions:
             - {type: 'sleep', time: 3000}
-        - page: '信息-演习次数不足'
+        - page: '弹出-演习次数不足'
           actions:
             - {type: 'over'}
     - name: 'return'

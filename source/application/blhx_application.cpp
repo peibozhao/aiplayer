@@ -1,18 +1,19 @@
 
 #include "blhx_application.h"
-#include "common/log.h"
-#include "nlohmann/json.hpp"
-#include "ocr_detect/paddle_ocr.h"
-#include "player/common_player.h"
-#include "sink/dummy_operation.h"
-#include "sink/minitouch_operation.h"
-#include "source/image/image_source.h"
-#include "source/image/minicap_source.h"
-#include "source/request/http_request.h"
-#include "yaml-cpp/yaml.h"
 #include <arpa/inet.h>
 #include <fstream>
 #include <netdb.h>
+#include "yaml-cpp/yaml.h"
+#include "nlohmann/json.hpp"
+#include "common/log.h"
+#include "ocr_detect/paddle_ocr.h"
+#include "player/common_player.h"
+#include "source/image/image_source.h"
+#include "source/image/minicap_source.h"
+#include "source/request/http_request.h"
+#include "sink/notify//miao_notify.h"
+#include "sink/operation/dummy_operation.h"
+#include "sink/operation/minitouch_operation.h"
 
 static std::tuple<std::string, unsigned short> GetServerInfo(const YAML::Node &config_yaml) {
     std::string host_name = config_yaml["host"].as<std::string>();
@@ -70,9 +71,146 @@ BlhxApplication::BlhxApplication(const std::string &config_fname) {
 bool BlhxApplication::Init() {
     std::ifstream config_stream(config_fname_);
     YAML::Node config_yaml(YAML::Load(config_stream));
+    return InitByYaml(config_yaml);
+}
 
+void BlhxApplication::Run() {
+    source_->Start();
+    if (request_) { request_->Start(); }
+
+    LOG_INFO("Application running");
+    status_ = ApplicationStatus::Running;
+
+    while (true) {
+        std::unique_lock<std::mutex> lock(status_mutex_);
+        if (status_ == ApplicationStatus::Stopped) {
+            LOG_INFO("Application stoped");
+            break;
+        }
+        status_con_.wait(lock, [this] { return status_ == ApplicationStatus::Running; });
+        lock.unlock();
+
+        ImageInfo image_info = source_->GetImageInfo();
+        TimeLog image_time_log("Image source");
+        std::vector<char> image_buffer = source_->GetImageBuffer();
+        if (image_buffer.empty()) {
+            LOG_INFO("Image is empty");
+            continue;
+        }
+        image_time_log.Tok();
+
+        TimeLog ocr_time_log("OCR");
+        std::vector<TextBox> text_boxes = ocr_->Detect(image_info, image_buffer);
+        if (text_boxes.empty()) {
+            LOG_INFO("Text is empty");
+            continue;
+        }
+        ocr_time_log.Tok();
+
+        std::vector<PlayOperation> play_operations = player_->Play({}, text_boxes);
+        if (!play_operations.empty()) {
+            TimeLog operation_time_log("Operation");
+            for (const PlayOperation &play_operation : play_operations) {
+                if (play_operation.type == PlayOperationType::SCREEN_CLICK) {
+                    operation_->Click(play_operation.click.x, play_operation.click.y);
+                } else if (play_operation.type == PlayOperationType::SLEEP) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(play_operation.sleep_ms));
+                }
+            }
+            operation_time_log.Tok();
+        } else {
+            LOG_INFO("Operation is empty");
+        }
+
+        if (player_->IsGameOver()) {
+            LOG_INFO("Application is over");
+            status_ = ApplicationStatus::Over;
+            if (notify_) {
+                LOG_INFO("Notify %s over event", player_->GetMode().c_str());
+                if (!notify_->Notify("Mode " + player_->GetMode() + " is over")) {
+                    LOG_ERROR("Notify failed.");
+                }
+            }
+        }
+    }
+}
+
+void BlhxApplication::Pause() {
+    LOG_INFO("Application pause");
+    std::lock_guard<std::mutex> lock(status_mutex_);
+    status_ = ApplicationStatus::Pausing;
+}
+
+void BlhxApplication::Continue() {
+    LOG_INFO("Application continue");
+    std::lock_guard<std::mutex> lock(status_mutex_);
+    status_ = ApplicationStatus::Running;
+    status_con_.notify_one();
+}
+
+void BlhxApplication::Stop() {
+    LOG_INFO("Application stop");
+    source_->Stop();
+    std::lock_guard<std::mutex> lock(status_mutex_);
+    status_ = ApplicationStatus::Stopped;
+}
+
+bool BlhxApplication::SetParam(const std::string &key, const std::string &value) {
+    LOG_INFO("Application set param %s to %s", key.c_str(), value.c_str());
+    if (key == "mode") {
+        LOG_INFO("Set param %s to %s", key.c_str(), value.c_str());
+        if (!player_->SetMode(value)) {
+            LOG_INFO("Set mode failed");
+            return false;
+        }
+        std::lock_guard<std::mutex> lock(status_mutex_);
+        status_ = ApplicationStatus::Running;
+        status_con_.notify_one();
+        return true;
+    } else if (key == "status") {
+        if (key == "continue") {
+            Continue();
+        } else if (key == "pause") {
+            Pause();
+        } else if (key == "stop") {
+            Stop();
+        } else {
+            LOG_ERROR("Unkown status changed. %s", key.c_str());
+            return false;
+        }
+        return true;
+    } else {
+        LOG_ERROR("Unknown param. %s", key.c_str());
+        return false;
+    }
+}
+
+std::string BlhxApplication::GetParam(const std::string &key) {
+    if (key == "status") {
+        switch (status_) {
+        case ApplicationStatus::Stopped:
+            return "stop";
+        case ApplicationStatus::Pausing:
+            return "pause";
+        case BlhxApplication::Running:
+            return "running";
+        case BlhxApplication::Over:
+            return "over";
+        default:
+            LOG_ERROR("Status unkown status");
+            return "";
+        }
+    } else if (key == "mode") {
+        return player_->GetMode();
+    } else {
+        LOG_ERROR("Unknown param. %s", key.c_str());
+        return "";
+    }
+}
+
+bool BlhxApplication::InitByYaml(const YAML::Node &yaml) {
     // Image source
-    const YAML::Node &source_yaml(config_yaml["source"]);
+    const YAML::Node &source_yaml(yaml["source"]);
     std::string source_type = source_yaml["type"].as<std::string>();
     if (source_type == "minicap") {
         auto source_server_info(GetServerInfo(source_yaml));
@@ -93,7 +231,7 @@ bool BlhxApplication::Init() {
     ImageInfo image_info = source_->GetImageInfo();
 
     // OCR
-    const YAML::Node &ocr_yaml(config_yaml["ocr"]);
+    const YAML::Node &ocr_yaml(yaml["ocr"]);
     if (ocr_yaml["type"].as<std::string>() == "paddleocr") {
         std::string host_name = ocr_yaml["host"].as<std::string>();
         unsigned short port = ocr_yaml["port"].as<unsigned short>();
@@ -110,7 +248,7 @@ bool BlhxApplication::Init() {
     LOG_INFO("OCR init success");
 
     // Player
-    const YAML::Node &player_yaml(config_yaml["player"]);
+    const YAML::Node &player_yaml(yaml["player"]);
     if (player_yaml["type"].as<std::string>() == "common") {
         std::vector<PageConfig> page_configs;
         for (auto &page_yaml : player_yaml["pages"]) {
@@ -169,7 +307,7 @@ bool BlhxApplication::Init() {
     LOG_INFO("Player init success");
 
     // Operation
-    const YAML::Node &operation_yaml = config_yaml["operation"];
+    const YAML::Node &operation_yaml = yaml["operation"];
     std::string operation_type = operation_yaml["type"].as<std::string>();
     if (operation_type == "minitouch") {
         auto operation_server_info(GetServerInfo(operation_yaml));
@@ -189,150 +327,53 @@ bool BlhxApplication::Init() {
     LOG_INFO("Operation init success");
 
     // Request
-    const YAML::Node &request_yaml = config_yaml["request"];
-    std::string request_type = request_yaml["type"].as<std::string>();
-    if (request_type == "http") {
-        auto request_server_info(GetServerInfo(request_yaml));
-        request_.reset(
-            new HttpRequest(std::get<0>(request_server_info), std::get<1>(request_server_info)));
-    }
-    if (!request_ || !request_->Init()) {
-        request_.reset();
-        LOG_ERROR("Request init failed");
+    const YAML::Node &request_yaml = yaml["request"];
+    if (request_yaml.IsDefined()) {
+        std::string request_type = request_yaml["type"].as<std::string>();
+        if (request_type == "http") {
+            auto request_server_info(GetServerInfo(request_yaml));
+            request_.reset(
+                new HttpRequest(std::get<0>(request_server_info), std::get<1>(request_server_info)));
+        }
+        if (!request_ || !request_->Init()) {
+            request_.reset();
+            LOG_ERROR("Request init failed");
+        } else {
+            request_->SetCallback("/current_mode/name", RequestOperation::Query,
+                                  std::bind(&BlhxApplication::QueryCurrentModeCallback, this,
+                                            std::placeholders::_1, std::placeholders::_2));
+
+            request_->SetCallback("/current_mode/name", RequestOperation::Replace,
+                                  std::bind(&BlhxApplication::ReplaceCurrentModeCallback, this,
+                                            std::placeholders::_1, std::placeholders::_2));
+
+            request_->SetCallback("/status", RequestOperation::Query,
+                                  std::bind(&BlhxApplication::QueryStatusCallback, this,
+                                            std::placeholders::_1, std::placeholders::_2));
+
+            request_->SetCallback("/status", RequestOperation::Replace,
+                                  std::bind(&BlhxApplication::ReplaceStatusCallback, this,
+                                            std::placeholders::_1, std::placeholders::_2));
+        }
     } else {
-        request_->SetCallback("/current_mode/name", RequestOperation::Query,
-                              std::bind(&BlhxApplication::QueryCurrentModeCallback, this,
-                                        std::placeholders::_1, std::placeholders::_2));
-
-        request_->SetCallback("/current_mode/name", RequestOperation::Replace,
-                              std::bind(&BlhxApplication::ReplaceCurrentModeCallback, this,
-                                        std::placeholders::_1, std::placeholders::_2));
-
-        request_->SetCallback("/status", RequestOperation::Query,
-                              std::bind(&BlhxApplication::QueryStatusCallback, this,
-                                        std::placeholders::_1, std::placeholders::_2));
-
-        request_->SetCallback("/status", RequestOperation::Replace,
-                              std::bind(&BlhxApplication::ReplaceStatusCallback, this,
-                                        std::placeholders::_1, std::placeholders::_2));
+        LOG_INFO("Request is not defined");
     }
 
+    // Notify
+    const YAML::Node &notify_yaml = yaml["notify"];
+    if (notify_yaml.IsDefined()) {
+        std::string notify_type = notify_yaml["type"].as<std::string>();
+        if (notify_type == "miao") {
+            notify_.reset(new MiaoNotify(notify_yaml["id"].as<std::string>()));
+        }
+        if (!notify_ || !notify_->Init()) {
+            notify_.reset();
+            LOG_ERROR("Notify init failed");
+        }
+    } else {
+        LOG_INFO("Notify is not defined");
+    }
     return true;
-}
-
-void BlhxApplication::Run() {
-    source_->Start();
-    if (request_) { request_->Start(); }
-
-    LOG_INFO("Application running");
-    status_ = ApplicationStatus::Running;
-
-    while (true) {
-        std::unique_lock<std::mutex> lock(status_mutex_);
-        if (status_ == ApplicationStatus::Stopped) {
-            LOG_INFO("Application stoped");
-            break;
-        }
-        if (player_->IsGameOver()) {
-            LOG_INFO("Application is over");
-            status_ = ApplicationStatus::Over;
-        }
-        status_con_.wait(lock, [this] { return status_ == ApplicationStatus::Running; });
-        lock.unlock();
-
-        ImageInfo image_info = source_->GetImageInfo();
-        TimeLog image_time_log("Image source");
-        std::vector<char> image_buffer = source_->GetImageBuffer();
-        if (image_buffer.empty()) {
-            LOG_INFO("Image is empty");
-            continue;
-        }
-        image_time_log.Tok();
-
-        TimeLog ocr_time_log("OCR");
-        std::vector<TextBox> text_boxes = ocr_->Detect(image_info, image_buffer);
-        if (text_boxes.empty()) {
-            LOG_INFO("Text is empty");
-            continue;
-        }
-        ocr_time_log.Tok();
-
-        std::vector<PlayOperation> play_operations = player_->Play({}, text_boxes);
-        if (play_operations.empty()) {
-            LOG_INFO("Operation is empty");
-            continue;
-        }
-
-        TimeLog operation_time_log("Operation");
-        for (const PlayOperation &play_operation : play_operations) {
-            if (play_operation.type == PlayOperationType::SCREEN_CLICK) {
-                operation_->Click(play_operation.click.x, play_operation.click.y);
-            } else if (play_operation.type == PlayOperationType::SLEEP) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(play_operation.sleep_ms));
-            }
-        }
-        operation_time_log.Tok();
-    }
-}
-
-void BlhxApplication::Pause() {
-    LOG_INFO("Application pause");
-    std::lock_guard<std::mutex> lock(status_mutex_);
-    status_ = ApplicationStatus::Pausing;
-}
-
-void BlhxApplication::Continue() {
-    LOG_INFO("Application continue");
-    std::lock_guard<std::mutex> lock(status_mutex_);
-    status_ = ApplicationStatus::Running;
-    status_con_.notify_one();
-}
-
-void BlhxApplication::Stop() {
-    LOG_INFO("Application stop");
-    source_->Stop();
-    std::lock_guard<std::mutex> lock(status_mutex_);
-    status_ = ApplicationStatus::Stopped;
-}
-
-bool BlhxApplication::SetParam(const std::string &key, const std::string &value) {
-    if (key == "mode") {
-        LOG_INFO("Set param %s to %s", key.c_str(), value.c_str());
-        if (player_->SetMode(value)) {
-            std::lock_guard<std::mutex> lock(status_mutex_);
-            status_ = ApplicationStatus::Running;
-            status_con_.notify_one();
-            return true;
-        }
-        LOG_INFO("Set mode failed");
-        return false;
-    } else {
-        LOG_ERROR("Unknown param. %s", key.c_str());
-        return false;
-    }
-}
-
-std::string BlhxApplication::GetParam(const std::string &key) {
-    if (key == "status") {
-        switch (status_) {
-        case ApplicationStatus::Stopped:
-            return "stop";
-        case ApplicationStatus::Pausing:
-            return "pause";
-        case BlhxApplication::Running:
-            return "running";
-        case BlhxApplication::Over:
-            return "over";
-        default:
-            LOG_ERROR("Status unkown status");
-            return "";
-        }
-    } else if (key == "mode") {
-        return player_->GetMode();
-    } else {
-        LOG_ERROR("Unknown param. %s", key.c_str());
-        return "";
-    }
 }
 
 bool BlhxApplication::QueryCurrentModeCallback(const std::string &request_str,
@@ -357,17 +398,8 @@ bool BlhxApplication::QueryStatusCallback(const std::string &request_str,
     return !response_str.empty();
 }
 
-bool BlhxApplication::ReplaceStatusCallback(const std::string &request_str, std::string &response_str) {
+bool BlhxApplication::ReplaceStatusCallback(const std::string &request_str,
+                                            std::string &response_str) {
     LOG_INFO("Replace status %s", request_str.c_str());
-    if (request_str == "continue") {
-        Continue();
-    } else if (request_str == "pause") {
-        Pause();
-    } else if (request_str == "stop") {
-        Stop();
-    } else {
-        LOG_ERROR("Unkown status changed. %s", request_str.c_str());
-        return false;
-    }
-    return true;
+    return SetParam("status", request_str);
 }

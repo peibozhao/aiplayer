@@ -22,8 +22,7 @@ if [[ -z "$(docker images -q paddleocr)" ]]; then
     fi
 fi
 if [[ -n "$(docker ps -q -f name=paddleocr)" ]]; then
-    echo "--- Docker restart"
-    docker restart paddleocr
+    echo "--- Docker running"
 elif [[ -n "$(docker ps -q -a -f name=paddleocr)" ]]; then
     echo "--- Docker start"
     docker start paddleocr
@@ -50,6 +49,7 @@ if [[ -x `command -v adb` ]]; then
     adb kill-server
 fi
 if [[ -n "$(docker ps -q -f name=openstf)" ]]; then
+    # minitouch must restart
     echo "--- Docker restart"
     docker restart openstf
 elif [[ -n "$(docker ps -a -q -f name=openstf)" ]]; then
