@@ -14,7 +14,7 @@ operation:
   type: 'minitouch'
   host: 'localhost'
   port: 1111
-  delay: 0  # milliseconds. Wait for operation animation
+  delay: 0  # milliseconds. Wait for operation(animation or lag)
 
 request:
   type: 'http'
@@ -28,10 +28,10 @@ notify:
 player:
   type: 'common'
   pages:
-    - name: '弹出-演习次数不足'
+    - name: '弹出窗口-演习次数不足'
       conditions:
         - {pattern: '演习次数不足'}
-    - name: '弹出-困难关卡次数不足'
+    - name: '弹出窗口-困难关卡次数不足'
       conditions:
         - {pattern: '困难关卡每日挑战次数已达上限'}
     - name: '主页'
@@ -95,55 +95,55 @@ player:
       conditions:
         - {pattern: '第13章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-1章'
+    - name: '章节选择-困难1章'
       conditions:
         - {pattern: '第1章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-2章'
+    - name: '章节选择-困难2章'
       conditions:
         - {pattern: '第2章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-3章'
+    - name: '章节选择-困难3章'
       conditions:
         - {pattern: '第3章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-4章'
+    - name: '章节选择-困难4章'
       conditions:
         - {pattern: '第4章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-5章'
+    - name: '章节选择-困难5章'
       conditions:
         - {pattern: '第5章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-6章'
+    - name: '章节选择-困难6章'
       conditions:
         - {pattern: '第6章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-7章'
+    - name: '章节选择-困难7章'
       conditions:
         - {pattern: '第7章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-8章'
+    - name: '章节选择-困难8章'
       conditions:
         - {pattern: '第8章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-9章'
+    - name: '章节选择-困难9章'
       conditions:
         - {pattern: '第9章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-10章'
+    - name: '章节选择-困难10章'
       conditions:
         - {pattern: '第10章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-11章'
+    - name: '章节选择-困难11章'
       conditions:
         - {pattern: '第11章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-12章'
+    - name: '章节选择-困难12章'
       conditions:
         - {pattern: '第12章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难-13章'
+    - name: '章节选择-困难13章'
       conditions:
         - {pattern: '第13章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
@@ -173,39 +173,34 @@ player:
       conditions:
         - {pattern: '编队', x_range: [0, 0.3], y_range: [0, 0.1]}
         - {pattern: '出击', x_range: [0.8, 1.], y_range: [0.8, 1.]}
-    - name: '战斗评价-全军覆没'
+    - name: '战斗评价'
       conditions:
         - {pattern: '战斗评价', x_range: [0.5, 0.7], y_range: [0.4, 0.6]}
-        - {pattern: '全军覆没', x_range: [0.3, 0.5], y_range: [0.3, 0.5]}
-    - name: '战斗评价-大获全胜'
-      conditions:
-        - {pattern: '战斗评价', x_range: [0.5, 0.7], y_range: [0.4, 0.6]}
-        - {pattern: '大获全胜', x_range: [0.3, 0.5], y_range: [0.3, 0.5]}
-    - name: '战斗结束-获得道具'
+    - name: '战斗获得道具'
       conditions:
         - {pattern: '获得道具', x_range: [0.4, 0.6], y_range: [0.3, 0.5]}
-    - name: '战斗失败-获得经验'
+    - name: '战斗获得经验'
       conditions:
-        - {pattern: '全军覆没', x_range: [0.2, 0.4], y_range: [0., 0.3]}
+        - {pattern: '大获全胜|战术碾压|完成任务|作战超时|全军覆没', x_range: [0.1, 0.4], y_range: [0., 0.3]}
         - {pattern: '确定', x_range: [0.7, 1.], y_range: [0.8, 1.]}
-    - name: '战斗成功-获得经验'
-      conditions:
-        - {pattern: '大获全胜', x_range: [0.2, 0.4], y_range: [0., 0.3]}
-        - {pattern: '确定', x_range: [0.7, 1.], y_range: [0.8, 1.]}
-    - name: '战斗失败-提升建议'
+    - name: '战斗失败建议'
       conditions:
         - {pattern: '点击关闭', x_range: [0.4, 0.6], y_range: [0.7, 1.]}
         - {pattern: '指挥官可以通过以下方式提升舰队实力', x_range: [0.4, 0.6], y_range: [0.2, 0.5]}
-    - name: '信息-船坞已满'
+    - name: '对话框-船坞已满'
       conditions:
         - {pattern: '整理', x_range: [0.3, 0.5], y_range: [0.5, 0.7]}
         - {pattern: '拓展', x_range: [0.4, 0.6], y_range: [0.5, 0.7]}
         - {pattern: '强化', x_range: [0.5, 0.7], y_range: [0.5, 0.7]}
-    - name: '信息-低心情状态'
+    - name: '对话框-低心情状态'
       conditions:
         - {pattern: '.*低心情状态.*', x_range: [0.4, 0.6], y_range: [0.4, 0.5]}
         - {pattern: '确定', x_range: [0.5, 0.7], y_range: [0.5, 0.8]}
-    - name: '信息-应援' # 活动
+    - name: '对话框-暂停战斗'
+      conditions:
+        - {pattern: '退出战斗', x_range: [0.3, 0.5], y_range: [0.6, 0.8]}
+        - {pattern: '继续战斗', x_range: [0.5, 0.7], y_range: [0.6, 0.8]}
+    - name: '对话框-应援' # 活动
       conditions:
         - pattern: '知道了'
   modes:
@@ -229,13 +224,13 @@ player:
         - page: '章节选择-12章'
           actions:
             - {type: 'click', pattern: '上一章'}
-        - page: '章节选择-困难-10章'
+        - page: '章节选择-困难10章'
           actions:
             - {type: 'click', pattern: '普通'}
-        - page: '章节选择-困难-11章'
+        - page: '章节选择-困难11章'
           actions:
             - {type: 'click', pattern: '普通'}
-        - page: '章节选择-困难-12章'
+        - page: '章节选择-困难12章'
           actions:
             - {type: 'click', pattern: '普通'}
         - page: '立刻前往'
@@ -244,16 +239,19 @@ player:
         - page: '再次前往'
           actions:
             - {type: 'click', pattern: '再次前往'}
-        - page: '信息-应援'
+        - page: '对话框-应援'
           actions:
             - {type: 'click', pattern: '知道了'}
+        - page: '对话框-暂停战斗'
+          actions:
+            - {type: 'click', pattern: '继续战斗'}
         - page: '战斗中'
           actions:
             - {type: 'sleep', time: 3000}
-        - page: '信息-船坞已满'
+        - page: '对话框-船坞已满'
           actions:
             - {type: 'over'}
-        - page: '信息-低心情状态'
+        - page: '对话框-低心情状态'
           actions:
             - {type: 'over'}
     - name: 'hard-10-2'
@@ -276,16 +274,16 @@ player:
         - page: '章节选择-12章'
           actions:
             - {type: 'click', pattern: '困难'}
-        - page: '章节选择-困难-9章'
+        - page: '章节选择-困难9章'
           actions:
             - {type: 'click', pattern: '下一章'}
-        - page: '章节选择-困难-10章'
+        - page: '章节选择-困难10章'
           actions:
             - {type: 'click', pattern: '10-2.*'}
-        - page: '章节选择-困难-11章'
+        - page: '章节选择-困难11章'
           actions:
             - {type: 'click', pattern: '上一章'}
-        - page: '章节选择-困难-12章'
+        - page: '章节选择-困难12章'
           actions:
             - {type: 'click', pattern: '上一章'}
         - page: '立刻前往'
@@ -294,19 +292,22 @@ player:
         - page: '再次前往'
           actions:
             - {type: 'click', pattern: '再次前往'}
-        - page: '信息-应援'
+        - page: '对话框-应援'
           actions:
             - {type: 'click', pattern: '知道了'}
+        - page: '对话框-暂停战斗'
+          actions:
+            - {type: 'click', pattern: '继续战斗'}
         - page: '战斗中'
           actions:
             - {type: 'sleep', time: 3000}
-        - page: '弹出-困难关卡次数不足'
+        - page: '弹出窗口-困难关卡次数不足'
           actions:
             - {type: 'over'}
-        - page: '信息-船坞已满'
+        - page: '对话框-船坞已满'
           actions:
             - {type: 'over'}
-        - page: '信息-低心情状态'
+        - page: '对话框-低心情状态'
           actions:
             - {type: 'over'}
     - name: 'exercise'
@@ -329,28 +330,28 @@ player:
         - page: '编队出击'
           actions:
             - {type: 'click', pattern: '出击'}
-        - page: '战斗评价-全军覆没'
+        - page: '战斗评价'
           actions:
             - {type: 'click', pattern: '战斗评价'}
-        - page: '战斗评价-大获全胜'
-          actions:
-            - {type: 'click', pattern: '战斗评价'}
-        - page: '战斗结束-获得道具'
+        - page: '战斗获得道具'
           actions:
             - {type: 'click', pattern: '获得道具'}
-        - page: '战斗失败-获得经验'
+        - page: '战斗获得经验'
           actions:
             - {type: 'click', pattern: '确定'}
-        - page: '战斗成功-获得经验'
-          actions:
-            - {type: 'click', pattern: '确定'}
-        - page: '战斗失败-提升建议'
+        - page: '战斗失败建议'
           actions:
             - {type: 'click', pattern: '点击关闭'}
+        - page: '对话框-暂停战斗'
+          actions:
+            - {type: 'click', pattern: '继续战斗'}
         - page: '战斗中'
           actions:
             - {type: 'sleep', time: 3000}
-        - page: '弹出-演习次数不足'
+        - page: '战场' # '出击'直接进入战场
+          actions:
+            - {type: 'click', point: [0.05, 0.1]}
+        - page: '弹出窗口-演习次数不足'
           actions:
             - {type: 'over'}
     - name: 'return'

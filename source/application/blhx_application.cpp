@@ -168,11 +168,11 @@ bool BlhxApplication::SetParam(const std::string &key, const std::string &value)
         status_con_.notify_one();
         return true;
     } else if (key == "status") {
-        if (key == "continue") {
+        if (value == "continue") {
             Continue();
-        } else if (key == "pause") {
+        } else if (value == "pause") {
             Pause();
-        } else if (key == "stop") {
+        } else if (value == "stop") {
             Stop();
         } else {
             LOG_ERROR("Unkown status changed. %s", key.c_str());

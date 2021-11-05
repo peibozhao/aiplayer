@@ -15,6 +15,7 @@ if [[ ! `adb shell dumpsys window | grep mCurrentFocus` =~ home ]]; then
 fi
 
 # STFService
+# TODO start-foreground-service or startservice
 adb shell am start-foreground-service --user 0 \
     -a jp.co.cyberagent.stf.ACTION_START \
     -n jp.co.cyberagent.stf/.Service
