@@ -29,7 +29,7 @@ struct ActionConfig {
 
 struct ModeConfig {
     std::string name;
-    std::map<std::string, std::vector<ActionConfig>> page_to_actions;
+    std::vector<std::tuple<std::regex, std::vector<ActionConfig>>> page_pattern_actions;
     std::vector<ActionConfig> other_page_actions;
     std::vector<ActionConfig> undefined_page_actions;
 };

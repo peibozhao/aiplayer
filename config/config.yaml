@@ -43,107 +43,107 @@ player:
     - name: '出击主页'
       conditions:
         - {pattern: '主线', x_range: [0., 0.5], y_range: [0.5, 1.]}
-    - name: '章节选择-1章'
+    - name: '章节选择-普通-1章'
       conditions:
         - {pattern: '第1章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-2章'
+    - name: '章节选择-普通-2章'
       conditions:
         - {pattern: '第2章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-3章'
+    - name: '章节选择-普通-3章'
       conditions:
         - {pattern: '第3章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-4章'
+    - name: '章节选择-普通-4章'
       conditions:
         - {pattern: '第4章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-5章'
+    - name: '章节选择-普通-5章'
       conditions:
         - {pattern: '第5章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-6章'
+    - name: '章节选择-普通-6章'
       conditions:
         - {pattern: '第6章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-7章'
+    - name: '章节选择-普通-7章'
       conditions:
         - {pattern: '第7章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-8章'
+    - name: '章节选择-普通-8章'
       conditions:
         - {pattern: '第8章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-9章'
+    - name: '章节选择-普通-9章'
       conditions:
         - {pattern: '第9章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-10章'
+    - name: '章节选择-普通-10章'
       conditions:
         - {pattern: '第10章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-11章'
+    - name: '章节选择-普通-11章'
       conditions:
         - {pattern: '第11章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-12章'
+    - name: '章节选择-普通-12章'
       conditions:
         - {pattern: '第12章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-13章'
+    - name: '章节选择-普通-13章'
       conditions:
         - {pattern: '第13章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难1章'
+    - name: '章节选择-困难-1章'
       conditions:
         - {pattern: '第1章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难2章'
+    - name: '章节选择-困难-2章'
       conditions:
         - {pattern: '第2章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难3章'
+    - name: '章节选择-困难-3章'
       conditions:
         - {pattern: '第3章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难4章'
+    - name: '章节选择-困难-4章'
       conditions:
         - {pattern: '第4章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难5章'
+    - name: '章节选择-困难-5章'
       conditions:
         - {pattern: '第5章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难6章'
+    - name: '章节选择-困难-6章'
       conditions:
         - {pattern: '第6章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难7章'
+    - name: '章节选择-困难-7章'
       conditions:
         - {pattern: '第7章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难8章'
+    - name: '章节选择-困难-8章'
       conditions:
         - {pattern: '第8章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难9章'
+    - name: '章节选择-困难-9章'
       conditions:
         - {pattern: '第9章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难10章'
+    - name: '章节选择-困难-10章'
       conditions:
         - {pattern: '第10章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难11章'
+    - name: '章节选择-困难-11章'
       conditions:
         - {pattern: '第11章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难12章'
+    - name: '章节选择-困难-12章'
       conditions:
         - {pattern: '第12章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-    - name: '章节选择-困难13章'
+    - name: '章节选择-困难-13章'
       conditions:
         - {pattern: '第13章', x_range: [0., 0.3], y_range: [0., 0.3]}
         - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
@@ -215,22 +215,22 @@ player:
         - page: '出击主页'
           actions:
             - {type: 'click', pattern: '主线'}
-        - page: '章节选择-10章'
+        - page: '章节选择-普通-\d章'
           actions:
             - {type: 'click', pattern: '下一章'}
-        - page: '章节选择-11章'
+        - page: '章节选择-普通-10章'
+          actions:
+            - {type: 'click', pattern: '下一章'}
+        - page: '章节选择-普通-11章'
           actions:
             - {type: 'click', pattern: '11-4.*'}
-        - page: '章节选择-12章'
+        - page: '章节选择-普通-12章'
           actions:
             - {type: 'click', pattern: '上一章'}
-        - page: '章节选择-困难10章'
+        - page: '章节选择-普通-13章'
           actions:
-            - {type: 'click', pattern: '普通'}
-        - page: '章节选择-困难11章'
-          actions:
-            - {type: 'click', pattern: '普通'}
-        - page: '章节选择-困难12章'
+            - {type: 'click', pattern: '上一章'}
+        - page: '章节选择-困难-.*'
           actions:
             - {type: 'click', pattern: '普通'}
         - page: '立刻前往'
@@ -265,25 +265,19 @@ player:
         - page: '出击主页'
           actions:
             - {type: 'click', pattern: '主线'}
-        - page: '章节选择-10章'
+        - page: '章节选择-普通-.*'
           actions:
             - {type: 'click', pattern: '困难'}
-        - page: '章节选择-11章'
-          actions:
-            - {type: 'click', pattern: '困难'}
-        - page: '章节选择-12章'
-          actions:
-            - {type: 'click', pattern: '困难'}
-        - page: '章节选择-困难9章'
+        - page: '章节选择-困难-\d章'
           actions:
             - {type: 'click', pattern: '下一章'}
-        - page: '章节选择-困难10章'
+        - page: '章节选择-困难-10章'
           actions:
             - {type: 'click', pattern: '10-2.*'}
-        - page: '章节选择-困难11章'
+        - page: '章节选择-困难-11章'
           actions:
             - {type: 'click', pattern: '上一章'}
-        - page: '章节选择-困难12章'
+        - page: '章节选择-困难-12章'
           actions:
             - {type: 'click', pattern: '上一章'}
         - page: '立刻前往'
@@ -349,6 +343,12 @@ player:
           actions:
             - {type: 'sleep', time: 3000}
         - page: '战场' # '出击'直接进入战场
+          actions:
+            - {type: 'click', point: [0.05, 0.1]}
+        - page: '章节选择-.*'
+          actions:
+            - {type: 'click', point: [0.05, 0.1]}
+        - page: '对话框-低心情状态'
           actions:
             - {type: 'click', point: [0.05, 0.1]}
         - page: '弹出窗口-演习次数不足'

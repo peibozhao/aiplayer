@@ -69,16 +69,16 @@ bool CommonPlayer::Init() {
     }
     cur_mode_ = &mode_configs_.front();
     for (const ModeConfig &mode_config : mode_configs_) {
-        for (const auto &page_to_actions : mode_config.page_to_actions) {
+        for (const auto &pattern_action : mode_config.page_pattern_actions) {
             bool has_page = false;
             for (const PageConfig &page_config : page_configs_) {
-                if (page_config.name == page_to_actions.first) {
+                if (std::regex_match(page_config.name, std::get<0>(pattern_action))) {
                     has_page = true;
                     break;
                 }
             }
             if (!has_page) {
-                LOG_ERROR("No such page: %s", page_to_actions.first.c_str());
+                LOG_ERROR("Mode has unmatched page pattern. %s", mode_config.name.c_str());
                 return false;
             }
         }
@@ -94,23 +94,27 @@ std::vector<PlayOperation> CommonPlayer::Play(const std::vector<ObjectBox> &obje
         if (!SatisfyPageCondition(object_boxes, text_boxes, page_config.condition_configs)) {
             continue;
         }
-        std::string page_name = page_config.name;
-        LOG_INFO("Detect page %s", page_name.c_str());
+        LOG_INFO("Detect page %s", page_config.name.c_str());
 
         // Return page actions
-        auto iter = cur_mode_->page_to_actions.find(page_name);
-
+        auto iter = cur_mode_->page_pattern_actions.begin();
+        for (; iter != cur_mode_->page_pattern_actions.end(); ++iter) {
+            if (std::regex_match(page_config.name, std::get<0>(*iter))) {
+                break;
+            }
+        }
         std::vector<PlayOperation> ret;
-        if (iter != cur_mode_->page_to_actions.end()) {
-            ret = CreatePlayOperation(object_boxes, text_boxes, iter->second);
+        if (iter != cur_mode_->page_pattern_actions.end()) {
+            ret = CreatePlayOperation(object_boxes, text_boxes, std::get<1>(*iter));
         } else {
+            LOG_INFO("Other page operation");
             ret = CreatePlayOperation(object_boxes, text_boxes, cur_mode_->other_page_actions);
         }
         return ret;
     }
 
     // Page is not defined
-    LOG_INFO("Undefined page");
+    LOG_INFO("Undefined page operation");
     return CreatePlayOperation(object_boxes, text_boxes, cur_mode_->undefined_page_actions);
 }
 

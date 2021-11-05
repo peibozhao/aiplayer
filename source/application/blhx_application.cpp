@@ -1,19 +1,19 @@
 
 #include "blhx_application.h"
-#include <arpa/inet.h>
-#include <fstream>
-#include <netdb.h>
-#include "yaml-cpp/yaml.h"
-#include "nlohmann/json.hpp"
 #include "common/log.h"
+#include "nlohmann/json.hpp"
 #include "ocr_detect/paddle_ocr.h"
 #include "player/common_player.h"
-#include "source/image/image_source.h"
-#include "source/image/minicap_source.h"
-#include "source/request/http_request.h"
 #include "sink/notify//miao_notify.h"
 #include "sink/operation/dummy_operation.h"
 #include "sink/operation/minitouch_operation.h"
+#include "source/image/image_source.h"
+#include "source/image/minicap_source.h"
+#include "source/request/http_request.h"
+#include "yaml-cpp/yaml.h"
+#include <arpa/inet.h>
+#include <fstream>
+#include <netdb.h>
 
 static std::tuple<std::string, unsigned short> GetServerInfo(const YAML::Node &config_yaml) {
     std::string host_name = config_yaml["host"].as<std::string>();
@@ -83,11 +83,13 @@ void BlhxApplication::Run() {
 
     while (true) {
         std::unique_lock<std::mutex> lock(status_mutex_);
+        status_con_.wait(lock, [this] {
+            return status_ == ApplicationStatus::Running || status_ == ApplicationStatus::Stopped;
+        });
         if (status_ == ApplicationStatus::Stopped) {
             LOG_INFO("Application stoped");
             break;
         }
-        status_con_.wait(lock, [this] { return status_ == ApplicationStatus::Running; });
         lock.unlock();
 
         ImageInfo image_info = source_->GetImageInfo();
@@ -268,13 +270,14 @@ bool BlhxApplication::InitByYaml(const YAML::Node &yaml) {
             ModeConfig mode_config;
             mode_config.name = mode_yaml["name"].as<std::string>();
             for (auto &defined_page_yaml : mode_yaml["page_actions"]) {
-                std::string page_name = defined_page_yaml["page"].as<std::string>();
+                std::string page_pattern = defined_page_yaml["page"].as<std::string>();
                 std::vector<ActionConfig> action_configs;
                 for (auto &action_yaml : defined_page_yaml["actions"]) {
                     ActionConfig action_config = CreateActionConfig(action_yaml);
                     action_configs.push_back(action_config);
                 }
-                mode_config.page_to_actions[page_name] = action_configs;
+                mode_config.page_pattern_actions.push_back(
+                    std::make_tuple(std::regex(page_pattern), action_configs));
             }
 
             if (mode_yaml["other_page_actions"].IsDefined()) {
@@ -332,8 +335,8 @@ bool BlhxApplication::InitByYaml(const YAML::Node &yaml) {
         std::string request_type = request_yaml["type"].as<std::string>();
         if (request_type == "http") {
             auto request_server_info(GetServerInfo(request_yaml));
-            request_.reset(
-                new HttpRequest(std::get<0>(request_server_info), std::get<1>(request_server_info)));
+            request_.reset(new HttpRequest(std::get<0>(request_server_info),
+                                           std::get<1>(request_server_info)));
         }
         if (!request_ || !request_->Init()) {
             request_.reset();
