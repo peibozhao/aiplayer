@@ -33,6 +33,7 @@ void HttpRequest::Start() {
 void HttpRequest::Stop() {
     LOG_INFO("Http server stop");
     server_.stop();
+    recv_thread_->join();
 }
 
 void HttpRequest::SetCallback(const std::string &path, RequestOperation op,

@@ -83,5 +83,6 @@ int main(int argc, char *argv[]) {
     }
 
     std::thread command_thread(&RecvCommandThread, &app);
+    command_thread.detach();
     app.Run();
 }

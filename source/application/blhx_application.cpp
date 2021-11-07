@@ -155,6 +155,7 @@ void BlhxApplication::Stop() {
     source_->Stop();
     std::lock_guard<std::mutex> lock(status_mutex_);
     status_ = ApplicationStatus::Stopped;
+    status_con_.notify_one();
 }
 
 bool BlhxApplication::SetParam(const std::string &key, const std::string &value) {
@@ -170,7 +171,7 @@ bool BlhxApplication::SetParam(const std::string &key, const std::string &value)
         status_con_.notify_one();
         return true;
     } else if (key == "status") {
-        if (value == "continue") {
+        if (value == "running") {
             Continue();
         } else if (value == "pause") {
             Pause();
