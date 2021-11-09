@@ -8,12 +8,13 @@
 
 #include "device_operation.h"
 #include <string>
+#include <mutex>
 #include "source/image/source.h"
 
 class MinitouchOperation : public ITouchScreenOperation {
 public:
     MinitouchOperation(const std::string &ip, unsigned short port, const ImageInfo &image_info,
-                       int orientation, int delay_ms);
+                       int orientation);
 
     ~MinitouchOperation() override;
 
@@ -26,16 +27,13 @@ private:
 
     std::pair<int, int> CoordinateConvertion(int x, int y);
 
-    void Delay();
-
 private:
     std::string ip_;
     unsigned short server_port_;
     int socket_;
+    std::mutex mutex_;
 
     int image_width_, image_height_;
     int orientation_;
     int max_x_, max_y_;
-
-    int delay_ms_;
 };

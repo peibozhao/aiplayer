@@ -77,9 +77,11 @@ int main(int argc, char *argv[]) {
         std::cerr << "Application init failed" << std::endl;
         return -1;
     }
-    if (!app.SetParam("mode", cmd_line.mode)) {
-        std::cerr << "SetParam failed" << std::endl;
-        return -1;
+    if (!cmd_line.mode.empty()) {
+        if (!app.SetParam("mode", cmd_line.mode)) {
+            std::cerr << "SetParam failed" << std::endl;
+            return -1;
+        }
     }
 
     std::thread command_thread(&RecvCommandThread, &app);

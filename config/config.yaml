@@ -14,7 +14,6 @@ operation:
   type: 'minitouch'
   host: 'localhost'
   port: 1111
-  delay: 0  # milliseconds. Wait for operation(animation or lag)
 
 request:
   type: 'http'

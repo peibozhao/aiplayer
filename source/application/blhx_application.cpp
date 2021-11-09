@@ -1,6 +1,7 @@
 
 #include "blhx_application.h"
 #include "common/log.h"
+#include "common/util_functions.h"
 #include "nlohmann/json.hpp"
 #include "ocr_detect/paddle_ocr.h"
 #include "player/common_player.h"
@@ -317,10 +318,9 @@ bool BlhxApplication::InitByYaml(const YAML::Node &yaml) {
         auto operation_server_info(GetServerInfo(operation_yaml));
         int orientation =
             source_yaml["orientation"].IsDefined() ? source_yaml["orientation"].as<int>() : 0;
-        int delay_ms = operation_yaml["delay"].IsDefined() ? operation_yaml["delay"].as<int>() : 0;
         operation_.reset(new MinitouchOperation(std::get<0>(operation_server_info),
                                                 std::get<1>(operation_server_info), image_info,
-                                                orientation, delay_ms));
+                                                orientation));
     } else if (operation_type == "dummy") {
         operation_.reset(new DummyOperation());
     }
@@ -357,6 +357,14 @@ bool BlhxApplication::InitByYaml(const YAML::Node &yaml) {
 
             request_->SetCallback("/status", RequestOperation::Replace,
                                   std::bind(&BlhxApplication::ReplaceStatusCallback, this,
+                                            std::placeholders::_1, std::placeholders::_2));
+
+            request_->SetCallback("/image", RequestOperation::Query,
+                                  std::bind(&BlhxApplication::QueryImage, this,
+                                            std::placeholders::_1, std::placeholders::_2));
+
+            request_->SetCallback("/operation", RequestOperation::Replace,
+                                  std::bind(&BlhxApplication::ReplaceOperation, this,
                                             std::placeholders::_1, std::placeholders::_2));
         }
     } else {
@@ -406,4 +414,32 @@ bool BlhxApplication::ReplaceStatusCallback(const std::string &request_str,
                                             std::string &response_str) {
     LOG_INFO("Replace status %s", request_str.c_str());
     return SetParam("status", request_str);
+}
+
+bool BlhxApplication::QueryImage(const std::string &request_str, std::string &response_str) {
+    LOG_INFO("Get image");
+    std::vector<char> img_buf = source_->GetImageBuffer();
+    if (img_buf.empty()) {
+        LOG_ERROR("Image is empty");
+        return false;
+    }
+    std::vector<uint8_t> tmp(img_buf.size());
+    std::transform(img_buf.begin(), img_buf.end(), tmp.begin(),
+                   [](char c) { return static_cast<uint8_t>(c); });
+    std::string img_base64 = Base64Encode(tmp);
+    response_str = img_base64;
+    return true;
+}
+
+bool BlhxApplication::ReplaceOperation(const std::string &request_str, std::string &response_str) {
+    LOG_INFO("Request operation %s", request_str.c_str());
+    auto split_iter = request_str.find(',');
+    if (split_iter == request_str.npos) {
+        LOG_ERROR("Param format error");
+        return false;
+    }
+    int x = std::stoi(request_str.substr(0, split_iter));
+    int y = std::stoi(request_str.substr(split_iter + 1));
+    operation_->Click(x, y);
+    return true;
 }

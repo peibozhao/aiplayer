@@ -10,7 +10,7 @@
 #include <unistd.h>
 
 MinitouchOperation::MinitouchOperation(const std::string &ip, unsigned short port,
-                                       const ImageInfo &image_info, int orientation, int delay_ms) {
+                                       const ImageInfo &image_info, int orientation) {
     ip_ = ip;
     server_port_ = port;
     socket_ = -1;
@@ -18,7 +18,6 @@ MinitouchOperation::MinitouchOperation(const std::string &ip, unsigned short por
     image_height_ = image_info.height;
     orientation_ = orientation;
     max_x_ = -1, max_y_ = -1;
-    delay_ms_ = delay_ms;
 }
 
 MinitouchOperation::~MinitouchOperation() { close(socket_); }
@@ -89,12 +88,12 @@ void MinitouchOperation::Click(int x, int y) {
           << "u 0\n"
           << "c\n";
     std::string op_str = op_ss.str();
+    std::lock_guard<std::mutex> lock(mutex_);
     int write_len = write(socket_, op_str.c_str(), op_str.size());
     if (write_len != op_str.size()) {
         LOG_ERROR("write len error %ld %d", op_str.size(), write_len);
         return;
     }
-    Delay();
 }
 
 void MinitouchOperation::ParseHeader(char *buffer, int len) {
@@ -113,8 +112,4 @@ std::pair<int, int> MinitouchOperation::CoordinateConvertion(int x, int y) {
         ret_y = x * max_y_ / image_width_;
     }
     return std::make_pair(ret_x, ret_y);
-}
-
-void MinitouchOperation::Delay() {
-    if (delay_ms_ > 0) { std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms_)); }
 }

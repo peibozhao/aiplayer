@@ -52,6 +52,10 @@ private:
 
     bool ReplaceStatusCallback(const std::string &request_str, std::string &response_str);
 
+    bool QueryImage(const std::string &request_str, std::string &response_str);
+
+    bool ReplaceOperation(const std::string &request_str, std::string &response_str);
+
 private:
     std::string config_fname_;
     std::shared_ptr<ISource> source_;
