@@ -2,14 +2,33 @@
 
 set -e
 
-device='gpu'
-if [[ $# -ge 1 ]]; then
-    device=$1
-fi
-if [[ ! $device =~ ^(cpu|gpu)$ ]]; then
-    echo "No such device $device"
+ARGS= `getopt -o 'd:m:' -l 'device:miao:' -- $@`
+if [[ $? != 0 ]]; then
+    echo 'Param error'
     exit -1
 fi
+
+eval set -- ${ARGS}
+
+device='gpu'
+miao_key=''
+
+while true; do
+    case $1 in
+        -d|--device)
+            device=$2
+            shift 2
+            ;;
+        -m|--miao)
+            miao_key=$2
+            shift 2
+            ;;
+        *)
+            echo "No such param"
+            exit -1
+            ;;
+    esac
+done
 
 # Ocr
 pushd paddleocr
@@ -61,3 +80,20 @@ else
 fi
 popd
 
+# Aiplayer
+pushd aiplayer
+if [[ -z "$(docker images -q aiplayer)" ]]; then
+    echo "--- Docker build"
+    docker build -t aiplayer -f .
+fi
+if [[ -n "$(docker ps -q -f name=aiplayer)" ]]; then
+    echo "--- Docker restart"
+    docker restart aiplayer
+elif [[ -n "$(docker ps -q -a -f name=aiplayer)" ]]; then
+    echo "--- Docker start"
+    docker start aiplayer
+else
+    echo "--- Docker run"
+    docker run -d -p 8050:8050 --name aiplayer aiplayer
+fi
+popd

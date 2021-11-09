@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.11.0)
 project(aiplayer)
 
 option(AIPLAYER_BUILD_DEMO "Build demo or not" OFF)
-option(AIPLAYER_BUILD_TOOL "Build test or not" ON)
 
 include(FetchContent)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

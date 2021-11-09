@@ -32,7 +32,7 @@ bool MiaoNotify::Notify(const std::string &message) {
 
             if (miao_code == 102) {
                 std::this_thread::sleep_for(
-                    std::chrono::seconds(res_json["data"]["remaining"].get<int>()));
+                    std::chrono::seconds(res_json["data"]["remaining"].get<int>() + 1));
             }
             continue;
         }

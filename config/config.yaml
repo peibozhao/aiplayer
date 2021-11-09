@@ -8,7 +8,7 @@ ocr:
   type: 'paddleocr'
   host: 'localhost'
   port: 8868
-  recv_timeout: 3  # CPU version run slower
+  recv_timeout: 10
 
 operation:
   type: 'minitouch'
@@ -23,7 +23,7 @@ request:
 
 notify:
   type: 'miao'
-  id: 'tWTuzPK'
+  id: 'MIAO_KEY'
 
 player:
   type: 'common'
@@ -204,6 +204,20 @@ player:
       conditions:
         - pattern: '知道了'
   modes:
+    - name: 'return'
+      page_actions:
+        - page: '主页'
+          actions:
+            - {type: 'over'}
+        - page: '战斗中'
+          actions:
+            - {type: 'sleep', time: 3000}
+      other_page_actions:
+        actions:
+          - {type: 'click', point: [0.05, 0.1]}
+      undefined_page_actions:
+        actions:
+          - {type: 'click', point: [0.05, 0.1]}
     - name: '11-4'
       page_actions:
         - page: '主页'
@@ -354,17 +368,3 @@ player:
         - page: '弹出窗口-演习次数不足'
           actions:
             - {type: 'over'}
-    - name: 'return'
-      page_actions:
-        - page: '主页'
-          actions:
-            - {type: 'over'}
-        - page: '战斗中'
-          actions:
-            - {type: 'sleep', time: 3000}
-      other_page_actions:
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
-      undefined_page_actions:
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
