@@ -2,7 +2,7 @@
 
 set -e
 
-ARGS= `getopt -o 'd:m:' -l 'device:miao:' -- $@`
+ARGS=`getopt -o 'd:m:' -l 'device:,miao:' -- $@`
 if [[ $? != 0 ]]; then
     echo 'Param error'
     exit -1
@@ -23,8 +23,12 @@ while true; do
             miao_key=$2
             shift 2
             ;;
+        --)
+            shift
+            break
+            ;;
         *)
-            echo "No such param"
+            echo "No such param " $1
             exit -1
             ;;
     esac
