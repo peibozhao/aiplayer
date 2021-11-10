@@ -68,5 +68,7 @@ private:
     ApplicationStatus status_;
     std::mutex status_mutex_;
     std::condition_variable status_con_;
+
+    int interval_ms_;
 };
 

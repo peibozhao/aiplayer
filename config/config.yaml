@@ -24,6 +24,9 @@ notify:
   type: 'miao'
   id: 'MIAO_KEY'
 
+application:
+  interval: 100
+
 player:
   type: 'common'
   pages:

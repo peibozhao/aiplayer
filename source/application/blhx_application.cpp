@@ -121,6 +121,10 @@ void BlhxApplication::Run() {
                 }
             }
             operation_time_log.Tok();
+
+            if (interval_ms_ > 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(interval_ms_));
+            }
         } else {
             LOG_INFO("Operation is empty");
         }
@@ -385,6 +389,13 @@ bool BlhxApplication::InitByYaml(const YAML::Node &yaml) {
     } else {
         LOG_INFO("Notify is not defined");
     }
+
+    // Application
+    const YAML::Node &app_yaml = yaml["application"];
+    if (app_yaml.IsDefined()) {
+        interval_ms_ = app_yaml["interval"].IsDefined() ? app_yaml["interval"].as<int>() : 0;
+    }
+
     return true;
 }
 
