@@ -118,9 +118,14 @@ std::vector<PlayOperation> CommonPlayer::Play(const std::vector<ObjectBox> &obje
     return CreatePlayOperation(object_boxes, text_boxes, cur_mode_->undefined_page_actions);
 }
 
-bool CommonPlayer::IsGameOver() {
-    if (is_over_) { LOG_INFO("Mode play end."); }
+bool CommonPlayer::GameOver() {
+    if (is_over_) { LOG_INFO("Game over."); }
     return is_over_;
+}
+
+void CommonPlayer::GameContinue() {
+    LOG_INFO("Game continue");
+    is_over_ = false; 
 }
 
 bool CommonPlayer::SetMode(const std::string &mode) {

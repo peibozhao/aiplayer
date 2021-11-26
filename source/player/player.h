@@ -35,7 +35,9 @@ public:
     virtual std::vector<PlayOperation> Play(const std::vector<ObjectBox> &object_boxes,
                                             const std::vector<TextBox> &text_boxes) = 0;
 
-    virtual bool IsGameOver() { return false; }
+    virtual bool GameOver() { return false; }
+
+    virtual void GameContinue() {}
 
     virtual bool SetMode(const std::string &mode) { return false; }
 

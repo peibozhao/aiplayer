@@ -129,7 +129,7 @@ void BlhxApplication::Run() {
             LOG_INFO("Operation is empty");
         }
 
-        if (player_->IsGameOver()) {
+        if (player_->GameOver()) {
             LOG_INFO("Application is over");
             status_ = ApplicationStatus::Over;
             if (notify_) {
@@ -151,6 +151,7 @@ void BlhxApplication::Pause() {
 void BlhxApplication::Continue() {
     LOG_INFO("Application continue");
     std::lock_guard<std::mutex> lock(status_mutex_);
+    player_->GameContinue();
     status_ = ApplicationStatus::Running;
     status_con_.notify_one();
 }

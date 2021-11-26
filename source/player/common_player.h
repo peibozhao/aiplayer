@@ -47,7 +47,9 @@ public:
     std::vector<PlayOperation> Play(const std::vector<ObjectBox> &object_boxes,
                                     const std::vector<TextBox> &text_boxes) override;
 
-    bool IsGameOver() override;
+    bool GameOver() override;
+
+    void GameContinue() override;
 
     bool SetMode(const std::string &mode) override;
 

@@ -22,10 +22,10 @@ request:
 
 notify:
   type: 'miao'
-  id: 'MIAO_KEY'
+  id: 'tiDKeXP'
 
 application:
-  interval: 100
+  interval: 500
 
 player:
   type: 'common'
@@ -194,6 +194,9 @@ player:
       conditions:
         - {pattern: '点击关闭', x_range: [0.4, 0.6], y_range: [0.7, 1.]}
         - {pattern: '指挥官可以通过以下方式提升舰队实力', x_range: [0.4, 0.6], y_range: [0.2, 0.5]}
+    - name: '补给商店'
+      conditions:
+        - {pattern: '补给商店', x_range: [0., 0.3], y_range: [0., 0.3]}
     - name: '对话框-船坞已满'
       conditions:
         - {pattern: '整理', x_range: [0.3, 0.5], y_range: [0.5, 0.8]}
@@ -230,7 +233,7 @@ player:
       undefined_page_actions:
         actions:
           - {type: 'click', point: [0.05, 0.1]}
-    - name: '11-4'
+    - name: '11-2'
       page_actions:
         - page: '主页'
           actions:
@@ -249,7 +252,7 @@ player:
             - {type: 'click', pattern: '下一章'}
         - page: '章节选择-普通-11章'
           actions:
-            - {type: 'click', pattern: '11-4.*'}
+            - {type: 'click', pattern: '11-2.*'}
         - page: '章节选择-普通-12章'
           actions:
             - {type: 'click', pattern: '上一章'}
@@ -386,6 +389,9 @@ player:
         - page: '弹出窗口-演习次数不足'
           actions:
             - {type: 'over'}
+        - page: '补给商店'
+          actions:
+            - {type: 'click', point: [0.05, 0.1]}
     - name: 'special'
       page_actions:
         - page: '主页'
