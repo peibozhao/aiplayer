@@ -152,8 +152,7 @@ player:
     - name: '章节选择-特殊'
       conditions:
         - {pattern: '出击', x_range: [0., 0.3], y_range: [0., 0.2]}
-        - {pattern: '演习', x_range: [0.8, 1.], y_range: [0.8, 1.]}
-        - {pattern: '每日任务', x_range: [0.5, 0.8], y_range: [0.8, 1.]}
+        - {pattern: '作战补给', x_range: [0.8, 1.], y_range: [0.8, 1.]}
     - name: '立刻前往'
       conditions:
         - {pattern: '立刻前往', y_range: [0.5, 1]}
@@ -402,7 +401,7 @@ player:
             - {type: 'click', point: [0.05, 0.1]}
         - page: '章节选择-特殊'
           actions:
-            - {type: 'click', pattern: 'SP3.*'}
+            - {type: 'click', pattern: '.*的世界'}
         - page: '立刻前往'
           actions:
             - {type: 'click', pattern: '立刻前往'}
