@@ -232,6 +232,47 @@ player:
       undefined_page_actions:
         actions:
           - {type: 'click', point: [0.05, 0.1]}
+    - name: '7-3'
+      page_actions:
+        - page: '主页'
+          actions:
+            - {type: 'click', pattern: '出击'}
+        - page: '个人信息'
+          actions:
+            - {type: 'click', point: [0.05, 0.1]}
+        - page: '出击主页'
+          actions:
+            - {type: 'click', pattern: '主线'}
+        - page: '章节选择-普通-7章'
+          actions:
+            - {type: 'click', pattern: '7-3.*'}
+        - page: '章节选择-困难-.*'
+          actions:
+            - {type: 'click', pattern: '普通'}
+        - page: '立刻前往'
+          actions:
+            - {type: 'click', pattern: '立刻前往'}
+        - page: '再次前往'
+          actions:
+            - {type: 'click', pattern: '再次前往'}
+        - page: '对话框-应援'
+          actions:
+            - {type: 'click', pattern: '知道了'}
+        - page: '对话框-暂停战斗'
+          actions:
+            - {type: 'click', pattern: '继续战斗'}
+        - page: '战斗中'
+          actions:
+            - {type: 'sleep', time: 3000}
+        - page: '对话框-船坞已满'
+          actions:
+            - {type: 'over'}
+        - page: '对话框-低心情状态'
+          actions:
+            - {type: 'over'}
+        - page: '对话框-石油不足'
+          actions:
+            - {type: 'over'}
     - name: '11-2'
       page_actions:
         - page: '主页'
