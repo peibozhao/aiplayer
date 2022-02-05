@@ -1,43 +1,61 @@
 
 #include "common_player.h"
-#include "common/log.h"
+#include "utils/image_utils.h"
+#include "utils/log.h"
+#include <cassert>
 
-static bool CenterInRange(int x, int y, int x_min, int x_max, int y_min, int y_max) {
-    return x > x_min && x < x_max && y > y_min && y < y_max;
+typedef std::pair<uint16_t, uint16_t> Point;
+typedef std::array<float, 4> Region;
+
+static bool CenterInRegion(const FrameSize &frame_size, const Region &region,
+                           const Point &point) {
+    return point.first > region[0] * frame_size.first &&
+           point.first < region[2] * frame_size.first &&
+           point.second > region[1] * frame_size.second &&
+           point.second < region[3] * frame_size.second;
 }
 
-static bool SatisfyPageCondition(const std::vector<ObjectBox> &obj_boxes,
-                                 const std::vector<TextBox> &text_boxes,
-                                 const std::vector<PageConditionConfig> &conditions) {
-    if (conditions.empty()) { return true; }
+static bool
+SatisfyPageCondition(const FrameSize frame_size,
+                     const std::vector<ObjectBox> &obj_boxes,
+                     const std::vector<TextBox> &text_boxes,
+                     const std::vector<PageKeyElement> &key_elements) {
+    for (const PageKeyElement &key_element : key_elements) {
+        int box_idx = 0;
+        for (; box_idx < obj_boxes.size() + text_boxes.size(); box_idx += 1) {
+            std::string box_name;
+            uint16_t x, y;
+            if (box_idx < obj_boxes.size()) {
+                box_name = obj_boxes[box_idx].name;
+                x = obj_boxes[box_idx].x;
+                y = obj_boxes[box_idx].y;
+            } else {
+                const TextBox &text_box =
+                    text_boxes[box_idx - obj_boxes.size()];
+                box_name = text_box.text;
+                x = text_box.x;
+                y = text_box.y;
+            }
 
-    bool satisfy = false;
-    for (const PageConditionConfig &condition : conditions) {
-        satisfy = false;
-        for (const ObjectBox &obj_box : obj_boxes) {
-            satisfy = std::regex_match(obj_box.name, condition.pattern) &&
-                      CenterInRange(obj_box.x, obj_box.y, condition.x_min, condition.x_max,
-                                    condition.y_min, condition.y_max);
-            if (satisfy) { break; }
-        }
-
-        if (!satisfy) {
-            for (const TextBox &ocr_box : text_boxes) {
-                satisfy = std::regex_match(ocr_box.text, condition.pattern) &&
-                          CenterInRange(ocr_box.x, ocr_box.y, condition.x_min, condition.x_max,
-                                        condition.y_min, condition.y_max);
-                if (satisfy) { break; }
+            if (std::regex_match(box_name, key_element.pattern) &&
+                CenterInRegion(frame_size,
+                               {key_element.x_min, key_element.y_min,
+                                key_element.x_max, key_element.y_max},
+                               {x, y})) {
+                break;
             }
         }
-
-        if (!satisfy) { return false; }
+        if (box_idx == obj_boxes.size() + text_boxes.size()) {
+            return false;
+        }
     }
     return true;
 }
 
-static std::tuple<std::string, int, int> GetPatternPoint(const std::vector<ObjectBox> &obj_boxes,
-                                                         const std::vector<TextBox> &text_boxes,
-                                                         const std::regex &pattern) {
+static std::tuple<std::string, int, int>
+GetPatternPoint(const std::vector<ObjectBox> &obj_boxes,
+                const std::vector<TextBox> &text_boxes,
+                const std::regex &pattern) {
     for (const auto obj_box : obj_boxes) {
         if (std::regex_match(obj_box.name, pattern)) {
             return std::make_tuple(obj_box.name, obj_box.x, obj_box.y);
@@ -51,13 +69,12 @@ static std::tuple<std::string, int, int> GetPatternPoint(const std::vector<Objec
     return std::make_tuple("", 0, 0);
 }
 
-CommonPlayer::CommonPlayer(const std::vector<PageConfig> &page_configs,
-                           const std::vector<ModeConfig> &mode_configs, int width, int height)
-    : page_configs_(page_configs), mode_configs_(mode_configs) {
-    cur_mode_ = nullptr;
+CommonPlayer::CommonPlayer(const std::string &name,
+                           const std::vector<PageConfig> &page_configs,
+                           const std::vector<ModeConfig> &mode_configs)
+    : IPlayer(name), page_configs_(page_configs), mode_configs_(mode_configs) {
+    mode_ = nullptr;
     is_over_ = false;
-    width_ = width;
-    height_ = height;
 }
 
 CommonPlayer::~CommonPlayer() {}
@@ -67,18 +84,20 @@ bool CommonPlayer::Init() {
         LOG_ERROR("Mode is empty");
         return false;
     }
-    cur_mode_ = &mode_configs_.front();
+    mode_ = &mode_configs_.front();
     for (const ModeConfig &mode_config : mode_configs_) {
         for (const auto &pattern_action : mode_config.page_pattern_actions) {
             bool has_page = false;
             for (const PageConfig &page_config : page_configs_) {
-                if (std::regex_match(page_config.name, std::get<0>(pattern_action))) {
+                if (std::regex_match(page_config.name,
+                                     std::get<0>(pattern_action))) {
                     has_page = true;
                     break;
                 }
             }
             if (!has_page) {
-                LOG_ERROR("Mode has unmatched page pattern. %s", mode_config.name.c_str());
+                LOG_ERROR("Mode has unmatched page pattern. %s",
+                          mode_config.name.c_str());
                 return false;
             }
         }
@@ -86,54 +105,70 @@ bool CommonPlayer::Init() {
     return true;
 }
 
-std::vector<PlayOperation> CommonPlayer::Play(const std::vector<ObjectBox> &object_boxes,
-                                              const std::vector<TextBox> &text_boxes) {
+#include <iostream>
+
+std::vector<PlayOperation>
+CommonPlayer::Play(const Image &image,
+                   const std::vector<ObjectBox> &object_boxes,
+                   const std::vector<TextBox> &text_boxes) {
+    assert(image.format == ImageFormat::YUV420);
+
+    FrameSize frame_size = ImageSize(image);
     std::lock_guard<std::mutex> lock(mode_mutex_);
     for (const PageConfig &page_config : page_configs_) {
         // Detect page
-        if (!SatisfyPageCondition(object_boxes, text_boxes, page_config.condition_configs)) {
+        if (!SatisfyPageCondition(frame_size, object_boxes, text_boxes,
+                                  page_config.key_elements)) {
             continue;
         }
         LOG_INFO("Detect page %s", page_config.name.c_str());
 
         // Return page actions
-        auto iter = cur_mode_->page_pattern_actions.begin();
-        for (; iter != cur_mode_->page_pattern_actions.end(); ++iter) {
+        auto iter = mode_->page_pattern_actions.begin();
+        for (; iter != mode_->page_pattern_actions.end(); ++iter) {
             if (std::regex_match(page_config.name, std::get<0>(*iter))) {
                 break;
             }
         }
         std::vector<PlayOperation> ret;
-        if (iter != cur_mode_->page_pattern_actions.end()) {
-            ret = CreatePlayOperation(object_boxes, text_boxes, std::get<1>(*iter));
+        if (iter != mode_->page_pattern_actions.end()) {
+            ret = CreatePlayOperation(frame_size.first, frame_size.second,
+                                      object_boxes, text_boxes,
+                                      std::get<1>(*iter));
         } else {
             LOG_INFO("Other page operation");
-            ret = CreatePlayOperation(object_boxes, text_boxes, cur_mode_->other_page_actions);
+            ret = CreatePlayOperation(frame_size.first, frame_size.second,
+                                      object_boxes, text_boxes,
+                                      mode_->other_page_actions);
         }
         return ret;
     }
 
     // Page is not defined
     LOG_INFO("Undefined page operation");
-    return CreatePlayOperation(object_boxes, text_boxes, cur_mode_->undefined_page_actions);
+    return CreatePlayOperation(frame_size.first, frame_size.second,
+                               object_boxes, text_boxes,
+                               mode_->undefined_page_actions);
 }
 
 bool CommonPlayer::GameOver() {
-    if (is_over_) { LOG_INFO("Game over."); }
+    if (is_over_) {
+        LOG_INFO("Game over.");
+    }
     return is_over_;
 }
 
 void CommonPlayer::GameContinue() {
     LOG_INFO("Game continue");
-    is_over_ = false; 
+    is_over_ = false;
 }
 
 bool CommonPlayer::SetMode(const std::string &mode) {
     std::lock_guard<std::mutex> lock(mode_mutex_);
     for (const auto &mode_config : mode_configs_) {
         if (mode_config.name == mode) {
-            cur_mode_ = &mode_config;
-            LOG_INFO("Player mode %s", cur_mode_->name.c_str());
+            mode_ = &mode_config;
+            LOG_INFO("Player mode %s", mode_->name.c_str());
             is_over_ = false;
             return true;
         }
@@ -144,19 +179,20 @@ bool CommonPlayer::SetMode(const std::string &mode) {
 
 std::string CommonPlayer::GetMode() {
     std::lock_guard<std::mutex> lock(mode_mutex_);
-    return cur_mode_->name;
+    return mode_->name;
 }
 
-std::vector<PlayOperation>
-CommonPlayer::CreatePlayOperation(const std::vector<ObjectBox> &object_boxes,
-                                  const std::vector<TextBox> &text_boxes,
-                                  const std::vector<ActionConfig> &action_configs) {
+std::vector<PlayOperation> CommonPlayer::CreatePlayOperation(
+    uint16_t width, uint16_t height, const std::vector<ObjectBox> &object_boxes,
+    const std::vector<TextBox> &text_boxes,
+    const std::vector<ActionConfig> &action_configs) {
     std::vector<PlayOperation> ret;
     for (const ActionConfig &action_config : action_configs) {
         if (action_config.type == "click") {
             PlayOperation operation(PlayOperationType::SCREEN_CLICK);
             if (action_config.pattern) {
-                auto point_info = GetPatternPoint(object_boxes, text_boxes, *action_config.pattern);
+                auto point_info = GetPatternPoint(object_boxes, text_boxes,
+                                                  *action_config.pattern);
                 std::string click_text = std::get<0>(point_info);
                 if (click_text.empty()) {
                     LOG_ERROR("Can not find click pattern");
@@ -166,9 +202,10 @@ CommonPlayer::CreatePlayOperation(const std::vector<ObjectBox> &object_boxes,
                 operation.click.x = std::get<1>(point_info);
                 operation.click.y = std::get<2>(point_info);
             } else if (action_config.point) {
-                operation.click.x = width_ * action_config.point->first;
-                operation.click.y = height_ * action_config.point->second;
-                LOG_INFO("Click point %d %d", operation.click.x, operation.click.y);
+                operation.click.x = width * action_config.point->first;
+                operation.click.y = height * action_config.point->second;
+                LOG_INFO("Click point %d %d", operation.click.x,
+                         operation.click.y);
             }
             ret.push_back(operation);
         } else if (action_config.type == "sleep") {

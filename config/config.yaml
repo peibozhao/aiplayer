@@ -1,0 +1,31 @@
+source:
+  type: 'scrcpy'  # minicap, file
+  host: 'localhost'
+  port: 22331
+
+ocr:
+  type: 'paddleocr'
+  host: 'localhost'
+  port: 8868
+  recv_timeout: 10
+
+operation:
+  type: 'scrcpy'  # minitouch, dummy
+  host: 'localhost'
+  port: 22332
+
+request:
+  type: 'http'
+  host: '0.0.0.0'
+  port: 9000
+
+notify:
+  type: 'miao'
+  id: 'tiDKeXP'
+
+application:
+  interval: 500
+
+players:
+  - include: players/blhx.yaml
+  - include: players/wyds.yaml

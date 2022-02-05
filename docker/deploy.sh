@@ -2,7 +2,7 @@
 
 set -e
 
-ARGS=`getopt -o 'd:m:' -l 'device:' -- $@`
+ARGS=`getopt -o 'd:' -l 'device:' -- $@`
 if [[ $? != 0 ]]; then
     echo 'Param error'
     exit -1

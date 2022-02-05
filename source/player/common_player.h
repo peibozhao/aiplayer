@@ -1,21 +1,20 @@
-
 #pragma once
 
 #include "player.h"
+#include <atomic>
 #include <mutex>
 #include <regex>
-#include <atomic>
 
-// Page
-struct PageConditionConfig {
+/// @brief 页面的关键元素
+struct PageKeyElement {
     std::regex pattern;
-    int x_min, x_max;
-    int y_min, y_max;
+    float x_min, x_max;
+    float y_min, y_max;
 };
 
 struct PageConfig {
     std::string name;
-    std::vector<PageConditionConfig> condition_configs;
+    std::vector<PageKeyElement> key_elements;
 };
 
 // Play mode
@@ -29,23 +28,28 @@ struct ActionConfig {
 
 struct ModeConfig {
     std::string name;
-    std::vector<std::tuple<std::regex, std::vector<ActionConfig>>> page_pattern_actions;
-    std::vector<ActionConfig> other_page_actions;
-    std::vector<ActionConfig> undefined_page_actions;
+    std::vector<std::tuple<std::regex, std::vector<ActionConfig>>>
+        page_pattern_actions;
+    std::vector<ActionConfig>
+        other_page_actions; // page已定义, 但是当前mode没有定义对应的action
+    std::vector<ActionConfig> undefined_page_actions; // 没有定义的page的行为
 };
 
-// Common player
+/// @brief 给每个页面定义关键元素和操作, 如果检测到某个页面的全部关键元素,
+/// 就认定屏幕当前为该页面, 并执行页面对应的操作
 class CommonPlayer : public IPlayer {
 public:
-    CommonPlayer(const std::vector<PageConfig> &page_configs,
-                 const std::vector<ModeConfig> &mode_configs, int width, int height);
+    CommonPlayer(const std::string &name,
+                 const std::vector<PageConfig> &page_configs,
+                 const std::vector<ModeConfig> &mode_configs);
 
     ~CommonPlayer() override;
 
     bool Init() override;
 
-    std::vector<PlayOperation> Play(const std::vector<ObjectBox> &object_boxes,
-                                    const std::vector<TextBox> &text_boxes) override;
+    std::vector<PlayOperation>
+    Play(const Image &image, const std::vector<ObjectBox> &object_boxes,
+         const std::vector<TextBox> &text_boxes) override;
 
     bool GameOver() override;
 
@@ -58,17 +62,17 @@ public:
 private:
     // Maybe change is_over_ flag
     std::vector<PlayOperation>
-    CreatePlayOperation(const std::vector<ObjectBox> &object_boxes,
+    CreatePlayOperation(uint16_t width, uint16_t height,
+                        const std::vector<ObjectBox> &object_boxes,
                         const std::vector<TextBox> &text_boxes,
                         const std::vector<ActionConfig> &action_configs);
 
 private:
-    int width_, height_;
     const std::vector<PageConfig> page_configs_;
     const std::vector<ModeConfig> mode_configs_;
 
     std::mutex mode_mutex_;
-    const ModeConfig *cur_mode_;
+    const ModeConfig *mode_;
 
     std::atomic<bool> is_over_;
 };

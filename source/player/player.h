@@ -1,8 +1,7 @@
-
 #pragma once
 
-#include "object_detect/object_detect.h"
-#include "ocr_detect/ocr_detect.h"
+#include "detect/detect.h"
+#include "ocr/ocr.h"
 #include <vector>
 
 enum class PlayOperationType {
@@ -12,8 +11,8 @@ enum class PlayOperationType {
 };
 
 struct ClickOperation {
-    int x, y;
-    ClickOperation(int xi = 0, int yi = 0) : x(xi), y(yi) {}
+    uint16_t x, y;
+    ClickOperation(uint16_t xi = 0, uint16_t yi = 0) : x(xi), y(yi) {}
 };
 
 struct PlayOperation {
@@ -30,16 +29,32 @@ class IPlayer {
 public:
     virtual ~IPlayer() {}
 
+    IPlayer(const std::string &name) {
+        name_ = name;
+    }
+
     virtual bool Init() { return true; };
 
-    virtual std::vector<PlayOperation> Play(const std::vector<ObjectBox> &object_boxes,
-                                            const std::vector<TextBox> &text_boxes) = 0;
+    /// @brief 通过检测结果返回行为
+    virtual std::vector<PlayOperation>
+    Play(const Image &image,
+         const std::vector<ObjectBox> &object_boxes,
+         const std::vector<TextBox> &text_boxes) = 0;
 
+    virtual std::string Name() { return name_; }
+
+    /// @brief 当前是否达到限制
     virtual bool GameOver() { return false; }
 
+    /// @brief 到达限制后继续
     virtual void GameContinue() {}
 
+    /// @brief 设置mode
     virtual bool SetMode(const std::string &mode) { return false; }
 
+    /// @brief 当前mode
     virtual std::string GetMode() { return ""; }
+
+private:
+    std::string name_;
 };

@@ -44,17 +44,22 @@ FetchContent_MakeAvailable(http)
 include_directories(${http_SOURCE_DIR})
 
 include_directories(source)
+include_directories(opencv4)
 
 set(AIPLAYER_SOURCE_LIST
-    source/application/blhx_application.cpp
-    source/source/image/minicap_source.cpp
-    source/source/image/image_source.cpp
-    source/source/request/http_request.cpp
-    source/sink/operation/minitouch_operation.cpp
-    source/sink/notify/miao_notify.cpp
-    source/ocr_detect/paddle_ocr.cpp
+    source/application/common_application.cpp
+    source/application/parser/yaml_parser.cpp
+    source/input/image/scrcpy_input.cpp
+    source/input/image/minicap_input.cpp
+    source/input/image/file_input.cpp
+    source/input/request/http_request.cpp
+    source/output/operation/minitouch_operation.cpp
+    source/output/operation/scrcpy_operation.cpp
+    source/output/notify/miao_notify.cpp
+    source/ocr/paddle_ocr.cpp
     source/player/common_player.cpp
-    source/common/util_functions.cpp
+    source/utils/util_functions.cpp
+    source/utils/image_utils.cpp
     )
 
 add_library(aiplayer SHARED ${AIPLAYER_SOURCE_LIST})
@@ -63,6 +68,8 @@ target_link_libraries(aiplayer
   glog
   nlohmann_json
   stdc++fs
+  opencv_core
+  opencv_imgcodecs
   )
 
 if (AIPLAYER_BUILD_DEMO)

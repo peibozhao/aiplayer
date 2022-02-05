@@ -31,6 +31,7 @@ sleep 1
 # minicap
 screen_size=`adb shell wm size | awk '{print $3}'`
 pushd /minicap
+# ATTENTION: 0 horizon, 90 vertical
 ./run.sh -P ${screen_size}@${screen_size}/90 &
 adb forward tcp:1313 localabstract:minicap &
 popd

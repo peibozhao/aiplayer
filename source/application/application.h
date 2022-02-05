@@ -7,7 +7,7 @@ class IApplication {
 public:
     virtual bool Init() { return true; }
 
-    virtual void Run() = 0;
+    virtual void Start() = 0;
 
     virtual void Pause() = 0;
 
@@ -15,7 +15,11 @@ public:
 
     virtual void Stop() = 0;
 
-    virtual bool SetParam(const std::string &key, const std::string &value) { return false; }
+    virtual bool SetPlayer(const std::string &player) = 0;
 
-    virtual std::string GetParam(const std::string &key) { return ""; }
+    virtual std::string GetPlayer() = 0;
+
+    virtual bool SetMode(const std::string &mode) = 0;
+
+    virtual std::string GetMode() = 0;
 };

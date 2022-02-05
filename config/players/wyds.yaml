@@ -1,0 +1,42 @@
+type: 'common'
+name: 'wyds'
+pages:
+  - name: '主页'
+    conditions:
+      - {pattern: '福利中心', x_range: [0., 0.2], y_range: [0., 0.5]}
+      - {pattern: '购买游戏', x_range: [0.2, 0.4], y_range: [0., 0.5]}
+      - {pattern: '战绩查询', x_range: [0.4, 0.6], y_range: [0., 0.5]}
+      - {pattern: '捏脸数据', x_range: [0.6, 0.8], y_range: [0., 0.5]}
+  - name: '福利中心'
+    conditions:
+      - {pattern: '福利中心', x_range: [0.4, 0.6], y_range: [0., 0.3]}
+      - {pattern: '领取', x_range: [0.7, 1.]}
+  - name: '对话框-领取奖励'
+    conditions:
+      - {pattern: '选择领取奖励的角色', x_range: [0.4, 0.6], y_range: [0.3, 0.5]}
+      - {pattern: '取消', x_range: [0., 0.4], y_range: [0.5, 0.7]}
+      - {pattern: '去领奖励', x_range: [0.6, 1.], y_range: [0.5, 0.7]}
+  - name: '对话框-知道了'
+    conditions:
+      - {pattern: '知道了', x_range: [0.4, 0.6], y_range: [0.5, 0.7]}
+  - name: '对话框-残忍拒绝'
+    conditions:
+      - {pattern: '残忍拒绝', x_range: [0., 0.5], y_range: [0.5, 0.7]}
+modes:
+  - name: 'sign'
+    page_actions:
+      - page: '主页'
+        actions:
+          - {type: 'click', pattern: '福利中心'}
+      - page: '福利中心'
+        actions:
+          - {type: 'click', pattern: '领取'}
+      - page: '对话框-领取奖励'
+        actions:
+          - {type: 'click', pattern: '去领奖励'}
+      - page: '对话框-知道了'
+        actions:
+          - {type: 'click', pattern: '知道了'}
+      - page: '对话框-残忍拒绝'  # 只完成一个任务就结束
+        actions:
+          - {type: 'over'}
