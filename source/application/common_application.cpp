@@ -287,7 +287,8 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
     if (notify_yaml.IsDefined()) {
         std::string notify_type = notify_yaml["type"].as<std::string>();
         if (notify_type == "miao") {
-            notify_.reset(new MiaoNotify(notify_yaml["id"].as<std::string>()));
+            notify_.reset(
+                new MiaoNotify(notify_yaml["miao_key"].as<std::string>()));
         }
         if (!notify_ || !notify_->Init()) {
             notify_.reset();

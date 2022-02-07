@@ -21,7 +21,7 @@ request:
 
 notify:
   type: 'miao'
-  id: 'tiDKeXP'
+  miao_key: 'xxxxxxx'
 
 application:
   interval: 500
