@@ -16,6 +16,10 @@ PageConfig GetPageConfig(const YAML::Node &yaml_node);
 PageKeyElement GetKeyElementConfig(const YAML::Node &yaml_node);
 
 /// @brief 解析player的mode配置
-ModeConfig GetModeConfig(const YAML::Node &yaml_node);
+///
+/// @param yaml_node
+/// @param mode_configs 已解析出来的mode config, 可能会被继承
+ModeConfig GetModeConfig(const YAML::Node &yaml_node,
+                         const std::vector<ModeConfig> &mode_configs);
 
 ActionConfig GetActionConfig(const YAML::Node &action_yaml);

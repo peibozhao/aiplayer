@@ -160,10 +160,13 @@ pages:
     conditions:
       - {pattern: '再次挑战', x_range: [0.6, 0.8], y_range: [0.8, 1.]}
       - {pattern: '确定', x_range: [0.7, 1.], y_range: [0.8, 1.]}
-  - name: '战斗获得经验'
+  - name: '战斗获得经验-end'
     conditions:
       - {pattern: '大获全胜|战术碾压|完成任务|作战超时|全军覆没', x_range: [0.1, 0.4], y_range: [0., 0.3]}
       - {pattern: '确定', x_range: [0.7, 1.], y_range: [0.8, 1.]}
+  - name: '战斗获得经验-1'
+    conditions:
+      - {pattern: '大获全胜|战术碾压|完成任务|作战超时|全军覆没', x_range: [0.1, 0.4], y_range: [0., 0.3]}
   - name: '战斗失败建议'
     conditions:
       - {pattern: '点击关闭', x_range: [0.4, 0.6], y_range: [0.7, 1.]}
@@ -200,14 +203,75 @@ pages:
       - {pattern: '特别作战', x_range: [0., 0.3], y_range: [0., 0.2]}
       - {pattern: '困难', x_range: [0.8, 1.], y_range: [0.3, 0.5]}
 modes:
+  # base mode
+  - name: 'base-common'  # 对所有模式都可以忽略的窗口
+    page_actions:
+      - page: '个人信息'
+        actions:
+          - {type: 'click', point: [0.05, 0.1]}
+      - page: '战斗评价'
+        actions:
+            - {type: 'click', pattern: '战斗评价'}
+      - page: '战斗获得道具'
+        actions:
+            - {type: 'click', pattern: '获得道具'}
+      - page: '战斗获得经验-1'
+        actions:
+          - {type: 'click', pattern: '大获全胜|战术碾压|完成任务|作战超时|全军覆没'}
+      - page: '战斗获得经验-end'
+        actions:
+          - {type: 'click', pattern: '确定'}
+      - page: '战斗中'
+        actions:
+          - {type: 'sleep', time: 3000}
+      - page: '对话框-暂停战斗'
+        actions:
+          - {type: 'click', pattern: '继续战斗'}
+      - page: '对话框-应援'
+        actions:
+          - {type: 'click', pattern: '知道了'}
+      - page: '对话框-暂停战斗'
+        actions:
+          - {type: 'click', pattern: '继续战斗'}
+  - name: 'base-main-attack'  # 主线任务
+    page_actions:
+      - page: '主页'
+        actions:
+          - {type: 'click', pattern: '出击'}
+      - page: '出击主页'
+        actions:
+          - {type: 'click', pattern: '主线'}
+      - page: '立刻前往'
+        actions:
+          - {type: 'click', pattern: '立刻前往'}
+      - page: '再次前往'
+        actions:
+          - {type: 'click', pattern: '再次前往'}
+      - page: '对话框-应援'
+        actions:
+          - {type: 'click', pattern: '知道了'}
+      - page: '对话框-暂停战斗'
+        actions:
+          - {type: 'click', pattern: '继续战斗'}
+      - page: '战斗中'
+        actions:
+          - {type: 'sleep', time: 3000}
+      - page: '对话框-船坞已满'
+        actions:
+          - {type: 'over'}
+      - page: '对话框-低心情状态'
+        actions:
+          - {type: 'over'}
+      - page: '对话框-石油不足'
+        actions:
+          - {type: 'over'}
+  # real mode
   - name: 'return'
+    inherit: ['base-common']
     page_actions:
       - page: '主页'
         actions:
           - {type: 'over'}
-      - page: '战斗中'
-        actions:
-          - {type: 'sleep', time: 3000}
     other_page_actions:
       actions:
         - {type: 'click', point: [0.05, 0.1]}
@@ -215,266 +279,47 @@ modes:
       actions:
         - {type: 'click', point: [0.05, 0.1]}
   - name: '7-3'
+    inherit: ['base-common', 'base-main-attack']
     page_actions:
-      - page: '主页'
-        actions:
-          - {type: 'click', pattern: '出击'}
-      - page: '个人信息'
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
-      - page: '出击主页'
-        actions:
-          - {type: 'click', pattern: '主线'}
       - page: '章节选择-困难-.*'
         actions:
           - {type: 'click', pattern: '普通'}
-      - page: '立刻前往'
-        actions:
-          - {type: 'click', pattern: '立刻前往'}
-      - page: '再次前往'
-        actions:
-          - {type: 'click', pattern: '再次前往'}
-      - page: '对话框-应援'
-        actions:
-          - {type: 'click', pattern: '知道了'}
-      - page: '对话框-暂停战斗'
-        actions:
-          - {type: 'click', pattern: '继续战斗'}
-      - page: '战斗中'
-        actions:
-          - {type: 'sleep', time: 3000}
-      - page: '对话框-船坞已满'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-低心情状态'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-石油不足'
-        actions:
-          - {type: 'over'}
       - page: '章节选择-普通-7章'
         actions:
           - {type: 'click', pattern: '7-3.*'}
   - name: '10-4'
+    inherit: ['base-common', 'base-main-attack']
     page_actions:
-      - page: '主页'
-        actions:
-          - {type: 'click', pattern: '出击'}
-      - page: '个人信息'
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
-      - page: '出击主页'
-        actions:
-          - {type: 'click', pattern: '主线'}
       - page: '章节选择-困难-.*'
         actions:
           - {type: 'click', pattern: '普通'}
-      - page: '立刻前往'
-        actions:
-          - {type: 'click', pattern: '立刻前往'}
-      - page: '再次前往'
-        actions:
-          - {type: 'click', pattern: '再次前往'}
-      - page: '对话框-应援'
-        actions:
-          - {type: 'click', pattern: '知道了'}
-      - page: '对话框-暂停战斗'
-        actions:
-          - {type: 'click', pattern: '继续战斗'}
-      - page: '战斗中'
-        actions:
-          - {type: 'sleep', time: 3000}
-      - page: '对话框-船坞已满'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-低心情状态'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-石油不足'
-        actions:
-          - {type: 'over'}
-      - page: '章节选择-普通-8章'
-        actions:
-          - {type: 'click', pattern: '下一章'}
-      - page: '章节选择-普通-9章'
-        actions:
-          - {type: 'click', pattern: '下一章'}
       - page: '章节选择-普通-10章'
         actions:
           - {type: 'click', pattern: '10-4.*'}
-      - page: '章节选择-普通-11章'
-        actions:
-          - {type: 'click', pattern: '上一章'}
-      - page: '章节选择-普通-12章'
-        actions:
-          - {type: 'click', pattern: '上一章'}
   - name: '11-2'
+    inherit: ['base-common', 'base-main-attack']
     page_actions:
-      - page: '主页'
-        actions:
-          - {type: 'click', pattern: '出击'}
-      - page: '个人信息'
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
-      - page: '出击主页'
-        actions:
-          - {type: 'click', pattern: '主线'}
       - page: '章节选择-困难-.*'
         actions:
           - {type: 'click', pattern: '普通'}
-      - page: '立刻前往'
-        actions:
-          - {type: 'click', pattern: '立刻前往'}
-      - page: '再次前往'
-        actions:
-          - {type: 'click', pattern: '再次前往'}
-      - page: '对话框-应援'
-        actions:
-          - {type: 'click', pattern: '知道了'}
-      - page: '对话框-暂停战斗'
-        actions:
-          - {type: 'click', pattern: '继续战斗'}
-      - page: '战斗中'
-        actions:
-          - {type: 'sleep', time: 3000}
-      - page: '对话框-船坞已满'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-低心情状态'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-石油不足'
-        actions:
-          - {type: 'over'}
-      - page: '章节选择-普通-8章'
-        actions:
-          - {type: 'click', pattern: '下一章'}
-      - page: '章节选择-普通-9章'
-        actions:
-          - {type: 'click', pattern: '下一章'}
-      - page: '章节选择-普通-10章'
-        actions:
-          - {type: 'click', pattern: '下一章'}
       - page: '章节选择-普通-11章'
         actions:
           - {type: 'click', pattern: '11-2.*'}
-      - page: '章节选择-普通-12章'
-        actions:
-          - {type: 'click', pattern: '上一章'}
   - name: 'hard-10-2'
+    inherit: ['base-common', 'base-main-attack']
     page_actions:
-      - page: '主页'
-        actions:
-          - {type: 'click', pattern: '出击'}
-      - page: '个人信息'
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
-      - page: '出击主页'
-        actions:
-          - {type: 'click', pattern: '主线'}
       - page: '章节选择-普通-.*'
         actions:
           - {type: 'click', pattern: '困难'}
-      - page: '章节选择-困难-9章'
-        actions:
-          - {type: 'click', pattern: '下一章'}
       - page: '章节选择-困难-10章'
         actions:
           - {type: 'click', pattern: '10-2.*'}
-      - page: '章节选择-困难-11章'
-        actions:
-          - {type: 'click', pattern: '上一章'}
-      - page: '章节选择-困难-12章'
-        actions:
-          - {type: 'click', pattern: '上一章'}
-      - page: '立刻前往'
-        actions:
-          - {type: 'click', pattern: '立刻前往'}
-      - page: '再次前往'
-        actions:
-          - {type: 'click', pattern: '再次前往'}
-      - page: '对话框-应援'
-        actions:
-          - {type: 'click', pattern: '知道了'}
-      - page: '对话框-暂停战斗'
-        actions:
-          - {type: 'click', pattern: '继续战斗'}
-      - page: '战斗中'
-        actions:
-          - {type: 'sleep', time: 3000}
-      - page: '弹出窗口-困难关卡次数不足'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-船坞已满'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-低心情状态'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-石油不足'
-        actions:
-          - {type: 'over'}
-  - name: 'exercise'
-    page_actions:
-      - page: '主页'
-        actions:
-          - {type: 'click', pattern: '出击'}
-      - page: '个人信息'
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
-      - page: '出击主页'
-        actions:
-          - {type: 'click', pattern: '演习'}
-      - page: '演习主页'
-        actions:
-          - {type: 'click', pattern: '综合实力'}
-      - page: '演习对手信息'
-        actions:
-          - {type: 'click', pattern: '开始演习'}
-      - page: '编队出击'
-        actions:
-          - {type: 'click', pattern: '出击'}
-      - page: '战斗评价'
-        actions:
-          - {type: 'click', pattern: '战斗评价'}
-      - page: '战斗获得道具'
-        actions:
-          - {type: 'click', pattern: '获得道具'}
-      - page: '战斗获得经验'
-        actions:
-          - {type: 'click', pattern: '确定'}
-      - page: '战斗失败建议'
-        actions:
-          - {type: 'click', pattern: '点击关闭'}
-      - page: '对话框-暂停战斗'
-        actions:
-          - {type: 'click', pattern: '继续战斗'}
-      - page: '战斗中'
-        actions:
-          - {type: 'sleep', time: 3000}
-      - page: '战场' # '出击'直接进入战场
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
-      - page: '章节选择-.*'
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
-      - page: '对话框-低心情状态'
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
-      - page: '弹出窗口-演习次数不足'
-        actions:
-          - {type: 'over'}
-      - page: '补给商店'
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
   - name: 'special'  # 需要选择章节的那种活动
+    inherit: ['base-common']
     page_actions:
       - page: '主页'
         actions:
           - {type: 'click', point: [0.56, 0.37]}
-      - page: '个人信息'
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
       - page: '章节选择-特殊'
         actions:
           - {type: 'click', pattern: 'D3.*'}
@@ -484,15 +329,6 @@ modes:
       - page: '再次前往'
         actions:
           - {type: 'click', pattern: '再次前往'}
-      - page: '对话框-应援'
-        actions:
-          - {type: 'click', pattern: '知道了'}
-      - page: '对话框-暂停战斗'
-        actions:
-          - {type: 'click', pattern: '继续战斗'}
-      - page: '战斗中'
-        actions:
-          - {type: 'sleep', time: 3000}
       - page: '对话框-船坞已满'
         actions:
           - {type: 'over'}
@@ -503,13 +339,11 @@ modes:
         actions:
           - {type: 'over'}
   - name: 'special2'  # 只需要选择普通 困难的那种活动
+    inherit: ['base-common']
     page_actions:
       - page: '主页'
         actions:
           - {type: 'click', point: [0.56, 0.37]}
-      - page: '个人信息'
-        actions:
-          - {type: 'click', point: [0.05, 0.1]}
       - page: '特别作战'
         actions:
           - {type: 'click', pattern: '困难'}
@@ -519,21 +353,6 @@ modes:
       - page: '编队出击'
         actions:
           - {type: 'click', pattern: '出击'}
-      - page: '对话框-暂停战斗'
-        actions:
-          - {type: 'click', pattern: '继续战斗'}
-      - page: '战斗中'
-        actions:
-          - {type: 'sleep', time: 3000}
-      - page: '战斗评价'
-        actions:
-            - {type: 'click', pattern: '战斗评价'}
-      - page: '战斗获得道具'
-        actions:
-            - {type: 'click', pattern: '获得道具'}
-      - page: '战斗获得经验'
-        actions:
-          - {type: 'click', pattern: '确定'}
       - page: '再次挑战'
         actions:
           - {type: 'click', pattern: '再次挑战'}
@@ -549,3 +368,16 @@ modes:
       - page: '对话框-石油不足'
         actions:
           - {type: 'over'}
+  - name: 'auxiliary'
+    inherit: ['base-common']
+    page_actions:
+      - page: '立刻前往'
+        actions:
+          - {type: 'click', pattern: '立刻前往'}
+      - page: '编队出击'
+        actions:
+          - {type: 'click', pattern: '出击'}
+      - page: '再次挑战'
+        actions:
+          - {type: 'click', pattern: '再次挑战'}
+

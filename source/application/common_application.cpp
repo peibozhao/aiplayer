@@ -330,7 +330,7 @@ IPlayer *CommonApplication::CreatePlayer(const std::string &config_path) {
 
         std::vector<ModeConfig> mode_configs;
         for (const auto &mode_yaml : player_yaml["modes"]) {
-            ModeConfig mode_config = GetModeConfig(mode_yaml);
+            ModeConfig mode_config = GetModeConfig(mode_yaml, mode_configs);
             mode_configs.push_back(mode_config);
         }
         ret = new CommonPlayer(player_name, page_configs, mode_configs);

@@ -47,10 +47,23 @@ PageKeyElement GetKeyElementConfig(const YAML::Node &yaml_node) {
     return ret;
 }
 
-ModeConfig GetModeConfig(const YAML::Node &yaml_node) {
+ModeConfig GetModeConfig(const YAML::Node &yaml_node,
+                         const std::vector<ModeConfig> &mode_configs) {
     ModeConfig ret;
     ret.name = yaml_node["name"].as<std::string>();
-    for (auto &defined_page_yaml : yaml_node["page_actions"]) {
+
+    for (const auto &inherit_yaml : yaml_node["inherit"]) {
+        std::string inherit_name = inherit_yaml.as<std::string>();
+        std::for_each(mode_configs.begin(), mode_configs.end(),
+                      [&ret, inherit_name](const ModeConfig &mode_config) {
+                          if (mode_config.name == inherit_name) {
+                              ret.page_pattern_actions =
+                                  mode_config.page_pattern_actions;
+                          }
+                      });
+    }
+
+    for (const auto &defined_page_yaml : yaml_node["page_actions"]) {
         std::string page_pattern = defined_page_yaml["page"].as<std::string>();
         std::vector<ActionConfig> action_configs;
         for (auto &action_yaml : defined_page_yaml["actions"]) {
