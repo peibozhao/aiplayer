@@ -192,6 +192,11 @@ pages:
       - {pattern: '信息', x_range: [0., 0.5], y_range: [0., 0.5]}
       - {pattern: '石油不足.*', x_range: [0.4, 0.6], y_range: [0.4, 0.6]}
       - {pattern: '确定', x_range: [0.3, 0.5], y_range: [0.5, 0.8]}
+  - name: '对话框-新角色'
+    conditions:
+      - {pattern: '信息', x_range: [0., 0.5], y_range: [0., 0.5]}
+      - {pattern: '是否锁定该角色？', x_range: [0.4, 0.6], y_range: [0.4, 0.6]}
+      - {pattern: '确定', x_range: [0.3, 0.5], y_range: [0.5, 0.8]}
   - name: '对话框-应援' # 活动
     conditions:
       - {pattern: '知道了'}
@@ -296,7 +301,7 @@ modes:
       - page: '章节选择-普通-10章'
         actions:
           - {type: 'click', pattern: '10-4.*'}
-  - name: '11-2'
+  - name: '11-3'
     inherit: ['base-common', 'base-main-attack']
     page_actions:
       - page: '章节选择-困难-.*'
@@ -304,7 +309,10 @@ modes:
           - {type: 'click', pattern: '普通'}
       - page: '章节选择-普通-11章'
         actions:
-          - {type: 'click', pattern: '11-2.*'}
+          - {type: 'click', pattern: '11-3.*'}
+      - page: '对话框-新角色'
+        actions:
+          - {type: 'over'}
   - name: 'hard-10-2'
     inherit: ['base-common', 'base-main-attack']
     page_actions:
@@ -314,6 +322,9 @@ modes:
       - page: '章节选择-困难-10章'
         actions:
           - {type: 'click', pattern: '10-2.*'}
+      - page: '弹出窗口-困难关卡次数不足'
+        actions:
+          - {type: 'over'}
   - name: 'special'  # 需要选择章节的那种活动
     inherit: ['base-common']
     page_actions:
@@ -368,16 +379,58 @@ modes:
       - page: '对话框-石油不足'
         actions:
           - {type: 'over'}
-  - name: 'auxiliary'
+  - name: 'auxiliary'  # 手动刷图(没达到自律)
     inherit: ['base-common']
     page_actions:
       - page: '立刻前往'
         actions:
           - {type: 'click', pattern: '立刻前往'}
+      - page: '战场'
+        actions:
+          - {type: 'sleep', time: 1000}
       - page: '编队出击'
         actions:
           - {type: 'click', pattern: '出击'}
       - page: '再次挑战'
         actions:
           - {type: 'click', pattern: '再次挑战'}
+    other_page_actions:
+      actions:
+        - {type: 'sleep', time: 1000}
+    undefined_page_actions:
+      actions:
+        - {type: 'sleep', time: 1000}
+  - name: 'exercise'
+    inherit: ['base-common']
+    page_actions:
+      - page: '主页'
+        actions:
+          - {type: 'click', pattern: '出击'}
+      - page: '出击主页'
+        actions:
+          - {type: 'click', pattern: '演习'}
+      - page: '演习主页'
+        actions:
+          - {type: 'click', pattern: '综合实力'}
+      - page: '演习对手信息'
+        actions:
+          - {type: 'click', pattern: '开始演习'}
+      - page: '编队出击'
+        actions:
+          - {type: 'click', pattern: '出击'}
+      - page: '战场' # '出击'直接进入战场
+        actions:
+          - {type: 'click', pattern: '迎击'}
+      - page: '战斗失败建议'
+        actions:
+          - {type: 'click', pattern: '点击关闭'}
+      - page: '章节选择-.*'  # 在主线的章节选择页面, 需要返回
+        actions:
+          - {type: 'click', point: [0.05, 0.1]}
+      - page: '弹出窗口-演习次数不足'
+        actions:
+          - {type: 'over'}
+      - page: '补给商店'
+        actions:
+          - {type: 'click', point: [0.05, 0.1]}
 

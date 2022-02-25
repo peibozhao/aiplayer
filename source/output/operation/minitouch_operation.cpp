@@ -1,6 +1,6 @@
 
 #include "minitouch_operation.h"
-#include "utils/log.h"
+#include "common/log.h"
 #include "httplib.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -25,13 +25,13 @@ MinitouchOperation::~MinitouchOperation() { close(socket_); }
 
 bool MinitouchOperation::Init() {
     if (orientation_ != 0 && orientation_ != 90) {
-        LOG_ERROR("Ensupport orientation value %d", orientation_);
+        LOG(ERROR) << "Ensupport orientation value " << orientation_;
         return false;
     }
 
     socket_ = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_ < 0) {
-        LOG_ERROR("Minitouch create socket failed");
+        LOG(ERROR) << "Minitouch create socket failed";
         return false;
     }
 
@@ -41,7 +41,7 @@ bool MinitouchOperation::Init() {
     int setopt_ret = setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, &overtime,
                                 sizeof(overtime));
     if (setopt_ret != 0) {
-        LOG_ERROR("setsockopt failed %d", setopt_ret);
+        LOG(ERROR) << "setsockopt failed " << setopt_ret;
         return false;
     }
 
@@ -51,7 +51,7 @@ bool MinitouchOperation::Init() {
     peer_sock.sin_addr.s_addr = inet_addr(ip_.c_str());
     peer_sock.sin_port = htons(server_port_);
     if (connect(socket_, (sockaddr *)&peer_sock, sizeof(peer_sock)) < 0) {
-        LOG_ERROR("Minitouch connect failed");
+        LOG(ERROR) << "Minitouch connect failed";
         return false;
     }
 
@@ -63,10 +63,10 @@ bool MinitouchOperation::Init() {
         int read_len = read(socket_, header_buf + header_len,
                             sizeof(header_buf) - header_len);
         if (read_len == -1) {
-            LOG_ERROR("Network error %d", errno);
+            LOG(ERROR) << "Network error " << errno;
             return false;
         } else if (read_len == 0) {
-            LOG_ERROR("Peer closed");
+            LOG(ERROR) << "Peer closed";
             return false;
         }
         for (int i = 0; i < read_len; ++i) {
@@ -76,7 +76,7 @@ bool MinitouchOperation::Init() {
         header_len += read_len;
     }
 
-    LOG_INFO("%s", header_buf);
+    LOG(INFO) << header_buf;
     ParseHeader(header_buf, header_len);
     return true;
 }
@@ -84,7 +84,7 @@ bool MinitouchOperation::Init() {
 void MinitouchOperation::Click(uint16_t x, uint16_t y) {
     std::pair<uint16_t, uint16_t> point = CoordinateConvertion(x, y);
     std::tie(x, y) = point;
-    LOG_INFO("Click %d %d", x, y);
+    LOG(INFO) << "Click " << x << y;
 
     std::stringstream op_ss;
     op_ss << "d 0 " << std::to_string(x) << ' ' << std::to_string(y) << " 1\n"
@@ -95,7 +95,7 @@ void MinitouchOperation::Click(uint16_t x, uint16_t y) {
     std::lock_guard<std::mutex> lock(mutex_);
     int write_len = write(socket_, op_str.c_str(), op_str.size());
     if (write_len != op_str.size()) {
-        LOG_ERROR("write len error %ld %d", op_str.size(), write_len);
+        LOG(ERROR) << "write len error " << op_str.size() << " " << write_len;
         return;
     }
 }
@@ -103,7 +103,7 @@ void MinitouchOperation::Click(uint16_t x, uint16_t y) {
 void MinitouchOperation::ParseHeader(char *buffer, int len) {
     buffer[len] = '\0';
     sscanf(buffer, "v %*d\n^ %*d %hu %hu %*d\n$ %*d\n", &max_x_, &max_y_);
-    LOG_INFO("Max x %d, max y %d", max_x_, max_y_);
+    LOG(INFO) << "Max x " << max_x_ << ", max y " << max_y_;
 }
 
 std::pair<uint16_t, uint16_t>

@@ -1,8 +1,12 @@
 #pragma once
 
-#include "detect/detect.h"
-#include "ocr/ocr.h"
 #include <vector>
+#include <string>
+
+struct Element {
+    std::string name;
+    float x, y;
+};
 
 enum class PlayOperationType {
     SCREEN_CLICK = 1, // 触屏点击操作
@@ -12,7 +16,8 @@ enum class PlayOperationType {
 
 struct ClickOperation {
     uint16_t x, y;
-    ClickOperation(uint16_t xi = 0, uint16_t yi = 0) : x(xi), y(yi) {}
+    ClickOperation(uint16_t x_center = 0, uint16_t y_center = 0)
+        : x(x_center), y(y_center) {}
 };
 
 struct PlayOperation {
@@ -37,9 +42,7 @@ public:
 
     /// @brief 通过检测结果返回行为
     virtual std::vector<PlayOperation>
-    Play(const Image &image,
-         const std::vector<ObjectBox> &object_boxes,
-         const std::vector<TextBox> &text_boxes) = 0;
+    Play(const std::vector<Element> elements) = 0;
 
     virtual std::string Name() { return name_; }
 

@@ -1,8 +1,8 @@
 
 #include "http_request.h"
-#include "utils/log.h"
-#include "utils/util_functions.h"
+#include "common/log.h"
 #include "nlohmann/json.hpp"
+#include "utils/util_functions.h"
 
 std::map<std::string, RequestOperation> HttpRequest::httpmethod_to_ops_ = {
     {"GET", RequestOperation::Query},
@@ -17,18 +17,18 @@ HttpRequest::HttpRequest(const std::string &ip, unsigned short port) {
 }
 
 HttpRequest::~HttpRequest() {
-    LOG_INFO("Http server stop");
+    LOG(INFO) << "Http server stop";
     server_.stop();
     recv_thread_->join();
 }
 
 bool HttpRequest::Init() {
-    LOG_INFO("Http server start");
+    LOG(INFO) << "Http server start";
     recv_thread_.reset(new std::thread([this] {
-        LOG_INFO("Http server listen %s:%d", ip_.c_str(), port_);
+        LOG(INFO) << "Http server listen " << ip_ << ":" << port_;
         bool ret = server_.listen(ip_.c_str(), port_);
         if (!ret) {
-            LOG_ERROR("Http listen failed. %d", port_);
+            LOG(ERROR) << "Http listen failed. " << port_;
         }
     }));
     return true;
@@ -37,8 +37,7 @@ bool HttpRequest::Init() {
 void HttpRequest::SetCallback(const std::string &path, RequestOperation op,
                               RequestCallback callback) {
     auto op_to_methods = ReverseMap(httpmethod_to_ops_);
-    LOG_INFO("Register http callback %s %s", op_to_methods[op].c_str(),
-             path.c_str());
+    LOG(INFO) << "Register http callback " << op_to_methods[op] << " " << path;
     auto request_handler = httplib::Server::Handler(
         std::bind(&HttpRequest::RequestHandler, this, std::placeholders::_1,
                   std::placeholders::_2));
@@ -59,7 +58,7 @@ void HttpRequest::SetCallback(const std::string &path, RequestOperation op,
         server_.Put(path.c_str(), request_handler);
         break;
     default:
-        LOG_ERROR("Unkown request opration type");
+        LOG(ERROR) << "Unkown request opration type";
         return;
     }
     callbacks_[std::make_pair(path, op)] = callback;
@@ -69,20 +68,20 @@ void HttpRequest::RequestHandler(const httplib::Request &req,
                                  httplib::Response &res) {
     RequestOperation op = httpmethod_to_ops_[req.method];
     std::string path = req.path;
-    LOG_INFO("Trigger callback %s %s", req.method.c_str(), path.c_str());
+    LOG(INFO) << "Trigger callback " << req.method << " " << path;
     auto iter = callbacks_.find(std::make_pair(path, op));
     if (iter != callbacks_.end()) {
         RequestCallback callback = iter->second;
         if (!callback(req.body, res.body)) {
             res.reason = "Callback failed";
             res.status = 400;
-            LOG_INFO("%s", res.reason.c_str());
+            LOG(ERROR) << res.reason;
         } else {
             res.status = 200;
         }
     } else {
         res.status = 400;
         res.reason = "No implementation";
-        LOG_INFO("%s", res.reason.c_str());
+        LOG(ERROR) << res.reason;
     }
 }

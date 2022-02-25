@@ -8,19 +8,14 @@
 
 #pragma once
 
-#include "input/image/image_input.h"
 #include <string>
 #include <vector>
+#include <opencv2/core.hpp>
+#include "common/common.h"
 
 struct ObjectBox {
-    uint16_t x, y; // center
-    uint16_t width, height;
     std::string name;
-
-    ObjectBox() : x(0), y(0), width(0), height(0) {}
-
-    ObjectBox(int x_center, int y_center, int w, int h, const std::string &n)
-        : x(x_center), y(y_center), width(w), height(h), name(n) {}
+    RectangleI region;
 };
 
 class IObjectDetect {
@@ -29,5 +24,5 @@ public:
 
     virtual bool Init() { return true; }
 
-    virtual std::vector<ObjectBox> Detect(const Image &image) = 0;
+    virtual std::vector<ObjectBox> Detect(const cv::Mat &image) = 0;
 };

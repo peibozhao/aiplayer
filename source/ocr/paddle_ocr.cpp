@@ -1,10 +1,10 @@
 
 #include "paddle_ocr.h"
-#include "utils/log.h"
-#include "utils/util_functions.h"
-#include "utils/image_utils.h"
+#include "common/log.h"
 #include "nlohmann/json.hpp"
+#include "utils/util_functions.h"
 #include <cassert>
+#include <opencv2/imgcodecs.hpp>
 
 PaddleOcr::PaddleOcr(const std::string &host, unsigned short port) {
     host_ = host;
@@ -26,15 +26,12 @@ bool PaddleOcr::Init() {
     return true;
 }
 
-std::vector<TextBox> PaddleOcr::Detect(const Image &image) {
+std::vector<TextBox> PaddleOcr::Detect(const cv::Mat &image) {
     // assert(image.format == ImageFormat::JPEG && "Image format error.");
-    Image jpeg_image = Convert(image, ImageFormat::JPEG);
+    std::vector<uint8_t> jpeg_buffer;
+    cv::imencode(".jpeg", image, jpeg_buffer);
 
-    std::ofstream ofs("test.jpg", std::ios::binary);
-    ofs.write((char *)jpeg_image.buffer.data(), jpeg_image.buffer.size());
-    ofs.close();
-
-    std::string image_base64 = Base64Encode(jpeg_image.buffer);
+    std::string image_base64 = Base64Encode(jpeg_buffer);
     nlohmann::json request_json;
     request_json["images"].push_back(image_base64);
 
@@ -42,7 +39,8 @@ std::vector<TextBox> PaddleOcr::Detect(const Image &image) {
         "/predict/ocr_system", request_json.dump(), "application/json");
 
     if (http_ret.error() != httplib::Error::Success) {
-        LOG_ERROR("Http return error %d", static_cast<int>(http_ret.error()));
+        LOG(ERROR) << "Http return error "
+                   << static_cast<int>(http_ret.error());
         return {};
     }
 
@@ -65,15 +63,16 @@ std::vector<TextBox> PaddleOcr::Detect(const Image &image) {
             bottom = y > bottom ? y : bottom;
             left = x < left ? x : left;
             top = y < top ? y : top;
-            text_box.x += x;
-            text_box.y += y;
+            text_box.region.x += x;
+            text_box.region.y += y;
         }
-        text_box.width = right - left;
-        text_box.height = bottom - top;
-        text_box.x /= point_count;
-        text_box.y /= point_count;
+        text_box.region.width = right - left;
+        text_box.region.height = bottom - top;
+        text_box.region.x /= point_count;
+        text_box.region.y /= point_count;
         ret.push_back(text_box);
-        LOG_DEBUG("%s %d %d", text_box.text.c_str(), text_box.x, text_box.y);
+        DLOG(INFO) << text_box.text << " " << text_box.region.x << " "
+                   << text_box.region.y;
     }
     return ret;
 }

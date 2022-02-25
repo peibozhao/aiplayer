@@ -16,7 +16,7 @@ public:
 
     bool Init() override;
 
-    Image GetOneFrame() override;
+    cv::Mat GetOneFrame() override;
 
 private:
     void RecvImageThread();
@@ -29,7 +29,7 @@ private:
     std::shared_ptr<std::thread> recv_thread_;
     std::mutex image_mutex_;
     std::condition_variable image_con_;
-    std::vector<uint8_t> image_buffer_;
+    std::vector<uint8_t> recv_buffer_;
 
     std::atomic_bool is_running_;
 };

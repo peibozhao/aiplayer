@@ -48,8 +48,7 @@ public:
     bool Init() override;
 
     std::vector<PlayOperation>
-    Play(const Image &image, const std::vector<ObjectBox> &object_boxes,
-         const std::vector<TextBox> &text_boxes) override;
+    Play(const std::vector<Element> elements) override;
 
     bool GameOver() override;
 
@@ -58,6 +57,10 @@ public:
     bool SetMode(const std::string &mode) override;
 
     std::string GetMode() override;
+
+    void RegisterSpecialPage(const std::string &page_name,
+                             std::function<std::vector<PlayOperation>>(
+                                 const std::vector<Element> &elements));
 
 private:
     // Maybe change is_over_ flag

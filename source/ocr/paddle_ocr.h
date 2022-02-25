@@ -7,13 +7,14 @@
 class PaddleOcr : public IOcrDetect {
 public:
     PaddleOcr(const std::string &host, unsigned short port);
+
     PaddleOcr(const std::string &host, unsigned short port, int timeout);
 
     ~PaddleOcr() override;
 
     bool Init() override;
 
-    std::vector<TextBox> Detect(const Image &image) override;
+    std::vector<TextBox> Detect(const cv::Mat &image) override;
 
 private:
     std::string host_;

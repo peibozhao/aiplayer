@@ -1,6 +1,6 @@
 
 #include "scrcpy_operation.h"
-#include "utils/log.h"
+#include "common/log.h"
 #include "httplib.h"
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -34,7 +34,7 @@ static int SendPress(int socket, const PressMessage &message) {
     *((uint32_t *)&buffer[4 + 14]) = htonl(message.y);
     int send_len = send(socket, buffer, buffer_size, 0);
     if (send_len != buffer_size) {
-        LOG_ERROR("Scrcpy send failed. %d != %d", send_len, buffer_size);
+        LOG_IF(ERROR, send_len != buffer_size) << "Scrcpy send failed";
     }
     return send_len;
 }
@@ -50,7 +50,7 @@ ScrcpyOperation::~ScrcpyOperation() { close(socket_); }
 bool ScrcpyOperation::Init() {
     socket_ = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_ < 0) {
-        LOG_ERROR("Scrcpy create socket failed");
+        LOG(ERROR) << "Scrcpy create socket failed";
         return false;
     }
 
@@ -60,7 +60,7 @@ bool ScrcpyOperation::Init() {
     int setopt_ret = setsockopt(socket_, SOL_SOCKET, SO_RCVTIMEO, &overtime,
                                 sizeof(overtime));
     if (setopt_ret != 0) {
-        LOG_ERROR("setsockopt failed %d", setopt_ret);
+        LOG(ERROR) << "setsockopt failed " << setopt_ret;
         return false;
     }
 
@@ -70,7 +70,7 @@ bool ScrcpyOperation::Init() {
     peer_sock.sin_addr.s_addr = inet_addr(ip_.c_str());
     peer_sock.sin_port = htons(server_port_);
     if (connect(socket_, (sockaddr *)&peer_sock, sizeof(peer_sock)) < 0) {
-        LOG_ERROR("Scrcpy connect failed");
+        LOG(ERROR) << "Scrcpy connect failed";
         return false;
     }
     return true;

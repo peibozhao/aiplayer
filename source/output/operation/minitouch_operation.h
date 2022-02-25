@@ -12,9 +12,8 @@
 
 class MinitouchOperation : public ITouchScreenOperation {
 public:
-    MinitouchOperation(const std::string &ip, uint16_t port,
-                       uint16_t width, uint16_t height,
-                       int orientation);
+    MinitouchOperation(const std::string &ip, uint16_t port, uint16_t width,
+                       uint16_t height, int orientation);
 
     ~MinitouchOperation() override;
 

@@ -105,8 +105,6 @@ bool CommonPlayer::Init() {
     return true;
 }
 
-#include <iostream>
-
 std::vector<PlayOperation>
 CommonPlayer::Play(const Image &image,
                    const std::vector<ObjectBox> &object_boxes,
