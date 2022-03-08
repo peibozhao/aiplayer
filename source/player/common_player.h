@@ -48,11 +48,7 @@ public:
     bool Init() override;
 
     std::vector<PlayOperation>
-    Play(const std::vector<Element> elements) override;
-
-    bool GameOver() override;
-
-    void GameContinue() override;
+    Play(const std::vector<Element> &elements) override;
 
     bool SetMode(const std::string &mode) override;
 
@@ -63,11 +59,8 @@ public:
                                  const std::vector<Element> &elements));
 
 private:
-    // Maybe change is_over_ flag
     std::vector<PlayOperation>
-    CreatePlayOperation(uint16_t width, uint16_t height,
-                        const std::vector<ObjectBox> &object_boxes,
-                        const std::vector<TextBox> &text_boxes,
+    CreatePlayOperation(const std::vector<Element> &elements,
                         const std::vector<ActionConfig> &action_configs);
 
 private:
@@ -76,6 +69,4 @@ private:
 
     std::mutex mode_mutex_;
     const ModeConfig *mode_;
-
-    std::atomic<bool> is_over_;
 };

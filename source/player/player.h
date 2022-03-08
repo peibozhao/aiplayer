@@ -42,15 +42,9 @@ public:
 
     /// @brief 通过检测结果返回行为
     virtual std::vector<PlayOperation>
-    Play(const std::vector<Element> elements) = 0;
+    Play(const std::vector<Element> &elements) = 0;
 
     virtual std::string Name() { return name_; }
-
-    /// @brief 当前是否达到限制
-    virtual bool GameOver() { return false; }
-
-    /// @brief 到达限制后继续
-    virtual void GameContinue() {}
 
     /// @brief 设置mode
     virtual bool SetMode(const std::string &mode) { return false; }
