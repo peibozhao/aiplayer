@@ -3,35 +3,38 @@
 #include "common/log.h"
 #include <cassert>
 
-typedef std::pair<uint16_t, uint16_t> Point;
+namespace {
+typedef std::pair<float, float> Point;
 typedef std::array<float, 4> Region;
+} // namespace
 
 static bool CenterInRegion(const Region &region, const Point &point) {
-  return point.first > region[0] && point.first < region[2] &&
-         point.second > region[1] && point.second < region[3];
+  return point.first >= region[0] && point.first <= region[2] &&
+         point.second >= region[1] && point.second <= region[3];
 }
 
 static bool
 SatisfyPageCondition(const std::vector<Element> &elements,
                      const std::vector<PageKeyElement> &key_elements) {
   for (const PageKeyElement &key_element : key_elements) {
+    bool has_cur = false;
     for (const Element &element : elements) {
-      std::string name = element.name;
-      uint16_t x = element.x, y = element.y;
-      if (std::regex_match(name, key_element.pattern) &&
+      if (std::regex_match(element.name, key_element.pattern) &&
           CenterInRegion({key_element.x_min, key_element.y_min,
                           key_element.x_max, key_element.y_max},
-                         {x, y})) {
+                         {element.x, element.y})) {
+        has_cur = true;
         break;
-      } else {
-        return false;
       }
+    }
+    if (!has_cur) {
+      return false;
     }
   }
   return true;
 }
 
-static std::tuple<std::string, int, int>
+static std::tuple<std::string, float, float>
 GetPatternPoint(const std::vector<Element> &elements,
                 const std::regex &pattern) {
   for (const auto element : elements) {
@@ -39,7 +42,7 @@ GetPatternPoint(const std::vector<Element> &elements,
       return std::make_tuple(element.name, element.x, element.y);
     }
   }
-  return std::make_tuple("", 0, 0);
+  return std::make_tuple("", 0., 0.);
 }
 
 CommonPlayer::CommonPlayer(const std::string &name,
@@ -77,6 +80,10 @@ bool CommonPlayer::Init() {
 
 std::vector<PlayOperation>
 CommonPlayer::Play(const std::vector<Element> &elements) {
+  std::for_each(elements.begin(), elements.end(), [](const Element &ele) {
+    DLOG(INFO) << ele.name << " " << ele.x << " " << ele.y;
+  });
+
   std::lock_guard<std::mutex> lock(mode_mutex_);
   for (const PageConfig &page_config : page_configs_) {
     // Detect page
@@ -96,7 +103,7 @@ CommonPlayer::Play(const std::vector<Element> &elements) {
     if (iter != mode_->page_pattern_actions.end()) {
       ret = CreatePlayOperation(elements, std::get<1>(*iter));
     } else {
-      LOG(INFO) << "Other page operation";
+      DLOG(INFO) << "Other page operation";
       ret = CreatePlayOperation(elements, mode_->other_page_actions);
     }
     return ret;
@@ -130,34 +137,36 @@ std::vector<PlayOperation> CommonPlayer::CreatePlayOperation(
     const std::vector<ActionConfig> &action_configs) {
   std::vector<PlayOperation> ret;
   for (const ActionConfig &action_config : action_configs) {
+    PlayOperation operation;
     if (action_config.type == "click") {
-      PlayOperation operation(PlayOperationType::SCREEN_CLICK);
+      operation.type = PlayOperationType::SCREEN_CLICK;
       if (action_config.pattern) {
-        auto point_info =
-            GetPatternPoint(elements, *action_config.pattern);
+        auto point_info = GetPatternPoint(elements, *action_config.pattern);
         std::string click_text = std::get<0>(point_info);
         if (click_text.empty()) {
-          LOG(ERROR) << "Can not find click pattern";
-          return {};
+          LOG(WARNING) << "Can not find click pattern";
+          continue;
         }
-        DLOG(INFO) << "Click " << std::get<0>(point_info);
         operation.click.x = std::get<1>(point_info);
         operation.click.y = std::get<2>(point_info);
+        DLOG(INFO) << "Click " << std::get<0>(point_info);
       } else if (action_config.point) {
         operation.click.x = action_config.point->first;
         operation.click.y = action_config.point->second;
         DLOG(INFO) << "Click point " << operation.click.x << " "
                    << operation.click.y;
       }
-      ret.push_back(operation);
     } else if (action_config.type == "sleep") {
       DLOG(INFO) << "Sleep " << *action_config.sleep_time;
-      PlayOperation operation(PlayOperationType::SLEEP);
+      operation.type = PlayOperationType::SLEEP;
       operation.sleep_ms = *action_config.sleep_time;
-      ret.push_back(operation);
     } else if (action_config.type == "over") {
+      operation.type = PlayOperationType::OVER;
       LOG(INFO) << "Play end";
+    } else {
+      continue;
     }
+    ret.push_back(operation);
   }
   return ret;
 }

@@ -1,17 +1,17 @@
 #pragma once
 
-#include <string>
 #include "image_input.h"
+#include <string>
 
 class FileImageInput : public IImageInput {
 public:
-    FileImageInput(const std::string &fname);
+  FileImageInput(const std::string &fname);
 
-    bool Init() override;
+  bool Init() override;
 
-    cv::Mat GetOneFrame() override;
+  cv::Mat GetOneFrame() override;
 
 private:
-    std::string fname_;
-    cv::Mat image_;
+  std::string fname_;
+  cv::Mat image_;
 };

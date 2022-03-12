@@ -59,7 +59,6 @@ set(AIPLAYER_SOURCE_LIST
     source/ocr/paddle_ocr.cpp
     source/player/common_player.cpp
     source/utils/util_functions.cpp
-    source/utils/image_utils.cpp
     )
 
 add_library(aiplayer SHARED ${AIPLAYER_SOURCE_LIST})

@@ -5,9 +5,9 @@
 
 class IImageInput {
 public:
-    virtual ~IImageInput() {};
+  virtual ~IImageInput(){};
 
-    virtual bool Init() { return true; }
+  virtual bool Init() { return true; }
 
-    virtual cv::Mat GetOneFrame() = 0;
+  virtual cv::Mat GetOneFrame() = 0;
 };

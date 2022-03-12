@@ -17,66 +17,66 @@
 
 class CommonApplication : public IApplication {
 private:
-    enum ApplicationStatus { Stopped, Running, Pausing, Over };
+  enum ApplicationStatus { Stopped, Running, Pausing };
 
 public:
-    CommonApplication(const std::string &config_fname);
+  CommonApplication(const std::string &config_fname);
 
-    bool Init() override;
+  bool Init() override;
 
-    void Start() override;
+  void Start() override;
 
-    void Pause() override;
+  void Pause() override;
 
-    void Continue() override;
+  void Continue() override;
 
-    void Stop() override;
+  void Stop() override;
 
-    bool SetPlayer(const std::string &player_name) override;
+  bool SetPlayer(const std::string &player_name) override;
 
-    std::string GetPlayer() override;
+  std::string GetPlayer() override;
 
-    bool SetMode(const std::string &mode_name) override;
+  bool SetMode(const std::string &mode_name) override;
 
-    std::string GetMode() override;
+  std::string GetMode() override;
 
 private:
-    bool InitWithYaml(const YAML::Node &yaml);
+  bool InitWithYaml(const YAML::Node &yaml);
 
-    IPlayer *CreatePlayer(const std::string &config_path);
+  IPlayer *CreatePlayer(const std::string &config_path);
 
-    bool QueryCurrentPlayerCallback(const std::string &request_str,
-                                    std::string &response_str);
-
-    bool ReplaceCurrentPlayerCallback(const std::string &request_str,
-                                      std::string &response_str);
-
-    bool QueryCurrentModeCallback(const std::string &request_str,
+  bool QueryCurrentPlayerCallback(const std::string &request_str,
                                   std::string &response_str);
 
-    bool ReplaceCurrentModeCallback(const std::string &request_str,
+  bool ReplaceCurrentPlayerCallback(const std::string &request_str,
                                     std::string &response_str);
 
-    bool QueryStatusCallback(const std::string &request_str,
+  bool QueryCurrentModeCallback(const std::string &request_str,
+                                std::string &response_str);
+
+  bool ReplaceCurrentModeCallback(const std::string &request_str,
+                                  std::string &response_str);
+
+  bool QueryStatusCallback(const std::string &request_str,
+                           std::string &response_str);
+
+  bool ReplaceStatusCallback(const std::string &request_str,
                              std::string &response_str);
 
-    bool ReplaceStatusCallback(const std::string &request_str,
-                               std::string &response_str);
-
 private:
-    std::string config_abs_path_;
-    std::shared_ptr<IImageInput> source_;
-    std::shared_ptr<IOcrDetect> ocr_;
-    std::vector<std::shared_ptr<IPlayer>> players_;
-    std::shared_ptr<ITouchScreenOperation> operation_;
-    std::shared_ptr<IRequest> request_;
-    std::shared_ptr<IEventNotify> notify_;
+  std::string config_abs_path_;
+  std::shared_ptr<IImageInput> source_;
+  std::shared_ptr<IOcrDetect> ocr_;
+  std::vector<std::shared_ptr<IPlayer>> players_;
+  std::shared_ptr<ITouchScreenOperation> operation_;
+  std::shared_ptr<IRequest> request_;
+  std::shared_ptr<IEventNotify> notify_;
 
-    ApplicationStatus status_;
-    std::mutex mutex_;
-    std::condition_variable con_;
+  ApplicationStatus status_;
+  std::mutex mutex_;
+  std::condition_variable con_;
 
-    std::shared_ptr<IPlayer> player_;
+  std::shared_ptr<IPlayer> player_;
 
-    int interval_ms_;
+  int interval_ms_;
 };

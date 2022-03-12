@@ -6,14 +6,14 @@
 
 class MiaoNotify : public IEventNotify {
 public:
-    MiaoNotify(const std::string &miao);
+  MiaoNotify(const std::string &miao);
 
-    bool Init() override;
+  bool Init() override;
 
-    bool Notify(const std::string &message) override;
+  bool Notify(const std::string &message) override;
 
 private:
-    std::string miao_;
+  std::string miao_;
 
-    std::shared_ptr<httplib::Client> client_;
+  std::shared_ptr<httplib::Client> client_;
 };

@@ -1,20 +1,21 @@
 
 #include "common_application.h"
+#include "common/log.h"
+#include "detect/detect.h"
 #include "input/image/file_input.h"
 #include "input/image/minicap_input.h"
 #include "input/image/scrcpy_input.h"
 #include "input/request/http_request.h"
 #include "ocr/paddle_ocr.h"
-#include "output/notify//miao_notify.h"
+#include "output/notify/miao_notify.h"
 #include "output/operation/dummy_operation.h"
 #include "output/operation/minitouch_operation.h"
 #include "output/operation/scrcpy_operation.h"
 #include "parser/yaml_parser.h"
 #include "player/common_player.h"
-#include "utils/image_utils.h"
-#include "utils/log.h"
 #include "utils/util_functions.h"
 #include <filesystem>
+#include <opencv2/imgcodecs.hpp>
 #include <yaml-cpp/yaml.h>
 
 CommonApplication::CommonApplication(const std::string &config_fname) {
@@ -32,10 +33,10 @@ void CommonApplication::Start() {
   status_ = ApplicationStatus::Running;
 
   while (true) {
+    // Check application status
     std::unique_lock<std::mutex> lock(mutex_);
     con_.wait(lock, [this] {
-      return status_ == ApplicationStatus::Running ||
-             status_ == ApplicationStatus::Stopped;
+      return status_ != ApplicationStatus::Pausing;
     });
     if (status_ == ApplicationStatus::Stopped) {
       LOG(INFO) << "Application stoped";
@@ -43,52 +44,90 @@ void CommonApplication::Start() {
     }
     lock.unlock();
 
+    // Get one screenshot
     TimeLog image_time_log("Image source");
     cv::Mat image = source_->GetOneFrame();
-    if (image.buffer.empty()) {
+    if (image.empty()) {
       LOG(WARNING) << "Image is empty";
       continue;
     }
     image_time_log.Tok();
 
+    // Ocr detect
     TimeLog ocr_time_log("OCR");
     std::vector<TextBox> text_boxes = ocr_->Detect(image);
     if (text_boxes.empty()) {
-      LOG(INFO) << "Text is empty";
+      DLOG(INFO) << "Text is empty";
       continue;
     }
     ocr_time_log.Tok();
 
+    // Player
+    const auto get_page_element_with_ocr_and_detect =
+        [width = image.cols,
+         height = image.rows](const std::vector<TextBox> &text_boxes,
+                              const std::vector<ObjectBox> &object_boxes) {
+          std::vector<Element> ret;
+          std::transform(
+              text_boxes.begin(), text_boxes.end(), std::back_inserter(ret),
+              [width, height](const TextBox &text_box) {
+                return Element(text_box.text,
+                               static_cast<float>(text_box.region.x) / width,
+                               static_cast<float>(text_box.region.y) / height);
+              });
+          std::transform(
+              object_boxes.begin(), object_boxes.end(), std::back_inserter(ret),
+              [width, height](const ObjectBox &object_box) {
+                return Element(object_box.class_name,
+                               static_cast<float>(object_box.region.x) / width,
+                               static_cast<float>(object_box.region.y) /
+                                   height);
+              });
+          return ret;
+        };
     std::vector<PlayOperation> play_operations =
-        player_->Play(image, {}, text_boxes);
-    if (!play_operations.empty()) {
-      TimeLog operation_time_log("Operation");
-      for (const PlayOperation &play_operation : play_operations) {
-        if (play_operation.type == PlayOperationType::SCREEN_CLICK) {
-          operation_->Click(play_operation.click.x, play_operation.click.y);
-        } else if (play_operation.type == PlayOperationType::SLEEP) {
-          std::this_thread::sleep_for(
-              std::chrono::milliseconds(play_operation.sleep_ms));
+        player_->Play(get_page_element_with_ocr_and_detect(text_boxes, {}));
+    TimeLog operation_time_log("Operation");
+    const auto get_point_with_scale =
+        [width = image.cols,
+         height = image.rows](const ClickOperation &operation) {
+          return std::make_pair(width * operation.x, height * operation.y);
+        };
+    for (const PlayOperation &play_operation : play_operations) {
+      switch (play_operation.type) {
+      case PlayOperationType::SCREEN_CLICK: {
+        std::pair<float, float> point =
+            get_point_with_scale(play_operation.click);
+        operation_->Click(point.first, point.second);
+        break;
+      }
+      case PlayOperationType::SLEEP: {
+        std::this_thread::sleep_for(
+            std::chrono::milliseconds(play_operation.sleep_ms));
+        break;
+      }
+      case PlayOperationType::OVER: {
+        LOG(INFO) << "Application is over";
+        status_ = ApplicationStatus::Pausing;
+        if (notify_) {
+          LOG(INFO) << "Notify mode over: " << player_->GetMode();
+          if (!notify_->Notify("Mode " + player_->GetMode() + " is over")) {
+            LOG(ERROR) << "Notify failed.";
+          }
         }
+        break;
       }
-      operation_time_log.Tok();
-
-      if (interval_ms_ > 0) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(interval_ms_));
+      default: {
+        LOG(WARNING) << "Unknown operation. "
+                     << static_cast<int>(play_operation.type);
+        break;
       }
-    } else {
-      LOG(INFO) << "Operation is empty";
+      }
     }
+    operation_time_log.Tok();
 
-    if (player_->GameOver()) {
-      LOG(INFO) << "Application is over";
-      status_ = ApplicationStatus::Over;
-      if (notify_) {
-        LOG_INFO("Notify %s over event", player_->GetMode().c_str());
-        if (!notify_->Notify("Mode " + player_->GetMode() + " is over")) {
-          LOG(ERROR) << "Notify failed.";
-        }
-      }
+    if (interval_ms_ > 0) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(interval_ms_));
     }
   }
 }
@@ -102,7 +141,6 @@ void CommonApplication::Pause() {
 void CommonApplication::Continue() {
   LOG(INFO) << "Application continue";
   std::lock_guard<std::mutex> lock(mutex_);
-  player_->GameContinue();
   status_ = ApplicationStatus::Running;
   con_.notify_one();
 }
@@ -150,26 +188,20 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
     source_.reset(
         new MinicapInput(std::get<0>(server_info), std::get<1>(server_info)));
   } else if (source_type == "file") {
-    source_.reset(new FileImageInput(source_yaml["file_name"].as<std::string>(),
-                                     ImageFormat::JPEG));
+    source_.reset(
+        new FileImageInput(source_yaml["file_name"].as<std::string>()));
   } else if (source_type == "scrcpy") {
     auto server_info(GetServerInfo(source_yaml));
     source_.reset(
         new ScrcpyInput(std::get<0>(server_info), std::get<1>(server_info)));
   }
   if (!source_ || !source_->Init()) {
-    LOG_ERROR("source init failed");
+    LOG(ERROR) << "source init failed";
     return false;
   }
-  LOG_INFO("Image source init success");
-  Image image = source_->GetOneFrame();
-  if (image.buffer.empty()) {
-    LOG_ERROR("Image get frame failed");
-    return false;
-  }
-  FrameSize frame_size = ImageSize(image);
+  LOG(INFO) << "Image source init success";
 
-  // OCR
+  // Ocr
   const YAML::Node &ocr_yaml(yaml["ocr"]);
   if (ocr_yaml["type"].as<std::string>() == "paddleocr") {
     auto server_info = GetServerInfo(ocr_yaml);
@@ -183,10 +215,10 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
     }
   }
   if (!ocr_ || !ocr_->Init()) {
-    LOG_ERROR("ocr init failed");
+    LOG(ERROR) << "ocr init failed";
     return false;
   }
-  LOG_INFO("OCR init success");
+  LOG(INFO) << "ocr init success";
 
   // Player
   const YAML::Node &players_yaml(yaml["players"]);
@@ -197,27 +229,32 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
 
     std::shared_ptr<IPlayer> player(CreatePlayer(player_config_path.string()));
     if (!player || !player->Init()) {
-      LOG_ERROR("Player %s init failed", player->Name().c_str());
+      LOG(ERROR) << "Player init failed. " << player->Name();
       continue;
     }
-    LOG_INFO("Player %s init success", player->Name().c_str());
+    LOG(INFO) << "Player init success. " << player->Name();
     players_.push_back(player);
   }
   if (!players_.empty()) {
     player_ = players_[0];
   } else {
-    LOG_ERROR("Players is empty");
+    LOG(ERROR) << "Players is empty";
   }
 
   // Operation
   const YAML::Node &operation_yaml = yaml["operation"];
   std::string operation_type = operation_yaml["type"].as<std::string>();
   if (operation_type == "minitouch") {
+    cv::Mat image = source_->GetOneFrame();
+    if (image.empty()) {
+      LOG(ERROR) << "Image get frame failed";
+      return false;
+    }
     auto server_info = GetServerInfo(operation_yaml);
-    int orientation = frame_size.first > frame_size.second ? 90 : 0;
+    int orientation = image.cols > image.rows ? 90 : 0;
     operation_.reset(new MinitouchOperation(
-        std::get<0>(server_info), std::get<1>(server_info), frame_size.first,
-        frame_size.second, orientation));
+        std::get<0>(server_info), std::get<1>(server_info), image.cols,
+        image.rows, orientation));
   } else if (operation_type == "dummy") {
     operation_.reset(new DummyOperation());
   } else if (operation_type == "scrcpy") {
@@ -226,10 +263,10 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
                                          std::get<1>(server_info)));
   }
   if (!operation_ || !operation_->Init()) {
-    LOG_ERROR("operation init failed");
+    LOG(ERROR) << "Operation init failed";
     return false;
   }
-  LOG_INFO("Operation init success");
+  LOG(INFO) << "Operation init success";
 
   // Request
   const YAML::Node &request_yaml = yaml["request"];
@@ -242,7 +279,7 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
     }
     if (!request_ || !request_->Init()) {
       request_.reset();
-      LOG_ERROR("Request init failed");
+      LOG(ERROR) << "Request init failed";
     } else {
       request_->SetCallback(
           "/player/name", RequestOperation::Query,
@@ -275,7 +312,7 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
                                       std::placeholders::_2));
     }
   } else {
-    LOG_INFO("Request is not defined");
+    LOG(INFO) << "Request is not defined";
   }
 
   // Notify
@@ -287,10 +324,10 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
     }
     if (!notify_ || !notify_->Init()) {
       notify_.reset();
-      LOG_ERROR("Notify init failed");
+      LOG(ERROR) << "Notify init failed";
     }
   } else {
-    LOG_INFO("Notify is not defined");
+    LOG(INFO) << "Notify is not defined";
   }
 
   // Application
@@ -304,7 +341,7 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
 }
 
 IPlayer *CommonApplication::CreatePlayer(const std::string &config_path) {
-  LOG_INFO("Load player %s", config_path.c_str());
+  LOG(INFO) << "Load player " << config_path;
   IPlayer *ret = nullptr;
   YAML::Node player_yaml = YAML::LoadFile(config_path);
   std::string player_name = player_yaml["name"].as<std::string>();
@@ -334,15 +371,15 @@ IPlayer *CommonApplication::CreatePlayer(const std::string &config_path) {
 bool CommonApplication::QueryCurrentPlayerCallback(
     const std::string &request_str, std::string &response_str) {
   response_str = player_->Name();
-  LOG_INFO("Get current player %s", response_str.c_str());
+  LOG(INFO) << "Get current player " << response_str;
   return true;
 }
 
 bool CommonApplication::ReplaceCurrentPlayerCallback(
     const std::string &request_str, std::string &response_str) {
-  LOG_INFO("Application set player %s", request_str.c_str());
+  LOG(INFO) << "Application set player " << request_str;
   if (!SetPlayer(request_str)) {
-    LOG_ERROR("Set player failed");
+    LOG(ERROR) << "Set player failed";
     return false;
   }
   return true;
@@ -351,15 +388,15 @@ bool CommonApplication::ReplaceCurrentPlayerCallback(
 bool CommonApplication::QueryCurrentModeCallback(const std::string &request_str,
                                                  std::string &response_str) {
   response_str = player_->GetMode();
-  LOG_INFO("Get current mode %s", response_str.c_str());
+  LOG(INFO) << "Get current mode " << response_str;
   return true;
 }
 
 bool CommonApplication::ReplaceCurrentModeCallback(
     const std::string &request_str, std::string &response_str) {
-  LOG_INFO("Application set mode %s", request_str.c_str());
+  LOG(INFO) << "Application set mode " << request_str;
   if (!player_->SetMode(request_str)) {
-    LOG_ERROR("Set mode failed");
+    LOG(ERROR) << "Set mode failed";
     return false;
   }
   return true;
@@ -377,21 +414,18 @@ bool CommonApplication::QueryStatusCallback(const std::string &request_str,
   case CommonApplication::Running:
     response_str = "running";
     break;
-  case CommonApplication::Over:
-    response_str = "over";
-    break;
   default:
-    LOG_ERROR("Status unkown status");
+    LOG(ERROR) << "Status unkown status";
     response_str = "";
     break;
   }
-  LOG_INFO("Get status %s", response_str.c_str());
+  LOG(INFO) << "Get status " << response_str;
   return !response_str.empty();
 }
 
 bool CommonApplication::ReplaceStatusCallback(const std::string &request_str,
                                               std::string &response_str) {
-  LOG_INFO("Replace status %s", request_str.c_str());
+  LOG(INFO) << "Replace status " << request_str;
   if (request_str == "running") {
     Continue();
   } else if (request_str == "pause") {
@@ -399,7 +433,7 @@ bool CommonApplication::ReplaceStatusCallback(const std::string &request_str,
   } else if (request_str == "stop") {
     Stop();
   } else {
-    LOG_ERROR("Unkown status changed. %s", request_str.c_str());
+    LOG(ERROR) << "Unkown status changed. " << request_str;
     return false;
   }
   return true;

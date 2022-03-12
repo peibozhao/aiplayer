@@ -27,9 +27,9 @@ bool ReadUtil(int fd, void *buffer, uint32_t buffer_size);
 
 template <typename T1, typename T2>
 std::map<T2, T1> ReverseMap(const std::map<T1, T2> &m) {
-    std::map<T2, T1> ret;
-    for (auto ele : m) {
-        ret[ele.second] = ele.first;
-    }
-    return ret;
+  std::map<T2, T1> ret;
+  for (auto ele : m) {
+    ret[ele.second] = ele.first;
+  }
+  return ret;
 }

@@ -6,22 +6,22 @@
 
 class ScrcpyOperation : public ITouchScreenOperation {
 public:
-    ScrcpyOperation(const std::string &ip, uint16_t port);
+  ScrcpyOperation(const std::string &ip, uint16_t port);
 
-    ~ScrcpyOperation() override;
+  ~ScrcpyOperation() override;
 
-    bool Init() override;
+  bool Init() override;
 
-    void Click(uint16_t x, uint16_t y) override;
-
-private:
-    void SendPressDown(uint16_t x, uint16_t y);
-
-    void SendPressUp(uint16_t x, uint16_t y);
+  void Click(uint16_t x, uint16_t y) override;
 
 private:
-    std::string ip_;
-    uint16_t server_port_;
-    int socket_;
-    std::mutex mutex_;
+  void SendPressDown(uint16_t x, uint16_t y);
+
+  void SendPressUp(uint16_t x, uint16_t y);
+
+private:
+  std::string ip_;
+  uint16_t server_port_;
+  int socket_;
+  std::mutex mutex_;
 };

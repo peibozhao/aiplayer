@@ -313,6 +313,18 @@ modes:
       - page: '对话框-新角色'
         actions:
           - {type: 'over'}
+  - name: '12-2'
+    inherit: ['base-common', 'base-main-attack']
+    page_actions:
+      - page: '章节选择-困难-.*'
+        actions:
+          - {type: 'click', pattern: '普通'}
+      - page: '章节选择-普通-12章'
+        actions:
+          - {type: 'click', pattern: '12-2.*'}
+      - page: '对话框-新角色'
+        actions:
+          - {type: 'over'}
   - name: 'hard-10-2'
     inherit: ['base-common', 'base-main-attack']
     page_actions:
@@ -333,7 +345,7 @@ modes:
           - {type: 'click', point: [0.56, 0.37]}
       - page: '章节选择-特殊'
         actions:
-          - {type: 'click', pattern: 'D3.*'}
+          - {type: 'click', pattern: '.*临界点'}
       - page: '立刻前往'
         actions:
           - {type: 'click', pattern: '立刻前往'}

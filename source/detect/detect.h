@@ -8,21 +8,21 @@
 
 #pragma once
 
+#include "common/common.h"
+#include <opencv2/core.hpp>
 #include <string>
 #include <vector>
-#include <opencv2/core.hpp>
-#include "common/common.h"
 
 struct ObjectBox {
-    std::string name;
-    RectangleI region;
+  std::string class_name;
+  RectangleI region;
 };
 
 class IObjectDetect {
 public:
-    virtual ~IObjectDetect() {}
+  virtual ~IObjectDetect() {}
 
-    virtual bool Init() { return true; }
+  virtual bool Init() { return true; }
 
-    virtual std::vector<ObjectBox> Detect(const cv::Mat &image) = 0;
+  virtual std::vector<ObjectBox> Detect(const cv::Mat &image) = 0;
 };
