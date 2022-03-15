@@ -50,13 +50,18 @@ public:
   std::vector<PlayOperation>
   Play(const std::vector<Element> &elements) override;
 
-  bool SetMode(const std::string &mode) override;
+  bool SetMode(const std::string &mode_name) override;
 
   std::string GetMode() override;
 
-  void RegisterSpecialPage(const std::string &page_name,
-                           std::function<std::vector<PlayOperation>>(
-                               const std::vector<Element> &elements));
+protected:
+  virtual void RegisterSpecialPages() {}
+
+  void RegisterSpecialPage(const std::string &mode_name,
+                           const std::string &page_name,
+                           std::function<std::vector<PlayOperation>(
+                               const std::vector<Element> &elements)>
+                               func);
 
 private:
   std::vector<PlayOperation>
@@ -69,4 +74,9 @@ private:
 
   std::mutex mode_mutex_;
   const ModeConfig *mode_;
+
+  std::map<std::tuple<std::string, std::string>,
+           std::function<std::vector<PlayOperation>(
+               const std::vector<Element> &elements)>>
+      special_page_actions_;
 };

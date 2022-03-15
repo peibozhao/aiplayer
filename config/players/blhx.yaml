@@ -1,4 +1,4 @@
-type: 'common'
+type: 'blhx'
 name: 'blhx'
 pages:
   - name: '弹出窗口-演习次数不足'
@@ -68,6 +68,10 @@ pages:
     conditions:
       - {pattern: '第13章', x_range: [0., 0.3], y_range: [0., 0.3]}
       - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
+  - name: '章节选择-普通-14章'
+    conditions:
+      - {pattern: '第14章', x_range: [0., 0.3], y_range: [0., 0.3]}
+      - {pattern: '困难', x_range: [0., 0.2], y_range: [0.8, 1.]}
   - name: '章节选择-困难-1章'
     conditions:
       - {pattern: '第1章', x_range: [0., 0.3], y_range: [0., 0.3]}
@@ -119,6 +123,10 @@ pages:
   - name: '章节选择-困难-13章'
     conditions:
       - {pattern: '第13章', x_range: [0., 0.3], y_range: [0., 0.3]}
+      - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
+  - name: '章节选择-困难-14章'
+    conditions:
+      - {pattern: '第14章', x_range: [0., 0.3], y_range: [0., 0.3]}
       - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
   - name: '章节选择-特殊'
     conditions:
@@ -209,7 +217,7 @@ pages:
       - {pattern: '困难', x_range: [0.8, 1.], y_range: [0.3, 0.5]}
 modes:
   # base mode
-  - name: 'base-common'  # 对所有模式都可以忽略的窗口
+  - name: 'base'  # 对所有模式都可以忽略的窗口
     page_actions:
       - page: '个人信息'
         actions:
@@ -238,7 +246,7 @@ modes:
       - page: '对话框-暂停战斗'
         actions:
           - {type: 'click', pattern: '继续战斗'}
-  - name: 'base-main-attack'  # 主线任务
+  - name: 'base-main'  # 主线
     page_actions:
       - page: '主页'
         actions:
@@ -270,9 +278,24 @@ modes:
       - page: '对话框-石油不足'
         actions:
           - {type: 'over'}
+  - name: 'base-main-common'
+    inherit: ['base-main']
+    page_actions:
+      - page: '章节选择-困难-.*'
+        actions:
+          - {type: 'click', pattern: '普通'}
+  - name: 'base-main-hard'
+    inherit: ['base-main']
+    page_actions:
+      - page: '章节选择-普通-.*'
+        actions:
+          - {type: 'click', pattern: '困难'}
+      - page: '弹出窗口-困难关卡次数不足'
+        actions:
+          - {type: 'over'}
   # real mode
-  - name: 'return'
-    inherit: ['base-common']
+  - name: 'return'  # 返回主页
+    inherit: ['base']
     page_actions:
       - page: '主页'
         actions:
@@ -283,62 +306,234 @@ modes:
     undefined_page_actions:
       actions:
         - {type: 'click', point: [0.05, 0.1]}
+  # 主线
+  - name: '1-1'
+    inherit: ['base', 'base-main-common']
+  - name: '1-2'
+    inherit: ['base', 'base-main-common']
+  - name: '1-3'
+    inherit: ['base', 'base-main-common']
+  - name: '1-4'
+    inherit: ['base', 'base-main-common']
+  - name: '2-1'
+    inherit: ['base', 'base-main-common']
+  - name: '2-2'
+    inherit: ['base', 'base-main-common']
+  - name: '2-3'
+    inherit: ['base', 'base-main-common']
+  - name: '2-4'
+    inherit: ['base', 'base-main-common']
+  - name: '3-1'
+    inherit: ['base', 'base-main-common']
+  - name: '3-2'
+    inherit: ['base', 'base-main-common']
+  - name: '3-3'
+    inherit: ['base', 'base-main-common']
+  - name: '3-4'
+    inherit: ['base', 'base-main-common']
+  - name: '4-1'
+    inherit: ['base', 'base-main-common']
+  - name: '4-2'
+    inherit: ['base', 'base-main-common']
+  - name: '4-3'
+    inherit: ['base', 'base-main-common']
+  - name: '4-4'
+    inherit: ['base', 'base-main-common']
+  - name: '5-1'
+    inherit: ['base', 'base-main-common']
+  - name: '5-2'
+    inherit: ['base', 'base-main-common']
+  - name: '5-3'
+    inherit: ['base', 'base-main-common']
+  - name: '5-4'
+    inherit: ['base', 'base-main-common']
+  - name: '6-1'
+    inherit: ['base', 'base-main-common']
+  - name: '6-2'
+    inherit: ['base', 'base-main-common']
+  - name: '6-3'
+    inherit: ['base', 'base-main-common']
+  - name: '6-4'
+    inherit: ['base', 'base-main-common']
+  - name: '7-1'
+    inherit: ['base', 'base-main-common']
+  - name: '7-2'
+    inherit: ['base', 'base-main-common']
   - name: '7-3'
-    inherit: ['base-common', 'base-main-attack']
-    page_actions:
-      - page: '章节选择-困难-.*'
-        actions:
-          - {type: 'click', pattern: '普通'}
-      - page: '章节选择-普通-7章'
-        actions:
-          - {type: 'click', pattern: '7-3.*'}
+    inherit: ['base', 'base-main-common']
+  - name: '7-4'
+    inherit: ['base', 'base-main-common']
+  - name: '8-1'
+    inherit: ['base', 'base-main-common']
+  - name: '8-2'
+    inherit: ['base', 'base-main-common']
+  - name: '8-3'
+    inherit: ['base', 'base-main-common']
+  - name: '8-4'
+    inherit: ['base', 'base-main-common']
+  - name: '9-1'
+    inherit: ['base', 'base-main-common']
+  - name: '9-2'
+    inherit: ['base', 'base-main-common']
+  - name: '9-3'
+    inherit: ['base', 'base-main-common']
+  - name: '9-4'
+    inherit: ['base', 'base-main-common']
+  - name: '10-1'
+    inherit: ['base', 'base-main-common']
+  - name: '10-2'
+    inherit: ['base', 'base-main-common']
+  - name: '10-3'
+    inherit: ['base', 'base-main-common']
   - name: '10-4'
-    inherit: ['base-common', 'base-main-attack']
-    page_actions:
-      - page: '章节选择-困难-.*'
-        actions:
-          - {type: 'click', pattern: '普通'}
-      - page: '章节选择-普通-10章'
-        actions:
-          - {type: 'click', pattern: '10-4.*'}
+    inherit: ['base', 'base-main-common']
+  - name: '11-1'
+    inherit: ['base', 'base-main-common']
+  - name: '11-2'
+    inherit: ['base', 'base-main-common']
   - name: '11-3'
-    inherit: ['base-common', 'base-main-attack']
-    page_actions:
-      - page: '章节选择-困难-.*'
-        actions:
-          - {type: 'click', pattern: '普通'}
-      - page: '章节选择-普通-11章'
-        actions:
-          - {type: 'click', pattern: '11-3.*'}
-      - page: '对话框-新角色'
-        actions:
-          - {type: 'over'}
+    inherit: ['base', 'base-main-common']
+  - name: '11-4'
+    inherit: ['base', 'base-main-common']
+  - name: '12-1'
+    inherit: ['base', 'base-main-common']
   - name: '12-2'
-    inherit: ['base-common', 'base-main-attack']
-    page_actions:
-      - page: '章节选择-困难-.*'
-        actions:
-          - {type: 'click', pattern: '普通'}
-      - page: '章节选择-普通-12章'
-        actions:
-          - {type: 'click', pattern: '12-2.*'}
-      - page: '对话框-新角色'
-        actions:
-          - {type: 'over'}
+    inherit: ['base', 'base-main-common']
+  - name: '12-3'
+    inherit: ['base', 'base-main-common']
+  - name: '12-4'
+    inherit: ['base', 'base-main-common']
+  - name: '13-1'
+    inherit: ['base', 'base-main-common']
+  - name: '13-2'
+    inherit: ['base', 'base-main-common']
+  - name: '13-3'
+    inherit: ['base', 'base-main-common']
+  - name: '13-4'
+    inherit: ['base', 'base-main-common']
+  - name: '14-1'
+    inherit: ['base', 'base-main-common']
+  - name: '14-2'
+    inherit: ['base', 'base-main-common']
+  - name: '14-3'
+    inherit: ['base', 'base-main-common']
+  - name: '14-4'
+    inherit: ['base', 'base-main-common']
+  - name: 'hard-1-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-1-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-1-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-1-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-2-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-2-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-2-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-2-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-3-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-3-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-3-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-3-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-4-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-4-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-4-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-4-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-5-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-5-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-5-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-5-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-6-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-6-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-6-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-6-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-7-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-7-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-7-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-7-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-8-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-8-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-8-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-8-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-9-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-9-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-9-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-9-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-10-1'
+    inherit: ['base', 'base-main-hard']
   - name: 'hard-10-2'
-    inherit: ['base-common', 'base-main-attack']
-    page_actions:
-      - page: '章节选择-普通-.*'
-        actions:
-          - {type: 'click', pattern: '困难'}
-      - page: '章节选择-困难-10章'
-        actions:
-          - {type: 'click', pattern: '10-2.*'}
-      - page: '弹出窗口-困难关卡次数不足'
-        actions:
-          - {type: 'over'}
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-10-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-10-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-11-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-11-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-11-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-11-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-12-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-12-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-12-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-12-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-13-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-13-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-13-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-13-4'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-14-1'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-14-2'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-14-3'
+    inherit: ['base', 'base-main-hard']
+  - name: 'hard-14-4'
+    inherit: ['base', 'base-main-hard']
+  # 活动
   - name: 'special'  # 需要选择章节的那种活动
-    inherit: ['base-common']
+    inherit: ['base']
     page_actions:
       - page: '主页'
         actions:
@@ -362,7 +557,7 @@ modes:
         actions:
           - {type: 'over'}
   - name: 'special2'  # 只需要选择普通 困难的那种活动
-    inherit: ['base-common']
+    inherit: ['base']
     page_actions:
       - page: '主页'
         actions:
@@ -392,7 +587,7 @@ modes:
         actions:
           - {type: 'over'}
   - name: 'auxiliary'  # 手动刷图(没达到自律)
-    inherit: ['base-common']
+    inherit: ['base']
     page_actions:
       - page: '立刻前往'
         actions:
@@ -412,8 +607,8 @@ modes:
     undefined_page_actions:
       actions:
         - {type: 'sleep', time: 1000}
-  - name: 'exercise'
-    inherit: ['base-common']
+  - name: 'exercise'  # 演习
+    inherit: ['base']
     page_actions:
       - page: '主页'
         actions:
@@ -430,7 +625,7 @@ modes:
       - page: '编队出击'
         actions:
           - {type: 'click', pattern: '出击'}
-      - page: '战场' # '出击'直接进入战场
+      - page: '战场'  # '出击'直接进入战场
         actions:
           - {type: 'click', pattern: '迎击'}
       - page: '战斗失败建议'
@@ -445,4 +640,3 @@ modes:
       - page: '补给商店'
         actions:
           - {type: 'click', point: [0.05, 0.1]}
-

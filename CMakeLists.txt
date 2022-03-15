@@ -58,6 +58,7 @@ set(AIPLAYER_SOURCE_LIST
     source/output/notify/miao_notify.cpp
     source/ocr/paddle_ocr.cpp
     source/player/common_player.cpp
+    source/player/blhx_player.cpp
     source/utils/util_functions.cpp
     )
 

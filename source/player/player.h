@@ -49,7 +49,7 @@ public:
   virtual std::string Name() { return name_; }
 
   /// @brief 设置mode
-  virtual bool SetMode(const std::string &mode) { return false; }
+  virtual bool SetMode(const std::string &mode_name) { return false; }
 
   /// @brief 当前mode
   virtual std::string GetMode() { return ""; }

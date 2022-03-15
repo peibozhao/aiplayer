@@ -75,6 +75,8 @@ bool CommonPlayer::Init() {
       }
     }
   }
+
+  RegisterSpecialPages();
   return true;
 }
 
@@ -92,6 +94,17 @@ CommonPlayer::Play(const std::vector<Element> &elements) {
     }
     DLOG(INFO) << "Detect page " << page_config.name;
 
+    std::vector<PlayOperation> ret;
+    // Special page
+    auto special_page_action_iter = special_page_actions_.find(
+        std::make_tuple(mode_->name, page_config.name));
+    if (special_page_action_iter != special_page_actions_.end()) {
+      DLOG(INFO) << "Special page: "
+                 << std::get<0>(special_page_action_iter->first) << " "
+                 << std::get<1>(special_page_action_iter->first);
+      ret = special_page_action_iter->second(elements);
+    }
+
     // Return page actions
     auto iter = mode_->page_pattern_actions.begin();
     for (; iter != mode_->page_pattern_actions.end(); ++iter) {
@@ -99,13 +112,16 @@ CommonPlayer::Play(const std::vector<Element> &elements) {
         break;
       }
     }
-    std::vector<PlayOperation> ret;
+
+    std::vector<PlayOperation> page_operations;
     if (iter != mode_->page_pattern_actions.end()) {
-      ret = CreatePlayOperation(elements, std::get<1>(*iter));
+      page_operations = CreatePlayOperation(elements, std::get<1>(*iter));
     } else {
       DLOG(INFO) << "Other page operation";
-      ret = CreatePlayOperation(elements, mode_->other_page_actions);
+      page_operations =
+          CreatePlayOperation(elements, mode_->other_page_actions);
     }
+    ret.insert(ret.end(), page_operations.begin(), page_operations.end());
     return ret;
   }
 
@@ -114,22 +130,31 @@ CommonPlayer::Play(const std::vector<Element> &elements) {
   return CreatePlayOperation(elements, mode_->undefined_page_actions);
 }
 
-bool CommonPlayer::SetMode(const std::string &mode) {
+bool CommonPlayer::SetMode(const std::string &mode_name) {
   std::lock_guard<std::mutex> lock(mode_mutex_);
   for (const auto &mode_config : mode_configs_) {
-    if (mode_config.name == mode) {
+    if (mode_config.name == mode_name) {
       mode_ = &mode_config;
       LOG(INFO) << "Player mode " << mode_->name;
       return true;
     }
   }
-  LOG(ERROR) << "Unsupport mode " << mode;
+  LOG(ERROR) << "Unsupport mode " << mode_name;
   return false;
 }
 
 std::string CommonPlayer::GetMode() {
   std::lock_guard<std::mutex> lock(mode_mutex_);
   return mode_->name;
+}
+
+void CommonPlayer::RegisterSpecialPage(
+    const std::string &mode_name, const std::string &page_name,
+    std::function<
+        std::vector<PlayOperation>(const std::vector<Element> &elements)>
+        func) {
+  LOG(INFO) << "Register special page: " << mode_name << " " << page_name;
+  special_page_actions_[std::make_tuple(mode_name, page_name)] = func;
 }
 
 std::vector<PlayOperation> CommonPlayer::CreatePlayOperation(

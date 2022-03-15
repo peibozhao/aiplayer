@@ -12,6 +12,7 @@
 #include "output/operation/minitouch_operation.h"
 #include "output/operation/scrcpy_operation.h"
 #include "parser/yaml_parser.h"
+#include "player/blhx_player.h"
 #include "player/common_player.h"
 #include "utils/util_functions.h"
 #include <filesystem>
@@ -35,9 +36,7 @@ void CommonApplication::Start() {
   while (true) {
     // Check application status
     std::unique_lock<std::mutex> lock(mutex_);
-    con_.wait(lock, [this] {
-      return status_ != ApplicationStatus::Pausing;
-    });
+    con_.wait(lock, [this] { return status_ != ApplicationStatus::Pausing; });
     if (status_ == ApplicationStatus::Stopped) {
       LOG(INFO) << "Application stoped";
       break;
@@ -88,11 +87,10 @@ void CommonApplication::Start() {
     std::vector<PlayOperation> play_operations =
         player_->Play(get_page_element_with_ocr_and_detect(text_boxes, {}));
     TimeLog operation_time_log("Operation");
-    const auto get_point_with_scale =
-        [width = image.cols,
-         height = image.rows](const ClickOperation &operation) {
-          return std::make_pair(width * operation.x, height * operation.y);
-        };
+    const auto get_point_with_scale = [width = image.cols, height = image.rows](
+                                          const ClickOperation &operation) {
+      return std::make_pair(width * operation.x, height * operation.y);
+    };
     for (const PlayOperation &play_operation : play_operations) {
       switch (play_operation.type) {
       case PlayOperationType::SCREEN_CLICK: {
@@ -229,7 +227,7 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
 
     std::shared_ptr<IPlayer> player(CreatePlayer(player_config_path.string()));
     if (!player || !player->Init()) {
-      LOG(ERROR) << "Player init failed. " << player->Name();
+      LOG(ERROR) << "Player init failed. " << player_config_path;
       continue;
     }
     LOG(INFO) << "Player init success. " << player->Name();
@@ -341,11 +339,7 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
 }
 
 IPlayer *CommonApplication::CreatePlayer(const std::string &config_path) {
-  LOG(INFO) << "Load player " << config_path;
-  IPlayer *ret = nullptr;
-  YAML::Node player_yaml = YAML::LoadFile(config_path);
-  std::string player_name = player_yaml["name"].as<std::string>();
-  if (player_yaml["type"].as<std::string>() == "common") {
+  static const auto parse_page_configs = [](const YAML::Node player_yaml) {
     std::vector<PageConfig> page_configs;
     for (const auto &page_yaml : player_yaml["pages"]) {
       PageConfig page_config;
@@ -357,13 +351,30 @@ IPlayer *CommonApplication::CreatePlayer(const std::string &config_path) {
       }
       page_configs.push_back(page_config);
     }
-
+    return page_configs;
+  };
+  static const auto parse_mode_configs = [](const YAML::Node player_yaml) {
     std::vector<ModeConfig> mode_configs;
     for (const auto &mode_yaml : player_yaml["modes"]) {
       ModeConfig mode_config = GetModeConfig(mode_yaml, mode_configs);
       mode_configs.push_back(mode_config);
     }
+    return mode_configs;
+  };
+
+  LOG(INFO) << "Load player " << config_path;
+  IPlayer *ret = nullptr;
+  YAML::Node player_yaml = YAML::LoadFile(config_path);
+  std::string player_name = player_yaml["name"].as<std::string>();
+  std::string player_type = player_yaml["type"].as<std::string>();
+  if (player_type == "common") {
+    auto page_configs = parse_page_configs(player_yaml);
+    auto mode_configs = parse_mode_configs(player_yaml);
     ret = new CommonPlayer(player_name, page_configs, mode_configs);
+  } else if (player_type == "blhx") {
+    auto page_configs = parse_page_configs(player_yaml);
+    auto mode_configs = parse_mode_configs(player_yaml);
+    ret = new BlhxPlayer(player_name, page_configs, mode_configs);
   }
   return ret;
 }
