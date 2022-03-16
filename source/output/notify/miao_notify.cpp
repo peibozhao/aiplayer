@@ -20,6 +20,7 @@ bool MiaoNotify::Notify(const std::string &message) {
   while (retry_count--) {
     httplib::Result http_ret = client_->Post(
         "/trigger", request_body.c_str(), "application/x-www-form-urlencoded");
+    DLOG(INFO) << "Notify response: " << http_ret->body;
     if (http_ret->status != 200) {
       LOG(ERROR) << "Notify http failed " << http_ret->status << " "
                  << http_ret->reason;

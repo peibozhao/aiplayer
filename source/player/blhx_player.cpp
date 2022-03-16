@@ -20,24 +20,17 @@ BlhxPlayer::BlhxPlayer(const std::string &name,
 void BlhxPlayer::RegisterSpecialPages() {
   static const int chapter_num = 14;
   static const int section_num = 4;
+  static const float prev_chapter_x = 0.05;
+  static const float prev_chapter_y = 0.5;
+  static const float next_chapter_x = 0.95;
+  static const float next_chapter_y = 0.5;
 
-  auto click_prev_func = [](const std::vector<Element> &elements) {
-    static const float prev_chapter_x = 0.05;
-    static const float prev_chapter_y = 0.5;
+  auto click_point_func = [](const std::vector<Element> &elements, float x,
+                             float y) {
     PlayOperation click_operation;
     click_operation.type = PlayOperationType::SCREEN_CLICK;
     click_operation.click.x = prev_chapter_x;
     click_operation.click.y = prev_chapter_y;
-    return std::vector<PlayOperation>({click_operation});
-  };
-
-  auto click_next_func = [](const std::vector<Element> &elements) {
-    static const float next_chapter_x = 0.95;
-    static const float next_chapter_y = 0.5;
-    PlayOperation click_operation;
-    click_operation.type = PlayOperationType::SCREEN_CLICK;
-    click_operation.click.x = next_chapter_x;
-    click_operation.click.y = next_chapter_y;
     return std::vector<PlayOperation>({click_operation});
   };
 
@@ -76,18 +69,22 @@ void BlhxPlayer::RegisterSpecialPages() {
            ++before_chapter_idx) {
         RegisterSpecialPage(common_mode_name,
                             GetCommonPageName(before_chapter_idx),
-                            click_next_func);
+                            std::bind(click_point_func, std::placeholders::_1,
+                                      next_chapter_x, next_chapter_y));
         RegisterSpecialPage(hard_mode_name, GetHardPageName(before_chapter_idx),
-                            click_next_func);
+                            std::bind(click_point_func, std::placeholders::_1,
+                                      next_chapter_x, next_chapter_y));
       }
 
       for (int behind_chapter_idx = chapter_idx + 1;
            behind_chapter_idx < chapter_num; ++behind_chapter_idx) {
         RegisterSpecialPage(common_mode_name,
                             GetCommonPageName(behind_chapter_idx),
-                            click_prev_func);
+                            std::bind(click_point_func, std::placeholders::_1,
+                                      prev_chapter_x, prev_chapter_y));
         RegisterSpecialPage(hard_mode_name, GetHardPageName(behind_chapter_idx),
-                            click_prev_func);
+                            std::bind(click_point_func, std::placeholders::_1,
+                                      prev_chapter_x, prev_chapter_y));
       }
     }
   }

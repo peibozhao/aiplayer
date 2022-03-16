@@ -7,6 +7,10 @@ pages:
   - name: '弹出窗口-困难关卡次数不足'
     conditions:
       - {pattern: '困难关卡每日挑战次数已达上限'}
+  - name: '登陆页面'
+    conditions:
+      - {pattern: '碧蓝航线', x_range: [0., 0.2], y_range: [0., 0.2]}
+      - {pattern: '服务器', x_range: [0.3, 0.5], y_range: [0.7, 0.9]}
   - name: '主页'
     conditions:
       - {pattern: '出击', x_range: [0.7, 1.], y_range: [0.4, 0.5]}
@@ -205,6 +209,10 @@ pages:
       - {pattern: '信息', x_range: [0., 0.5], y_range: [0., 0.5]}
       - {pattern: '是否锁定该角色？', x_range: [0.4, 0.6], y_range: [0.4, 0.6]}
       - {pattern: '确定', x_range: [0.3, 0.5], y_range: [0.5, 0.8]}
+  - name: '对话框-系统公告'
+    conditions:
+      - {pattern: '系统公告', x_range: [0.1, 0.2], y_range: [0., 0.2]}
+      - {pattern: '今日不再显示', x_range: [0.7, 0.8], y_range: [0., 0.2]}
   - name: '对话框-应援' # 活动
     conditions:
       - {pattern: '知道了'}
@@ -219,9 +227,13 @@ modes:
   # base mode
   - name: 'base'  # 对所有模式都可以忽略的窗口
     page_actions:
+      - page: '登陆页面'
+        actions:
+          - {type: 'click', point: [0.5, 0.5]}
       - page: '个人信息'
         actions:
           - {type: 'click', point: [0.05, 0.1]}
+          - {type: 'sleep', time: 100}  # animation
       - page: '战斗评价'
         actions:
             - {type: 'click', pattern: '战斗评价'}
@@ -246,6 +258,9 @@ modes:
       - page: '对话框-暂停战斗'
         actions:
           - {type: 'click', pattern: '继续战斗'}
+      - page: '对话框-系统公告'
+        actions:
+          - {type: 'click', pattern: 'X'}  # 右上角的关闭按钮
   - name: 'base-main'  # 主线
     page_actions:
       - page: '主页'
