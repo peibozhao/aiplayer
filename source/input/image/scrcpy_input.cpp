@@ -15,7 +15,9 @@ ScrcpyInput::ScrcpyInput(const std::string &ip, uint16_t port) {
 
 ScrcpyInput::~ScrcpyInput() {
   is_running_ = false;
-  recv_thread_->join();
+  if (recv_thread_ && recv_thread_->joinable()) {
+    recv_thread_->join();
+  }
 };
 
 bool ScrcpyInput::Init() {

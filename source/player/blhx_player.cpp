@@ -29,8 +29,8 @@ void BlhxPlayer::RegisterSpecialPages() {
                              float y) {
     PlayOperation click_operation;
     click_operation.type = PlayOperationType::SCREEN_CLICK;
-    click_operation.click.x = prev_chapter_x;
-    click_operation.click.y = prev_chapter_y;
+    click_operation.click.x = x;
+    click_operation.click.y = y;
     return std::vector<PlayOperation>({click_operation});
   };
 

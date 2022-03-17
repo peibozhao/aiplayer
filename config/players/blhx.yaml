@@ -11,6 +11,9 @@ pages:
     conditions:
       - {pattern: '碧蓝航线', x_range: [0., 0.2], y_range: [0., 0.2]}
       - {pattern: '服务器', x_range: [0.3, 0.5], y_range: [0.7, 0.9]}
+  - name: '活动页面'
+    conditions:
+      - {pattern: '活动总览', x_range: [0., 0.2], y_range: [0., 0.1]}
   - name: '主页'
     conditions:
       - {pattern: '出击', x_range: [0.7, 1.], y_range: [0.4, 0.5]}
@@ -132,10 +135,10 @@ pages:
     conditions:
       - {pattern: '第14章', x_range: [0., 0.3], y_range: [0., 0.3]}
       - {pattern: '普通', x_range: [0., 0.2], y_range: [0.8, 1.]}
-  - name: '章节选择-特殊'
+  - name: '章节选择-特殊'  # 活动的出击没有左下角的困难/普通
     conditions:
       - {pattern: '出击', x_range: [0., 0.3], y_range: [0., 0.2]}
-      - {pattern: '作战补给', x_range: [0.8, 1.], y_range: [0.8, 1.]}
+      - {pattern: '演习', x_range: [0.8, 1.], y_range: [0.8, 1.]}
   - name: '立刻前往'
     conditions:
       - {pattern: '立刻前往', y_range: [0.5, 1]}
@@ -230,6 +233,9 @@ modes:
       - page: '登陆页面'
         actions:
           - {type: 'click', point: [0.5, 0.5]}
+      - page: '活动页面'
+        actions:
+          - {type: 'click', point: [0.05, 0.1]}
       - page: '个人信息'
         actions:
           - {type: 'click', point: [0.05, 0.1]}
@@ -546,61 +552,6 @@ modes:
     inherit: ['base', 'base-main-hard']
   - name: 'hard-14-4'
     inherit: ['base', 'base-main-hard']
-  # 活动
-  - name: 'special'  # 需要选择章节的那种活动
-    inherit: ['base']
-    page_actions:
-      - page: '主页'
-        actions:
-          - {type: 'click', point: [0.56, 0.37]}
-      - page: '章节选择-特殊'
-        actions:
-          - {type: 'click', pattern: '.*临界点'}
-      - page: '立刻前往'
-        actions:
-          - {type: 'click', pattern: '立刻前往'}
-      - page: '再次前往'
-        actions:
-          - {type: 'click', pattern: '再次前往'}
-      - page: '对话框-船坞已满'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-低心情状态'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-石油不足'
-        actions:
-          - {type: 'over'}
-  - name: 'special2'  # 只需要选择普通 困难的那种活动
-    inherit: ['base']
-    page_actions:
-      - page: '主页'
-        actions:
-          - {type: 'click', point: [0.56, 0.37]}
-      - page: '特别作战'
-        actions:
-          - {type: 'click', pattern: '困难'}
-      - page: '立刻前往'
-        actions:
-          - {type: 'click', pattern: '立刻前往'}
-      - page: '编队出击'
-        actions:
-          - {type: 'click', pattern: '出击'}
-      - page: '再次挑战'
-        actions:
-          - {type: 'click', pattern: '再次挑战'}
-      - page: '对话框-消耗'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-船坞已满'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-低心情状态'
-        actions:
-          - {type: 'over'}
-      - page: '对话框-石油不足'
-        actions:
-          - {type: 'over'}
   - name: 'auxiliary'  # 手动刷图(没达到自律)
     inherit: ['base']
     page_actions:
@@ -655,3 +606,58 @@ modes:
       - page: '补给商店'
         actions:
           - {type: 'click', point: [0.05, 0.1]}
+  # 活动
+  - name: 'special'  # 需要选择章节的那种活动
+    inherit: ['base']
+    page_actions:
+      - page: '主页'
+        actions:
+          - {type: 'click', point: [0.56, 0.37]}
+      - page: '章节选择-特殊'
+        actions:
+          - {type: 'click', pattern: 'SP3.*'}
+      - page: '立刻前往'
+        actions:
+          - {type: 'click', pattern: '立刻前往'}
+      - page: '再次前往'
+        actions:
+          - {type: 'click', pattern: '再次前往'}
+      - page: '对话框-船坞已满'
+        actions:
+          - {type: 'over'}
+      - page: '对话框-低心情状态'
+        actions:
+          - {type: 'over'}
+      - page: '对话框-石油不足'
+        actions:
+          - {type: 'over'}
+  - name: 'special2'  # 只需要选择普通 困难的那种活动
+    inherit: ['base']
+    page_actions:
+      - page: '主页'
+        actions:
+          - {type: 'click', point: [0.56, 0.37]}
+      - page: '特别作战'
+        actions:
+          - {type: 'click', pattern: '困难'}
+      - page: '立刻前往'
+        actions:
+          - {type: 'click', pattern: '立刻前往'}
+      - page: '编队出击'
+        actions:
+          - {type: 'click', pattern: '出击'}
+      - page: '再次挑战'
+        actions:
+          - {type: 'click', pattern: '再次挑战'}
+      - page: '对话框-消耗'
+        actions:
+          - {type: 'over'}
+      - page: '对话框-船坞已满'
+        actions:
+          - {type: 'over'}
+      - page: '对话框-低心情状态'
+        actions:
+          - {type: 'over'}
+      - page: '对话框-石油不足'
+        actions:
+          - {type: 'over'}

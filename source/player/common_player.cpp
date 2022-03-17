@@ -61,12 +61,13 @@ bool CommonPlayer::Init() {
   }
   mode_ = &mode_configs_.front();
   for (const ModeConfig &mode_config : mode_configs_) {
+    DLOG(INFO) << "Mode: " << mode_config.name;
     for (const auto &pattern_action : mode_config.page_pattern_actions) {
       bool has_page = false;
       for (const PageConfig &page_config : page_configs_) {
         if (std::regex_match(page_config.name, std::get<0>(pattern_action))) {
+          DLOG(INFO) << "Page: " << page_config.name;
           has_page = true;
-          break;
         }
       }
       if (!has_page) {

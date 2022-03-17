@@ -57,8 +57,10 @@ ModeConfig GetModeConfig(const YAML::Node &yaml_node,
     std::for_each(mode_configs.begin(), mode_configs.end(),
                   [&ret, inherit_name](const ModeConfig &mode_config) {
                     if (mode_config.name == inherit_name) {
-                      ret.page_pattern_actions =
-                          mode_config.page_pattern_actions;
+                      ret.page_pattern_actions.insert(
+                          ret.page_pattern_actions.end(),
+                          mode_config.page_pattern_actions.begin(),
+                          mode_config.page_pattern_actions.end());
                     }
                   });
   }
