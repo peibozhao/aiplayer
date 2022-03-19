@@ -50,8 +50,8 @@ void BlhxPlayer::RegisterSpecialPages() {
     return std::vector<PlayOperation>({click_operation});
   };
 
-  for (int chapter_idx = 1; chapter_idx < chapter_num; ++chapter_idx) {
-    for (int section_idx = 1; section_idx < section_num; ++section_idx) {
+  for (int chapter_idx = 1; chapter_idx <= chapter_num; ++chapter_idx) {
+    for (int section_idx = 1; section_idx <= section_num; ++section_idx) {
       std::string common_mode_name =
           std::to_string(chapter_idx) + '-' + std::to_string(section_idx);
       std::string hard_mode_name = "hard-" + common_mode_name;
@@ -77,7 +77,7 @@ void BlhxPlayer::RegisterSpecialPages() {
       }
 
       for (int behind_chapter_idx = chapter_idx + 1;
-           behind_chapter_idx < chapter_num; ++behind_chapter_idx) {
+           behind_chapter_idx <= chapter_num; ++behind_chapter_idx) {
         RegisterSpecialPage(common_mode_name,
                             GetCommonPageName(behind_chapter_idx),
                             std::bind(click_point_func, std::placeholders::_1,

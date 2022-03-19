@@ -27,5 +27,5 @@ application:
   interval: 500
 
 players:
-  - include: players/blhx.yaml
-  - include: players/wyds.yaml
+  - path: players/blhx.yaml
+  - path: players/wyds.yaml

@@ -108,7 +108,7 @@ void CommonApplication::Start() {
         LOG(INFO) << "Application is over";
         status_ = ApplicationStatus::Pausing;
         if (notify_) {
-          LOG(INFO) << "Notify mode over: " << player_->GetMode();
+          DLOG(INFO) << "Notify mode over: " << player_->GetMode();
           if (!notify_->Notify("Mode " + player_->GetMode() + " is over")) {
             LOG(ERROR) << "Notify failed.";
           }
@@ -131,20 +131,20 @@ void CommonApplication::Start() {
 }
 
 void CommonApplication::Pause() {
-  LOG(INFO) << "Application pause";
+  DLOG(INFO) << "Application pause";
   std::lock_guard<std::mutex> lock(mutex_);
   status_ = ApplicationStatus::Pausing;
 }
 
 void CommonApplication::Continue() {
-  LOG(INFO) << "Application continue";
+  DLOG(INFO) << "Application continue";
   std::lock_guard<std::mutex> lock(mutex_);
   status_ = ApplicationStatus::Running;
   con_.notify_one();
 }
 
 void CommonApplication::Stop() {
-  LOG(INFO) << "Application stop";
+  DLOG(INFO) << "Application stop";
   std::lock_guard<std::mutex> lock(mutex_);
   status_ = ApplicationStatus::Stopped;
   con_.notify_one();
@@ -223,7 +223,7 @@ bool CommonApplication::InitWithYaml(const YAML::Node &yaml) {
   for (const auto &player_yaml : players_yaml) {
     std::filesystem::path player_config_path =
         std::filesystem::path(config_abs_path_).parent_path();
-    player_config_path /= player_yaml["include"].as<std::string>();
+    player_config_path /= player_yaml["path"].as<std::string>();
 
     std::shared_ptr<IPlayer> player(CreatePlayer(player_config_path.string()));
     if (!player || !player->Init()) {
@@ -430,7 +430,7 @@ bool CommonApplication::QueryStatusCallback(const std::string &request_str,
     response_str = "";
     break;
   }
-  LOG(INFO) << "Get status " << response_str;
+  DLOG(INFO) << "Get status " << response_str;
   return !response_str.empty();
 }
 
