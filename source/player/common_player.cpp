@@ -55,6 +55,7 @@ CommonPlayer::CommonPlayer(const std::string &name,
 CommonPlayer::~CommonPlayer() {}
 
 bool CommonPlayer::Init() {
+  DLOG(INFO) << "Player init. " << Name();
   if (mode_configs_.empty()) {
     LOG(ERROR) << "Mode is empty";
     return false;
