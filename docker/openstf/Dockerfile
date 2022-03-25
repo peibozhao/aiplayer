@@ -18,4 +18,4 @@ RUN sed -i '/Build/{N; d}' run.sh
 # run
 WORKDIR /
 COPY start.sh /
-CMD bash ./start.sh; /bin/bash
+CMD bash ./start.sh

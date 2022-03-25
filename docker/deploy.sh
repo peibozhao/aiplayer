@@ -29,7 +29,7 @@ while true; do
     esac
 done
 
-# Ocr
+# paddle ocr
 pushd paddleocr
 if [[ -z "$(docker images -q paddleocr)" ]]; then
     echo "--- Docker build"
@@ -54,28 +54,20 @@ else
 fi
 popd
 
-# OpenStf
-pushd openstf
-if [[ -z "$(docker images -q openstf)" ]]; then
+# scrcpy
+pushd scrcpy
+if [[ -z "$(docker images -q scrcpy)" ]]; then
     echo "--- Docker build"
-    docker build -t openstf .
+    docker build -t scrcpy .
 fi
-# Show home
-if [[ -x `command -v adb` ]]; then
-    echo "--- Kill adb server"
-    adb start-server
-    adb kill-server
-fi
-if [[ -n "$(docker ps -q -f name=openstf)" ]]; then
-    # minitouch must restart
-    echo "--- Docker restart"
-    docker restart openstf
-elif [[ -n "$(docker ps -a -q -f name=openstf)" ]]; then
+if [[ -n "$(docker ps -q -f name=scrcpy)" ]]; then
+    echo "--- Docker running"
+elif [[ -n "$(docker ps -a -q -f name=scrcpy)" ]]; then
     echo "--- Docker start"
-    docker start openstf
+    docker start scrcpy
 else
     echo "--- Docker run"
-    docker run -d --cap-add=ALL --device /dev/bus/usb:/dev/bus/usb -p 1111:1111 -p 1313:1313 --name openstf openstf
+    docker run -d --cap-add=ALL --device /dev/bus/usb:/dev/bus/usb -p 22331:22331 -p 22332:22332 --name scrcpy scrcpy
 fi
 popd
 

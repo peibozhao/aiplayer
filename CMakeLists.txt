@@ -38,7 +38,7 @@ include_directories(${json_SOURCE_DIR}/include)
 
 # http
 FetchContent_Declare(http
-    URL https://github.com.cnpmjs.org/yhirose/cpp-httplib/archive/refs/tags/v0.8.8.tar.gz
+    URL https://github.com/yhirose/cpp-httplib/archive/refs/tags/v0.8.8.tar.gz
     )
 FetchContent_MakeAvailable(http)
 include_directories(${http_SOURCE_DIR})
